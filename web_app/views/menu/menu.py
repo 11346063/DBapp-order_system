@@ -1,7 +1,7 @@
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from ..models import Menu
+from ...models import Menu
 
 # 權限要求：必須有 web_app.change_menu 權限的人才能進入
 class StaffRequiredMixin(PermissionRequiredMixin):
