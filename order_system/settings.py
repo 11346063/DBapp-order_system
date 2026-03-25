@@ -31,6 +31,8 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -115,11 +117,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
-
+# settings.py
+TIME_ZONE = 'Asia/Taipei'
 USE_I18N = True
-
-USE_TZ = True
+USE_TZ = True  # 必須是 True，Django 才會啟動時區轉換引擎
 
 
 # Static files (CSS, JavaScript, Images)
