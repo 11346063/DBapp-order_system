@@ -1,0 +1,16 @@
+<h2>新增種類</h2>
+<form method="POST">
+    {% csrf_token %}
+
+
+    <div>
+        <label for="id_type_name">標題：</label>
+        <input type="text" name="type_name" id="id_type_name"  value="{{ form.type_name.value|default_if_none:'' }}">
+        {{ form.type_name.errors }}
+    </div>
+
+    <button type="submit">送出</button>
+</form>
+
+<!-- 測試用 -->
+
