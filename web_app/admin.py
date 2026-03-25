@@ -98,3 +98,6 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(Type)
 admin.site.register(Options)
 admin.site.register(OptGroup)
+admin.site.register(OrderItem)
+# admin.site.register(User)
+admin.site.register(Order)
