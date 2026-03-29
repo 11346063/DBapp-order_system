@@ -1,0 +1,280 @@
+/* ===== Dark Theme (Default) ===== */
+[data-bs-theme="dark"] {
+    /* Bootstrap core overrides */
+    --bs-body-bg: #111111;
+    --bs-body-color: #ffffff;
+    --bs-border-color: #2a2a2a;
+    --bs-secondary-color: #aaaaaa;
+    --bs-tertiary-bg: #1A1A1A;
+    --bs-card-bg: #1A1A1A;
+    --bs-card-border-color: #2a2a2a;
+    /* Custom variables */
+    --primary-yellow: #F3E800;
+    --bg-dark: #111111;
+    --bg-body: #111111;
+    --card-bg: #1A1A1A;
+    --border-color: #2a2a2a;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --nav-bg: #111111;
+    --bottom-nav-bg: #1A1A1A;
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: #2a2a2a;
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Light Theme ===== */
+[data-bs-theme="light"] {
+    /* Bootstrap core overrides */
+    --bs-body-bg: #F5F0E0;
+    --bs-body-color: #1a1a1a;
+    --bs-border-color: #e0d9c4;
+    --bs-secondary-color: #666666;
+    --bs-tertiary-bg: #FFFFFF;
+    --bs-card-bg: #FFFFFF;
+    --bs-card-border-color: #e0d9c4;
+    /* Custom variables */
+    --primary-yellow: #F3E800;
+    --bg-dark: #F5F0E0;
+    --bg-body: #F5F0E0;
+    --card-bg: #FFFFFF;
+    --border-color: #e0d9c4;
+    --text-primary: #1a1a1a;
+    --text-secondary: #666666;
+    --nav-bg: #F5F0E0;
+    --bottom-nav-bg: #FFFFFF;
+    --input-bg: #FFFFFF;
+    --input-border: #d4cdb8;
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Global ===== */
+body {
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Mobile bottom nav spacing */
+@media (max-width: 767.98px) {
+    .main-content {
+        padding-bottom: 80px;
+    }
+}
+
+/* ===== Top Navbar ===== */
+.top-navbar {
+    background-color: var(--nav-bg);
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s;
+}
+
+/* Navbar icon action group */
+.nav-actions {
+    gap: 12px;
+}
+
+/* Unified icon button (theme, history, cart) */
+.nav-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.nav-icon-btn:hover {
+    background: rgba(243, 232, 0, 0.15);
+    border-color: var(--primary-yellow);
+    color: var(--primary-yellow);
+}
+
+/* ===== Bottom Navigation ===== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bottom-nav-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 64px;
+    z-index: 1050;
+    padding: 0 8px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    transition: background-color 0.3s;
+}
+
+/* Hide bottom nav on tablets and desktop */
+@media (min-width: 768px) {
+    .bottom-nav {
+        display: none !important;
+    }
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    padding: 6px 16px;
+    border-radius: 16px;
+    transition: all 0.2s;
+    gap: 2px;
+}
+
+.bottom-nav-item i {
+    font-size: 1.2rem;
+}
+
+.bottom-nav-item.active {
+    color: #000;
+    background-color: var(--primary-yellow);
+    font-weight: 600;
+}
+
+.bottom-nav-item:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+/* ===== Buttons ===== */
+.btn-primary,
+.btn-yellow {
+    background-color: var(--primary-yellow);
+    color: #000;
+    border: none;
+    font-weight: 600;
+}
+
+.btn-primary:hover,
+.btn-yellow:hover {
+    background-color: #d4c900;
+    color: #000;
+}
+
+.btn-primary:active,
+.btn-yellow:active {
+    background-color: #bab200 !important;
+    color: #000 !important;
+}
+
+/* ===== Cards ===== */
+.card-dark {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+/* ===== Badges ===== */
+.badge-yellow {
+    background-color: var(--primary-yellow);
+    color: #000;
+    font-weight: 600;
+}
+
+.text-yellow {
+    color: var(--primary-yellow) !important;
+}
+
+/* ===== Form Inputs (theme-aware) ===== */
+.form-control {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.form-control:focus {
+    background-color: var(--input-bg);
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 0.2rem rgba(243, 232, 0, 0.15);
+    color: var(--text-primary);
+}
+
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* ===== Dropdown (theme-aware) ===== */
+.dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+}
+
+.dropdown-item:hover {
+    background-color: rgba(243, 232, 0, 0.1);
+    color: var(--primary-yellow);
+}
+
+/* ===== Offcanvas (theme-aware) ===== */
+#profileOffcanvas {
+    background-color: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    max-height: 40vh;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+/* ===== Light-mode specific overrides ===== */
+[data-bs-theme="light"] .text-white {
+    color: var(--text-primary) !important;
+}
+
+[data-bs-theme="light"] .text-secondary {
+    color: var(--text-secondary) !important;
+}
+
+[data-bs-theme="light"] .btn-outline-light {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+[data-bs-theme="light"] .btn-outline-light:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
+[data-bs-theme="light"] .btn-close-white {
+    filter: none;
+}
+
+[data-bs-theme="light"] .btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}

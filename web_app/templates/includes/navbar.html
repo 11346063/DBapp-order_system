@@ -1,0 +1,51 @@
+{% load static %}
+<nav class="navbar sticky-top top-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'web_app:home' %}" style="color: var(--primary-yellow);">
+            <i class="bi bi-fire"></i> 絕佳食雞
+        </a>
+        <div class="d-flex align-items-center nav-actions">
+            <!-- Theme Toggle -->
+            <button class="nav-icon-btn" id="themeToggle" title="切換深淺模式">
+                <i class="bi bi-sun-fill theme-icon-light" style="display:none;"></i>
+                <i class="bi bi-moon-fill theme-icon-dark"></i>
+            </button>
+
+            <!-- Order History -->
+            {% if user.is_authenticated %}
+            <a href="{% url 'web_app:order_history' %}" class="nav-icon-btn" title="歷史訂單">
+                <i class="bi bi-clock-history"></i>
+            </a>
+            {% endif %}
+
+            <!-- Cart -->
+            <a href="{% url 'web_app:cart' %}" class="nav-icon-btn position-relative" title="購物車">
+                <i class="bi bi-cart3"></i>
+                {% if cart_count > 0 %}
+                <span class="position-absolute badge rounded-pill" style="top:-4px; right:-4px; background-color: var(--primary-yellow); color: #000; font-size: 0.65rem;">
+                    {{ cart_count }}
+                </span>
+                {% endif %}
+            </a>
+
+            <!-- User (Desktop only) -->
+            {% if user.is_authenticated %}
+            <div class="dropdown d-none d-md-flex">
+                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-person-circle"></i> {{ user.name|default:user.account }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'web_app:order_history' %}"><i class="bi bi-clock-history"></i> 歷史訂單</a></li>
+                    {% if user.is_staff %}
+                    <li><a class="dropdown-item" href="{% url 'web_app:staff_orders' %}"><i class="bi bi-clipboard-data"></i> 訂單管理</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'web_app:logout' %}"><i class="bi bi-box-arrow-right"></i> 登出</a></li>
+                </ul>
+            </div>
+            {% else %}
+            <a href="{% url 'web_app:login' %}" class="btn btn-sm d-none d-md-inline-block" style="background-color: var(--primary-yellow); color: #000; font-weight: 600;">登入</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>

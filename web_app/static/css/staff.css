@@ -1,0 +1,49 @@
+.staff-sidebar {
+    position: sticky;
+    top: 72px;
+    min-height: calc(100vh - 120px);
+    border-radius: 12px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #aaa;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.sidebar-link.active {
+    background: rgba(243, 232, 0, 0.1);
+    color: var(--primary-yellow);
+    font-weight: 600;
+}
+
+.staff-tab {
+    border-radius: 20px;
+    padding: 6px 16px;
+    color: #ccc;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.staff-tab:hover {
+    color: #fff;
+}
+
+.staff-tab.active {
+    background-color: var(--primary-yellow) !important;
+    color: #000 !important;
+    border-color: var(--primary-yellow) !important;
+    font-weight: 600;
+}

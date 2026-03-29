@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}註冊 — 絕佳食雞{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="card card-dark auth-card">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-fire fs-1 text-yellow"></i>
+                <h4 class="text-white mt-2">註冊</h4>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold mb-3">
+                    <i class="bi bi-person-plus"></i> 立即註冊
+                </button>
+            </form>
+
+            <div class="text-center">
+                <span class="text-secondary">已有帳號？</span>
+                <a href="{% url 'web_app:login' %}" class="text-yellow text-decoration-none">立即登入</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
