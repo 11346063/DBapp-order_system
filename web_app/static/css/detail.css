@@ -1,0 +1,53 @@
+#itemOffcanvas {
+    border-radius: 20px 20px 0 0;
+    background-color: var(--card-bg);
+    max-height: 70vh;
+}
+
+.drag-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    margin-bottom: 8px;
+}
+
+.detail-icon {
+    padding: 20px 0;
+}
+
+.qty-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.option-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.option-check input[type="checkbox"] {
+    accent-color: var(--primary-yellow);
+    width: 18px;
+    height: 18px;
+}
+
+.option-check .option-price {
+    margin-left: auto;
+    color: var(--primary-yellow);
+    font-size: 0.85rem;
+}
+
+#itemModal .modal-content {
+    border: 1px solid var(--border-color);
+}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="row g-0">
+    <!-- Desktop Sidebar -->
+    <div class="col-lg-3 d-none d-lg-block">
+        <div class="staff-sidebar card-dark p-3">
+            <h5 class="text-yellow mb-4"><i class="bi bi-clipboard-data"></i> 訂單管理</h5>
+            <nav class="nav flex-column gap-2">
+                <a class="nav-link sidebar-link {% if current_status == 0 %}active{% endif %}" href="?status=0">
+                    <i class="bi bi-clock"></i> 等待中
+                    <span class="badge badge-yellow ms-auto">{{ status_counts.0 }}</span>
+                </a>
+                <a class="nav-link sidebar-link {% if current_status == 1 %}active{% endif %}" href="?status=1">
+                    <i class="bi bi-check-circle"></i> 已完成
+                    <span class="badge bg-success ms-auto">{{ status_counts.1 }}</span>
+                </a>
+                <a class="nav-link sidebar-link {% if current_status == 2 %}active{% endif %}" href="?status=2">
+                    <i class="bi bi-x-circle"></i> 已取消
+                    <span class="badge bg-danger ms-auto">{{ status_counts.2 }}</span>
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Mobile Tabs -->
+    <div class="d-lg-none mb-3 w-100">
+        <ul class="nav nav-pills justify-content-center gap-2">
+            <li class="nav-item">
+                <a class="nav-link staff-tab {% if current_status == 0 %}active{% endif %}" href="?status=0">
+                    等待中 <span class="badge badge-yellow">{{ status_counts.0 }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link staff-tab {% if current_status == 1 %}active{% endif %}" href="?status=1">
+                    已完成 <span class="badge bg-success">{{ status_counts.1 }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link staff-tab {% if current_status == 2 %}active{% endif %}" href="?status=2">
+                    已取消 <span class="badge bg-danger">{{ status_counts.2 }}</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+        <div class="ps-lg-4">
+            {% block staff_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/staff.js' %}"></script>
+{% block staff_js %}{% endblock %}
+{% endblock %}

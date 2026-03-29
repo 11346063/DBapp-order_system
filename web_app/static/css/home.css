@@ -1,0 +1,59 @@
+.category-tabs-wrapper {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.category-tabs-wrapper::-webkit-scrollbar {
+    display: none;
+}
+
+.category-pill {
+    white-space: nowrap;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+
+.category-pill:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.category-pill.active {
+    background-color: var(--primary-yellow) !important;
+    color: #000 !important;
+    border-color: var(--primary-yellow) !important;
+    font-weight: 600;
+}
+
+.item-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+}
+
+.item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(243, 232, 0, 0.1);
+}
+
+.card-img-top-placeholder {
+    height: 140px;
+    background: linear-gradient(135deg, var(--card-bg), var(--border-color));
+}
+
+@media (max-width: 575.98px) {
+    .card-img-top-placeholder {
+        height: 110px;
+    }
+    .item-card .card-body {
+        padding: 10px !important;
+    }
+    .item-card .card-title {
+        font-size: 0.85rem;
+    }
+}

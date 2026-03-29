@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}付款 — 絕佳食雞{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payment.css' %}">
+{% endblock %}
+
+{% block content %}
+<h4 class="text-white mb-4"><i class="bi bi-credit-card"></i> 確認訂單</h4>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card card-dark">
+            <div class="card-header border-bottom border-secondary">
+                <h6 class="text-white mb-0">訂單明細</h6>
+            </div>
+            <div class="card-body">
+                {% for item in cart_items %}
+                <div class="d-flex justify-content-between align-items-start mb-3 {% if not forloop.last %}pb-3 border-bottom border-secondary{% endif %}">
+                    <div>
+                        <span class="text-white">{{ item.name }}</span>
+                        <span class="text-secondary small ms-2">x{{ item.quantity }}</span>
+                        {% if item.options %}
+                        <div class="text-secondary small">
+                            {% for opt in item.options %}
+                            <span class="me-2">+ {{ opt.name }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span class="text-yellow fw-bold">${{ item.subtotal }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card card-dark">
+            <div class="card-header border-bottom border-secondary">
+                <h6 class="text-white mb-0">顧客資訊</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-2">
+                    <span class="text-secondary">姓名：</span>
+                    <span class="text-white">{{ user.name }}</span>
+                </div>
+                {% if user.phone_number %}
+                <div class="mb-2">
+                    <span class="text-secondary">電話：</span>
+                    <span class="text-white">{{ user.phone_number }}</span>
+                </div>
+                {% endif %}
+                {% if user.address %}
+                <div class="mb-2">
+                    <span class="text-secondary">地址：</span>
+                    <span class="text-white">{{ user.address }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card card-dark mt-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary fs-5">總金額</span>
+                    <span class="text-yellow fs-4 fw-bold">${{ total }}</span>
+                </div>
+                <form method="POST" action="{% url 'web_app:order_submit' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
+                        <i class="bi bi-check-circle"></i> 確認送出訂單
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/payment.js' %}"></script>
+{% endblock %}

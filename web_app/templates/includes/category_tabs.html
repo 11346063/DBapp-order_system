@@ -1,0 +1,12 @@
+<div class="category-tabs-wrapper mb-4">
+    <ul class="nav nav-pills flex-nowrap overflow-auto" id="categoryTabs">
+        <li class="nav-item">
+            <button class="nav-link active category-pill" data-type-id="all">全部</button>
+        </li>
+        {% for type in types %}
+        <li class="nav-item">
+            <button class="nav-link category-pill" data-type-id="{{ type.id }}">{{ type.type_name }}</button>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

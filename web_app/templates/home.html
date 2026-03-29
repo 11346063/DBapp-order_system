@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}絕佳食雞 — 菜單{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+{% include 'includes/category_tabs.html' %}
+
+<div class="row g-3" id="menuGrid">
+    {% for item in menus %}
+    {% include 'includes/item_card.html' with item=item %}
+    {% endfor %}
+</div>
+
+{% if not menus %}
+<div class="text-center py-5 text-secondary">
+    <i class="bi bi-inbox fs-1"></i>
+    <p class="mt-2">目前沒有餐點</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block modals %}
+{% include 'item_detail_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/home.js' %}"></script>
+<script src="{% static 'js/detail.js' %}"></script>
+{% endblock %}

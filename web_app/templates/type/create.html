@@ -1,16 +1,27 @@
-<h2>新增種類</h2>
-<form method="POST">
-    {% csrf_token %}
+{% extends 'base.html' %}
 
+{% block title %}新增種類 — 絕佳食雞{% endblock %}
 
-    <div>
-        <label for="id_type_name">標題：</label>
-        <input type="text" name="type_name" id="id_type_name"  value="{{ form.type_name.value|default_if_none:'' }}">
-        {{ form.type_name.errors }}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card card-dark">
+            <div class="card-body p-4">
+                <h4 class="text-white mb-4">新增種類</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_type_name" class="form-label">標題</label>
+                        <input type="text" name="type_name" id="id_type_name" class="form-control"
+                               value="{{ form.type_name.value|default_if_none:'' }}" placeholder="請輸入種類名稱">
+                        {% if form.type_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.type_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" class="btn btn-yellow w-100 fw-bold">送出</button>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <button type="submit">送出</button>
-</form>
-
-<!-- 測試用 -->
-
+</div>
+{% endblock %}
