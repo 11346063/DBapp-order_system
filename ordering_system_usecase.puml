@@ -1,0 +1,70 @@
+@startuml use_case
+
+title "<color #1A6><size 15>點餐系統 Ordering System</size></color>\n<color #16A><size 18>Use Case Diagram 用例圖</size></color>\n<color grey>v1.0.0 @2026-03-08</color>\n"
+
+left to right direction
+
+actor Customer as "  顧客\nCustomer" #BFB
+actor Staff as "  員工\nStaff" #9EF
+actor Admin as "  管理員\nAdmin" #FBD
+
+rectangle "顧客功能" {
+  usecase BrowseMenu as "瀏覽菜單\nBrowse Menu" #FEE
+  usecase SearchItem as "搜尋品項\nSearch Item" #FEE
+  usecase AddToCart as "加入購物車\nAdd to Cart" #CFE
+  usecase EditCart as "修改購物車\nEdit Cart" #CFE
+  usecase PlaceOrder as "送出訂單\nPlace Order" #8FE
+  usecase AddRemark as "新增備註\nAdd Remark" #CFE
+  usecase CheckOrderStatus as "查詢訂單狀態\nCheck Order Status" #FEE
+}
+
+rectangle "員工後台功能" {
+  usecase ViewNewOrder as "查看新訂單\nView New Order" #DFD
+  usecase UpdateOrderStatus as "更新訂單狀態\nUpdate Order Status" #DFD
+  usecase NotifyCustomer as "通知顧客取餐\nNotify Customer" #DFD
+  usecase ViewAllOrders as "查看所有訂單\nView All Orders" #DFD
+}
+
+rectangle "管理員功能" {
+  usecase ManageMenu as "菜單管理\nManage Menu" #EDF
+  usecase AddItem as "新增品項\nAdd Item" #FFB
+  usecase EditItem as "編輯品項\nEdit Item" #FFB
+  usecase DisableItem as "下架品項\nDisable Item" #FFB
+  usecase ManageCategory as "管理分類\nManage Category" #FFB
+  usecase ViewReport as "查看銷售報表\nView Report" #EDF
+  usecase ViewDailyReport as "日報表\nDaily Report" #FFB
+  usecase ViewMonthlyReport as "月報表\nWeekly Report" #FFB
+  usecase ViewYearlyReport as "年報表\nWeekly Report" #FFB
+}
+
+Customer --> BrowseMenu
+Customer --> SearchItem
+Customer --> AddToCart
+Customer --> EditCart
+Customer --> PlaceOrder
+Customer --> CheckOrderStatus
+
+Staff --> ViewNewOrder
+Staff --> UpdateOrderStatus
+Staff --> ViewAllOrders
+
+Admin --> ManageMenu
+Admin --> ViewReport
+
+AddToCart --> EditCart : <<extend>>
+PlaceOrder --> AddRemark : <<extend>>
+PlaceOrder --> AddToCart : <<include>>
+
+UpdateOrderStatus --> NotifyCustomer : <<include>>
+
+ManageMenu --> AddItem : <<extend>>
+ManageMenu --> EditItem : <<extend>>
+ManageMenu --> DisableItem : <<extend>>
+ManageMenu --> ManageCategory : <<extend>>
+
+ViewReport --> ViewDailyReport : <<extend>>
+ViewReport --> ViewMonthlyReport : <<extend>>
+ViewReport --> ViewYearlyReport : <<extend>>
+
+
+@enduml
