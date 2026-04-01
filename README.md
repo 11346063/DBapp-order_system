@@ -10,7 +10,11 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 ```
-<br>
+
+匯入資料庫
+```
+python manage.py shell -c "exec(open('import_menu.py', encoding='utf-8').read())"
+```
 <br>
 
 # DATABASE 設定
