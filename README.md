@@ -2,9 +2,7 @@
 
 安裝套件
 ```
-pip install django 
-pip install mysqlclient
-pip install python-dotenv
+pip install -r requirements.txt
 ```
 
 建資料庫

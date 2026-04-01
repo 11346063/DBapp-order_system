@@ -8,13 +8,3 @@ urlpatterns = [
     # path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('', include('web_app.urls')),
 ]
-
-urlpatterns += [
-    path("type/create/", type_views.typeCreate),
-]
-
-# from web_app.views.home import home_view
-
-# urlpatterns += [
-#     path('', home_view, name='home'),
-# ]

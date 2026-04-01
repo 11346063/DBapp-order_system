@@ -37,4 +37,6 @@ def menu_detail_api(request, pk):
         'type_name': menu.type.type_name,
         'options': options,
     }
+
+    
     return JsonResponse(data)
