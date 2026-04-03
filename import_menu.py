@@ -63,7 +63,6 @@ for name, price in menu_items:
         defaults={
             'type': type_obj,
             'price': price,
-            'opt_group_id': 0,
         }
     )
 
