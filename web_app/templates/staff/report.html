@@ -1,0 +1,170 @@
+{% extends 'staff/base_staff.html' %}
+
+{% block title %}報表 — 絕佳食雞{% endblock %}
+
+{% block staff_content %}
+<h4 class="text-yellow mb-4"><i class="bi bi-bar-chart-line"></i> 營運報表</h4>
+
+<!-- Daily Report -->
+<div class="card card-dark mb-4">
+    <div class="card-header border-bottom border-secondary">
+        <h5 class="mb-0" style="color: var(--text-primary);">
+            <i class="bi bi-calendar-day"></i> 日報表（近 30 天）
+        </h5>
+    </div>
+    <div class="card-body">
+        <div id="dailyChart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+
+<!-- Monthly Report -->
+<div class="card card-dark mb-4">
+    <div class="card-header border-bottom border-secondary">
+        <h5 class="mb-0" style="color: var(--text-primary);">
+            <i class="bi bi-calendar-month"></i> 月報表（近 12 個月）
+        </h5>
+    </div>
+    <div class="card-body">
+        <div id="monthlyChart" style="width: 100%; height: 400px;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block staff_js %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+(function() {
+    var dailyData = {{ daily_data|safe }};
+    var monthlyData = {{ monthly_data|safe }};
+
+    var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    var textColor = isDark ? '#aaa' : '#666';
+    var axisLineColor = isDark ? '#333' : '#ddd';
+    var yellow = '#F3E800';
+
+    // Daily Chart
+    var dailyChart = echarts.init(document.getElementById('dailyChart'));
+    dailyChart.setOption({
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: isDark ? '#1a1a1a' : '#fff',
+            borderColor: isDark ? '#333' : '#ddd',
+            textStyle: { color: isDark ? '#fff' : '#333' }
+        },
+        legend: {
+            data: ['訂單數', '營收'],
+            textStyle: { color: textColor }
+        },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: {
+            type: 'category',
+            data: dailyData.dates,
+            axisLabel: { color: textColor, rotate: 45 },
+            axisLine: { lineStyle: { color: axisLineColor } }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                name: '訂單數',
+                nameTextStyle: { color: textColor },
+                axisLabel: { color: textColor },
+                axisLine: { lineStyle: { color: axisLineColor } },
+                splitLine: { lineStyle: { color: isDark ? '#222' : '#eee' } }
+            },
+            {
+                type: 'value',
+                name: '營收 ($)',
+                nameTextStyle: { color: textColor },
+                axisLabel: { color: textColor },
+                axisLine: { lineStyle: { color: axisLineColor } },
+                splitLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: '訂單數',
+                type: 'bar',
+                yAxisIndex: 0,
+                data: dailyData.counts,
+                itemStyle: { color: yellow }
+            },
+            {
+                name: '營收',
+                type: 'line',
+                yAxisIndex: 1,
+                data: dailyData.revenues,
+                smooth: true,
+                itemStyle: { color: '#ff6b6b' },
+                lineStyle: { width: 2 }
+            }
+        ]
+    });
+
+    // Monthly Chart
+    var monthlyChart = echarts.init(document.getElementById('monthlyChart'));
+    monthlyChart.setOption({
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: isDark ? '#1a1a1a' : '#fff',
+            borderColor: isDark ? '#333' : '#ddd',
+            textStyle: { color: isDark ? '#fff' : '#333' }
+        },
+        legend: {
+            data: ['訂單數', '營收'],
+            textStyle: { color: textColor }
+        },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: {
+            type: 'category',
+            data: monthlyData.months,
+            axisLabel: { color: textColor },
+            axisLine: { lineStyle: { color: axisLineColor } }
+        },
+        yAxis: [
+            {
+                type: 'value',
+                name: '訂單數',
+                nameTextStyle: { color: textColor },
+                axisLabel: { color: textColor },
+                axisLine: { lineStyle: { color: axisLineColor } },
+                splitLine: { lineStyle: { color: isDark ? '#222' : '#eee' } }
+            },
+            {
+                type: 'value',
+                name: '營收 ($)',
+                nameTextStyle: { color: textColor },
+                axisLabel: { color: textColor },
+                axisLine: { lineStyle: { color: axisLineColor } },
+                splitLine: { show: false }
+            }
+        ],
+        series: [
+            {
+                name: '訂單數',
+                type: 'bar',
+                yAxisIndex: 0,
+                data: monthlyData.counts,
+                itemStyle: { color: yellow },
+                barWidth: '40%'
+            },
+            {
+                name: '營收',
+                type: 'line',
+                yAxisIndex: 1,
+                data: monthlyData.revenues,
+                smooth: true,
+                itemStyle: { color: '#ff6b6b' },
+                lineStyle: { width: 3 },
+                areaStyle: { color: 'rgba(255,107,107,0.1)' }
+            }
+        ]
+    });
+
+    // Responsive resize
+    window.addEventListener('resize', function() {
+        dailyChart.resize();
+        monthlyChart.resize();
+    });
+})();
+</script>
+{% endblock %}

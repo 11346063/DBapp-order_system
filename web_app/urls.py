@@ -3,7 +3,7 @@ from web_app.views.home import home_view, menu_detail_api
 from web_app.views.auth_views import login_view, register_view, logout_view
 from web_app.views.cart import cart_view, cart_add, cart_update, cart_remove
 from web_app.views.payment import payment_view, order_submit
-from web_app.views.staff import staff_order_list, staff_update_status
+from web_app.views.staff import staff_order_list, staff_update_status, staff_report
 from web_app.views.order_history import order_history_view, reorder
 from web_app.views.type.type_views import typeCreate
 
@@ -25,5 +25,6 @@ urlpatterns = [
     path('orders/reorder/', reorder, name='reorder'),
     path('staff/orders/', staff_order_list, name='staff_orders'),
     path('staff/orders/<int:pk>/status/', staff_update_status, name='staff_order_status'),
+    path('staff/report/', staff_report, name='staff_report'),
     path('type/create/', typeCreate, name='type_create'),
 ]

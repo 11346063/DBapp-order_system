@@ -19,6 +19,8 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'歡迎回來，{user.name}！')
+                if user.is_staff:
+                    return redirect('web_app:staff_orders')
                 next_url = request.GET.get('next', 'web_app:home')
                 return redirect(next_url)
             else:

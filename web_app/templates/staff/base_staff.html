@@ -12,18 +12,24 @@
         <div class="staff-sidebar card-dark p-3">
             <h5 class="text-yellow mb-4"><i class="bi bi-clipboard-data"></i> 訂單管理</h5>
             <nav class="nav flex-column gap-2">
-                <a class="nav-link sidebar-link {% if current_status == 0 %}active{% endif %}" href="?status=0">
+                <a class="nav-link sidebar-link {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
                     <i class="bi bi-clock"></i> 等待中
                     <span class="badge badge-yellow ms-auto">{{ status_counts.0 }}</span>
                 </a>
-                <a class="nav-link sidebar-link {% if current_status == 1 %}active{% endif %}" href="?status=1">
+                <a class="nav-link sidebar-link {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
                     <i class="bi bi-check-circle"></i> 已完成
                     <span class="badge bg-success ms-auto">{{ status_counts.1 }}</span>
                 </a>
-                <a class="nav-link sidebar-link {% if current_status == 2 %}active{% endif %}" href="?status=2">
+                <a class="nav-link sidebar-link {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
                     <i class="bi bi-x-circle"></i> 已取消
                     <span class="badge bg-danger ms-auto">{{ status_counts.2 }}</span>
                 </a>
+                {% if user.identity == 'A' or user.is_superuser %}
+                <hr class="border-secondary my-3">
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
+                    <i class="bi bi-bar-chart-line"></i> 報表
+                </a>
+                {% endif %}
             </nav>
         </div>
     </div>
@@ -32,20 +38,27 @@
     <div class="d-lg-none mb-3 w-100">
         <ul class="nav nav-pills justify-content-center gap-2">
             <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 0 %}active{% endif %}" href="?status=0">
+                <a class="nav-link staff-tab {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
                     等待中 <span class="badge badge-yellow">{{ status_counts.0 }}</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 1 %}active{% endif %}" href="?status=1">
+                <a class="nav-link staff-tab {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
                     已完成 <span class="badge bg-success">{{ status_counts.1 }}</span>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 2 %}active{% endif %}" href="?status=2">
+                <a class="nav-link staff-tab {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
                     已取消 <span class="badge bg-danger">{{ status_counts.2 }}</span>
                 </a>
             </li>
+            {% if user.identity == 'A' or user.is_superuser %}
+            <li class="nav-item">
+                <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
+                    <i class="bi bi-bar-chart-line"></i> 報表
+                </a>
+            </li>
+            {% endif %}
         </ul>
     </div>
 

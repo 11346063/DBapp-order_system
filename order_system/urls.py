@@ -5,6 +5,6 @@ from web_app.views.type import type_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('captcha/', include('captcha.urls')),
     path('', include('web_app.urls')),
 ]

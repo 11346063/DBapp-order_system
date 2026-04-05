@@ -27,3 +27,37 @@
     color: var(--text-secondary);
     opacity: 0.6;
 }
+
+/* CAPTCHA */
+.captcha-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.captcha-wrapper img {
+    height: 40px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.captcha-wrapper input[type="text"] {
+    flex: 1;
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+.captcha-wrapper input[type="text"]:focus {
+    border-color: var(--primary-yellow);
+    box-shadow: 0 0 0 0.2rem rgba(243, 232, 0, 0.15);
+    outline: none;
+}
+
+/* Hide the hidden hashkey input */
+.captcha-wrapper input[type="hidden"] {
+    display: none;
+}

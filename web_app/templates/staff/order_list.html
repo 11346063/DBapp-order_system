@@ -19,9 +19,13 @@
                 </div>
                 <div class="mb-3">
                     {% for item in order.items %}
-                    <div class="d-flex justify-content-between text-secondary small">
-                        <span>{{ item.menu.name }} x{{ item.amount }}</span>
-                        <span>${{ item.total_price }}</span>
+                    <div class="d-flex justify-content-between align-items-center py-1" style="color: var(--text-primary);">
+                        <span>
+                            <i class="bi bi-dot fs-5"></i>
+                            {{ item.menu.name }}
+                            <span class="text-yellow fw-bold">x{{ item.amount }}</span>
+                        </span>
+                        <span class="text-yellow">${{ item.total_price }}</span>
                     </div>
                     {% endfor %}
                 </div>

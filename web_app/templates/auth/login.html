@@ -35,6 +35,16 @@
                     {% endif %}
                 </div>
 
+                <div class="mb-4">
+                    <label class="form-label">{{ form.captcha.label }}</label>
+                    <div class="captcha-wrapper">
+                        {{ form.captcha }}
+                    </div>
+                    {% if form.captcha.errors %}
+                    <div class="text-danger small mt-1">{{ form.captcha.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
                 <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold mb-3">
                     <i class="bi bi-box-arrow-in-right"></i> 登入
                 </button>

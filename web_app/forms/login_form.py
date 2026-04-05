@@ -1,4 +1,5 @@
 from django import forms
+from captcha.fields import CaptchaField
 
 
 class LoginForm(forms.Form):
@@ -19,3 +20,4 @@ class LoginForm(forms.Form):
             'autocomplete': 'current-password',
         })
     )
+    captcha = CaptchaField(label='驗證碼')
