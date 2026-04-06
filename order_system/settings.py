@@ -110,7 +110,7 @@ LANGUAGE_CODE = 'zh-hant'
 # settings.py
 TIME_ZONE = 'Asia/Taipei'
 USE_I18N = True
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
