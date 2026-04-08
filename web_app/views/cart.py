@@ -1,10 +1,13 @@
 import json
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 
 def cart_view(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('web_app:staff_orders')
+
     cart = request.session.get('cart', [])
     total = sum(item['subtotal'] for item in cart)
     return render(request, 'cart.html', {
@@ -15,6 +18,9 @@ def cart_view(request):
 
 @require_POST
 def cart_add(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+
     data = json.loads(request.body)
     cart = request.session.get('cart', [])
 
@@ -47,6 +53,9 @@ def cart_add(request):
 
 @require_POST
 def cart_update(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+
     data = json.loads(request.body)
     index = data['index']
     quantity = data['quantity']
@@ -68,6 +77,9 @@ def cart_update(request):
 
 @require_POST
 def cart_remove(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+
     data = json.loads(request.body)
     index = data['index']
     cart = request.session.get('cart', [])

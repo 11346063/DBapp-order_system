@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -8,7 +8,9 @@ from web_app.models import Order, OrderItem, Menu
 
 @login_required
 def order_history_view(request):
-    """Display the current user's past orders (newest first)."""
+    if request.user.is_staff:
+        return redirect('web_app:staff_orders')
+
     orders = (
         Order.objects
         .filter(user=request.user)
@@ -24,7 +26,9 @@ def order_history_view(request):
 @login_required
 @require_POST
 def reorder(request):
-    """Copy all items from a past order into the session cart."""
+    if request.user.is_staff:
+        return JsonResponse({'error': '員工無法使用此功能'}, status=403)
+
     data = json.loads(request.body)
     order_id = data.get('order_id')
     order = get_object_or_404(Order, pk=order_id, user=request.user)

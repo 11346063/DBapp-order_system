@@ -7,6 +7,9 @@ from web_app.models import Order, OrderItem, Menu
 
 @login_required
 def payment_view(request):
+    if request.user.is_staff:
+        return redirect('web_app:staff_orders')
+
     cart = request.session.get('cart', [])
     if not cart:
         messages.warning(request, '購物車是空的')
@@ -21,6 +24,9 @@ def payment_view(request):
 
 @login_required
 def order_submit(request):
+    if request.user.is_staff:
+        return redirect('web_app:staff_orders')
+
     if request.method != 'POST':
         return redirect('web_app:payment')
 
