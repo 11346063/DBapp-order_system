@@ -7,7 +7,7 @@ from web_app.models import Order, OrderItem, Menu
 
 @login_required
 def payment_view(request):
-    if request.user.is_staff:
+    if request.user.identity == "A" or request.user.identity == "E":
         return redirect('web_app:staff_orders')
 
     cart = request.session.get('cart', [])
@@ -24,7 +24,7 @@ def payment_view(request):
 
 @login_required
 def order_submit(request):
-    if request.user.is_staff:
+    if request.user.identity == "A" or request.user.identity == "E":
         return redirect('web_app:staff_orders')
 
     if request.method != 'POST':

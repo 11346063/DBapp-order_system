@@ -8,7 +8,7 @@ from web_app.models import Order, OrderItem, Menu
 
 @login_required
 def order_history_view(request):
-    if request.user.is_staff:
+    if request.user.identity == "A" or request.user.identity == "E":
         return redirect('web_app:staff_orders')
 
     orders = (
@@ -26,8 +26,8 @@ def order_history_view(request):
 @login_required
 @require_POST
 def reorder(request):
-    if request.user.is_staff:
-        return JsonResponse({'error': '員工無法使用此功能'}, status=403)
+    if request.user.identity == "A" or request.user.identity == "E":
+        return JsonResponse({'error': 'error1'}, status=403)
 
     data = json.loads(request.body)
     order_id = data.get('order_id')
