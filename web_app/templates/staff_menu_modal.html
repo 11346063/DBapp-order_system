@@ -1,0 +1,42 @@
+<!-- 編輯/新增品項 Modal -->
+<div class="modal fade" id="staffMenuModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="staffMenuModalTitle">編輯品項</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-secondary">分類</label>
+                    <select class="form-select bg-dark text-white border-secondary" id="staffMenuType">
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">品項名稱 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="staffMenuName" maxlength="50" placeholder="最多 50 字">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">價格 <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-secondary border-secondary">$</span>
+                        <input type="number" class="form-control bg-dark text-white border-secondary" id="staffMenuPrice" min="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">說明</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="staffMenuInfo" maxlength="100" placeholder="最多 100 字（選填）">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-secondary">備註</label>
+                    <input type="text" class="form-control bg-dark text-white border-secondary" id="staffMenuRemark" maxlength="100" placeholder="最多 100 字（選填）">
+                </div>
+                <div id="staffMenuError" class="text-danger small d-none"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-yellow fw-bold" id="staffMenuSubmitBtn" onclick="submitStaffMenuForm()">儲存</button>
+            </div>
+        </div>
+    </div>
+</div>

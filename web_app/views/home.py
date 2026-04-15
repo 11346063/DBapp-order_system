@@ -1,14 +1,23 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from web_app.models import Menu, Type, OptGroup
+from web_app.models import Menu, Type, OptGroup, Identity
 
 
 def home_view(request):
     types = Type.objects.all()
-    menus = Menu.objects.select_related('type').all()
+    user = request.user
+    is_staff = (
+        user.is_authenticated and
+        user.identity in (Identity.ADMIN, Identity.EMPLOYEE)
+    )
+    if is_staff:
+        menus = Menu.objects.select_related('type').all()
+    else:
+        menus = Menu.objects.select_related('type').filter(status=True)
     return render(request, 'home.html', {
         'types': types,
         'menus': menus,
+        'is_staff': is_staff,
     })
 
 
@@ -34,9 +43,10 @@ def menu_detail_api(request, pk):
         'price': menu.price,
         'info': menu.info or '',
         'remark': menu.remark or '',
+        'type_id': menu.type_id,
         'type_name': menu.type.type_name,
+        'status': menu.status,
         'options': options,
     }
 
-    
     return JsonResponse(data)

@@ -51,3 +51,19 @@
 #itemModal .modal-content {
     border: 1px solid var(--border-color);
 }
+
+.item-card-inactive {
+    opacity: 0.55;
+}
+
+#staffMenuModal .form-control,
+#staffMenuModal .form-select {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    color: var(--bs-body-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+#staffMenuModal .input-group-text {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-color);
+}

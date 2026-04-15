@@ -20,12 +20,15 @@ function openItemDetail(menuId) {
 }
 
 function fillDetail(data) {
+    const isStaff = window.IS_STAFF === true;
+
     const setContent = (prefix) => {
         const nameEl = document.getElementById(`${prefix}ItemName`);
         const priceEl = document.getElementById(`${prefix}ItemPrice`);
         const infoEl = document.getElementById(`${prefix}ItemInfo`);
         const qtyEl = document.getElementById(`${prefix}Qty`);
         const optEl = document.getElementById(`${prefix}Options`);
+        const statusBadge = document.getElementById(`${prefix}StatusBadge`);
 
         if (nameEl) nameEl.textContent = data.name;
         if (priceEl) priceEl.textContent = `$${data.price}`;
@@ -36,7 +39,7 @@ function fillDetail(data) {
         if (qtyEl) qtyEl.textContent = '1';
 
         if (optEl) {
-            if (data.options && data.options.length > 0) {
+            if (!isStaff && data.options && data.options.length > 0) {
                 optEl.innerHTML = data.options.map(opt => `
                     <label class="option-check">
                         <input type="checkbox" value="${opt.id}" data-price="${opt.price}">
@@ -50,10 +53,28 @@ function fillDetail(data) {
                 optEl.style.display = 'none';
             }
         }
+
+        if (statusBadge) {
+            if (data.status) {
+                statusBadge.textContent = '上架中';
+                statusBadge.className = 'badge fs-6 px-3 py-2 bg-success';
+            } else {
+                statusBadge.textContent = '已下架';
+                statusBadge.className = 'badge fs-6 px-3 py-2 bg-danger';
+            }
+        }
     };
 
     setContent('offcanvas');
     setContent('modal');
+
+    // 依身份切換操作區
+    document.querySelectorAll('.customer-actions').forEach(el => {
+        el.classList.toggle('d-none', isStaff);
+    });
+    document.querySelectorAll('.staff-actions').forEach(el => {
+        el.classList.toggle('d-none', !isStaff);
+    });
 }
 
 function changeQty(delta) {

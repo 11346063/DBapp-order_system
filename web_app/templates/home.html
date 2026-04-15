@@ -5,15 +5,23 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
-<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=4">
 {% endblock %}
 
 {% block content %}
 {% include 'includes/category_tabs.html' %}
 
+{% if is_staff %}
+<div class="d-flex justify-content-end mb-3">
+    <button class="btn btn-yellow fw-bold" onclick="openCreateForm()">
+        <i class="bi bi-plus-lg"></i> 新增品項
+    </button>
+</div>
+{% endif %}
+
 <div class="row g-3" id="menuGrid">
     {% for item in menus %}
-    {% include 'includes/item_card.html' with item=item %}
+    {% include 'includes/item_card.html' with item=item is_staff=is_staff %}
     {% endfor %}
 </div>
 
@@ -27,9 +35,26 @@
 
 {% block modals %}
 {% include 'item_detail_modal.html' %}
+{% if is_staff %}
+{% include 'staff_menu_modal.html' %}
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
+<script>
+window.IS_STAFF = {{ is_staff|yesno:"true,false" }};
+window.URLS = {
+    menuToggle: "{% url 'web_app:menu_toggle' pk=0 %}".replace('/0/', '/{id}/'),
+    menuEdit:   "{% url 'web_app:menu_edit'   pk=0 %}".replace('/0/', '/{id}/'),
+    menuCreate: "{% url 'web_app:menu_create' %}",
+};
+window.TYPES = [
+    {% for t in types %}{"id": {{ t.pk }}, "name": "{{ t.type_name }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+];
+</script>
 <script src="{% static 'js/home.js' %}"></script>
-<script src="{% static 'js/detail.js' %}"></script>
+<script src="{% static 'js/detail.js' %}?v=4"></script>
+{% if is_staff %}
+<script src="{% static 'js/staff_menu.js' %}?v=1"></script>
+{% endif %}
 {% endblock %}

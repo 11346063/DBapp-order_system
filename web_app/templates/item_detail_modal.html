@@ -12,21 +12,37 @@
         <p class="text-yellow fs-5 fw-bold mb-3" id="offcanvasItemPrice"></p>
         <p class="text-secondary small mb-3" id="offcanvasItemInfo"></p>
 
-        <div id="offcanvasOptions" class="mb-3"></div>
-
-        <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
-            <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(-1)">
-                <i class="bi bi-dash"></i>
-            </button>
-            <span class="fs-5 fw-bold text-white" id="offcanvasQty">1</span>
-            <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(1)">
-                <i class="bi bi-plus"></i>
+        <!-- 顧客操作區 -->
+        <div class="customer-actions">
+            <div id="offcanvasOptions" class="mb-3"></div>
+            <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
+                <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(-1)">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <span class="fs-5 fw-bold text-white" id="offcanvasQty">1</span>
+                <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(1)">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+            <button class="btn btn-yellow w-100 py-2 fw-bold" onclick="addToCart()">
+                <i class="bi bi-cart-plus"></i> 加入購物車
             </button>
         </div>
 
-        <button class="btn btn-yellow w-100 py-2 fw-bold" onclick="addToCart()">
-            <i class="bi bi-cart-plus"></i> 加入購物車
-        </button>
+        <!-- 員工/管理員操作區 -->
+        <div class="staff-actions d-none">
+            <div class="mb-3">
+                <span id="offcanvasStatusBadge" class="badge fs-6 px-3 py-2"></span>
+            </div>
+            <div class="d-grid gap-2">
+                <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
+                    <i class="bi bi-arrow-repeat"></i> 切換上下架
+                </button>
+                <button class="btn btn-yellow fw-bold" onclick="openEditForm()">
+                    <i class="bi bi-pencil"></i> 編輯品項
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -47,21 +63,37 @@
                         <p class="text-yellow fs-4 fw-bold mb-2" id="modalItemPrice"></p>
                         <p class="text-secondary mb-3" id="modalItemInfo"></p>
 
-                        <div id="modalOptions" class="mb-3"></div>
-
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(-1)">
-                                <i class="bi bi-dash"></i>
-                            </button>
-                            <span class="fs-5 fw-bold text-white" id="modalQty">1</span>
-                            <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(1)">
-                                <i class="bi bi-plus"></i>
+                        <!-- 顧客操作區 -->
+                        <div class="customer-actions">
+                            <div id="modalOptions" class="mb-3"></div>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(-1)">
+                                    <i class="bi bi-dash"></i>
+                                </button>
+                                <span class="fs-5 fw-bold text-white" id="modalQty">1</span>
+                                <button class="btn btn-outline-light btn-sm rounded-circle qty-btn" onclick="changeQty(1)">
+                                    <i class="bi bi-plus"></i>
+                                </button>
+                            </div>
+                            <button class="btn btn-yellow w-100 py-2 fw-bold" onclick="addToCart()">
+                                <i class="bi bi-cart-plus"></i> 加入購物車
                             </button>
                         </div>
 
-                        <button class="btn btn-yellow w-100 py-2 fw-bold" onclick="addToCart()">
-                            <i class="bi bi-cart-plus"></i> 加入購物車
-                        </button>
+                        <!-- 員工/管理員操作區 -->
+                        <div class="staff-actions d-none">
+                            <div class="mb-3">
+                                <span id="modalStatusBadge" class="badge fs-6 px-3 py-2"></span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
+                                    <i class="bi bi-arrow-repeat"></i> 切換上下架
+                                </button>
+                                <button class="btn btn-yellow fw-bold" onclick="openEditForm()">
+                                    <i class="bi bi-pencil"></i> 編輯品項
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
