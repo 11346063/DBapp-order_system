@@ -19,7 +19,7 @@ def cart_view(request):
 @require_POST
 def cart_add(request):
     if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
-        return JsonResponse({'error': 'error1'}, status=403) 
+        return JsonResponse({'error': 'error2'}, status=403) 
 
     data = json.loads(request.body)
     cart = request.session.get('cart', [])
@@ -54,7 +54,7 @@ def cart_add(request):
 @require_POST
 def cart_update(request):
     if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
-        return JsonResponse({'error': 'error1'}, status=403)
+        return JsonResponse({'error': 'error2'}, status=403)
 
     data = json.loads(request.body)
     index = data['index']
@@ -78,7 +78,7 @@ def cart_update(request):
 @require_POST
 def cart_remove(request):
     if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
-        return JsonResponse({'error': 'error1'}, status=403)
+        return JsonResponse({'error': 'error2'}, status=403)
 
     data = json.loads(request.body)
     index = data['index']
