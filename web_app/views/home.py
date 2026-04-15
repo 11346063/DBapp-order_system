@@ -4,9 +4,6 @@ from web_app.models import Menu, Type, OptGroup
 
 
 def home_view(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return redirect('web_app:staff_orders')
-
     types = Type.objects.all()
     menus = Menu.objects.select_related('type').all()
     return render(request, 'home.html', {

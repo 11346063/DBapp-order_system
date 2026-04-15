@@ -35,16 +35,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.CharField(max_length=50, blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     address = models.CharField(max_length=100, blank=True, null=True)
-    identity = models.CharField(max_length=1)
+    # {A: 管理員, E: 員工, C: 顧客}
+    identity = models.CharField(max_length=1, default='C')
     
     create_time = models.DateTimeField(auto_now_add=True)
     update_time = models.DateTimeField(auto_now=True)
     
-    # --- 新增以下三個 Django Admin 必備欄位 ---
-    is_staff = models.BooleanField(default=False)    # 決定能否登入管理後台
-    is_superuser = models.BooleanField(default=False) # 決定是否擁有所有權限
-    is_active = models.BooleanField(default=True)     # 帳號是否有效（被停權可設為 False）
-    # ---------------------------------------
+    # # --- 新增以下三個 Django Admin 必備欄位 ---
+    # is_staff = models.BooleanField(default=False)    # 決定能否登入管理後台
+    # is_superuser = models.BooleanField(default=False) # 決定是否擁有所有權限
+    # is_active = models.BooleanField(default=True)     # 帳號是否有效（被停權可設為 False）
+    # # ---------------------------------------
 
     status = models.BooleanField(default=True)
 

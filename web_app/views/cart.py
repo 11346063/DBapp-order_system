@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 
 
 def cart_view(request):
-    if request.user.is_authenticated and request.user.is_staff:
+    if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
         return redirect('web_app:staff_orders')
 
     cart = request.session.get('cart', [])
@@ -18,8 +18,8 @@ def cart_view(request):
 
 @require_POST
 def cart_add(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+    if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
+        return JsonResponse({'error': 'error1'}, status=403) 
 
     data = json.loads(request.body)
     cart = request.session.get('cart', [])
@@ -53,8 +53,8 @@ def cart_add(request):
 
 @require_POST
 def cart_update(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+    if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
+        return JsonResponse({'error': 'error1'}, status=403)
 
     data = json.loads(request.body)
     index = data['index']
@@ -77,8 +77,8 @@ def cart_update(request):
 
 @require_POST
 def cart_remove(request):
-    if request.user.is_authenticated and request.user.is_staff:
-        return JsonResponse({'error': '員工無法使用購物車'}, status=403)
+    if request.user.is_authenticated and (request.user.identity == "A" or request.user.identity == "E"):
+        return JsonResponse({'error': 'error1'}, status=403)
 
     data = json.loads(request.body)
     index = data['index']

@@ -7,3 +7,4 @@ class Menu(models.Model):
     info = models.CharField(max_length=100, blank=True, null=True)
     remark = models.CharField(max_length=100, blank=True, null=True)
     file_path = models.ImageField(upload_to="image/", blank=True, null=True)
+    status = models.BooleanField(default=True)
