@@ -1,18 +1,16 @@
 import json
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponseForbidden
-from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from web_app.models import Order, OrderItem
+from web_app.decorators import employee_required, admin_required
 
 
-@login_required
-@staff_member_required
+@employee_required
 def staff_order_list(request):
     status_filter = request.GET.get('status', '0')
     try:
@@ -22,7 +20,7 @@ def staff_order_list(request):
 
     orders = Order.objects.filter(status=status_val).select_related('user').order_by('-create_time')
 
-    # Attach items to each order
+    # 附加每筆訂單的品項
     for order in orders:
         order.items = OrderItem.objects.filter(order=order).select_related('menu')
 
@@ -39,8 +37,7 @@ def staff_order_list(request):
     })
 
 
-@login_required
-@staff_member_required
+@employee_required
 @require_POST
 def staff_update_status(request, pk):
     order = get_object_or_404(Order, pk=pk)
@@ -55,16 +52,11 @@ def staff_update_status(request, pk):
     return JsonResponse({'error': '無效的狀態'}, status=400)
 
 
-@login_required
-@staff_member_required
+@admin_required
 def staff_report(request):
-    # Only admin (identity='A') or superuser can access reports
-    if not (request.user.identity == 'A' or request.user.is_superuser):
-        return HttpResponseForbidden('權限不足')
-
     now = timezone.now()
 
-    # Daily report (last 30 days)
+    # 日報表（近 30 天）
     thirty_days_ago = now - timedelta(days=30)
     daily = list(
         Order.objects.filter(status=1, create_time__gte=thirty_days_ago)
@@ -74,7 +66,7 @@ def staff_report(request):
         .order_by('date')
     )
 
-    # Monthly report (last 12 months)
+    # 月報表（近 12 個月）
     one_year_ago = now - timedelta(days=365)
     monthly = list(
         Order.objects.filter(status=1, create_time__gte=one_year_ago)

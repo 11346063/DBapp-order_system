@@ -1,4 +1,5 @@
 {% extends 'staff/base_staff.html' %}
+{% load static %}
 
 {% block title %}報表 — 絕佳食雞{% endblock %}
 
@@ -30,7 +31,7 @@
 </div>
 {% endblock %}
 
-{% block staff_css %}
+{% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/report.css' %}?v=3">
 {% endblock %}
 
