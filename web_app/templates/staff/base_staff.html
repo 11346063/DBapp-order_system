@@ -52,7 +52,7 @@
                     已取消 <span class="badge bg-danger">{{ status_counts.2 }}</span>
                 </a>
             </li>
-            {% if user.identity == 'A' or user.is_superuser %}
+            {% if user.identity == 'A' %}
             <li class="nav-item">
                 <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
                     <i class="bi bi-bar-chart-line"></i> 報表

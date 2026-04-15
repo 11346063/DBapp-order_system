@@ -4,56 +4,7 @@
 {% block title %}歷史訂單 — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
-<style>
-    .order-card {
-        background-color: var(--card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        box-shadow: var(--shadow-card);
-        transition: background-color 0.3s, border-color 0.3s;
-    }
-    .order-card .card-header {
-        border-bottom: 1px solid var(--border-color);
-        background: transparent;
-        padding: 12px 16px;
-    }
-    .order-card .card-body {
-        padding: 12px 16px;
-    }
-    .order-item-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 4px 0;
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-    .status-badge {
-        font-size: 0.75rem;
-        padding: 2px 8px;
-        border-radius: 20px;
-    }
-    .status-pending   { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
-    .status-completed { background: rgba(25, 135, 84, 0.15); color: #198754; }
-    .status-cancelled { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
-    .btn-reorder {
-        background-color: var(--primary-yellow);
-        color: #000;
-        border: none;
-        font-weight: 600;
-        font-size: 0.85rem;
-        padding: 6px 14px;
-        border-radius: 8px;
-        transition: background-color 0.2s;
-    }
-    .btn-reorder:hover {
-        background-color: #d4c900;
-        color: #000;
-    }
-    .btn-reorder:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/order_history.css' %}?v=3">
 {% endblock %}
 
 {% block content %}
@@ -128,48 +79,11 @@
 {% endblock %}
 
 {% block extra_js %}
+{# 將 Django URL 注入為全域 JS 變數，供 order_history.js 讀取 #}
 <script>
-function reorder(orderId, btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>加入中...';
-
-    postJSON('{% url "web_app:reorder" %}', { order_id: orderId })
-        .then(data => {
-            if (data.success) {
-                // Update cart badge in navbar
-                const badge = document.querySelector('.navbar .badge');
-                if (badge) {
-                    badge.textContent = data.cart_count;
-                    badge.style.display = '';
-                } else {
-                    // Create badge if not exists
-                    const cartLink = document.querySelector('.nav-icon-link');
-                    if (cartLink) {
-                        const newBadge = document.createElement('span');
-                        newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill';
-                        newBadge.style.cssText = 'background-color: var(--primary-yellow); color: #000;';
-                        newBadge.textContent = data.cart_count;
-                        cartLink.appendChild(newBadge);
-                    }
-                }
-
-                // Show toast
-                const toastMsg = document.getElementById('reorderToastMsg');
-                toastMsg.textContent = `已將 ${data.added} 項商品加入購物車`;
-                const toast = new bootstrap.Toast(document.getElementById('reorderToast'));
-                toast.show();
-
-                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>已加入';
-                setTimeout(() => {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="bi bi-cart-plus me-1"></i>再來一份';
-                }, 2000);
-            }
-        })
-        .catch(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-cart-plus me-1"></i>再來一份';
-        });
-}
+    window.URLS = {
+        reorder: "{% url 'web_app:reorder' %}"
+    };
 </script>
+<script src="{% static 'js/order_history.js' %}?v=2"></script>
 {% endblock %}
