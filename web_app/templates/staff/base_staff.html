@@ -24,7 +24,7 @@
                     <i class="bi bi-x-circle"></i> 已取消
                     <span class="badge bg-danger ms-auto">{{ status_counts.2 }}</span>
                 </a>
-                {% if user.identity == 'A' or user.is_superuser %}
+                {% if user.identity == 'A' %}
                 <hr class="border-secondary my-3">
                 <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
                     <i class="bi bi-bar-chart-line"></i> 報表
