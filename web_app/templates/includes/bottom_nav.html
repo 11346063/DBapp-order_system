@@ -43,7 +43,7 @@
         <a href="{% url 'web_app:order_history' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
             <i class="bi bi-clock-history me-2"></i>歷史訂單
         </a>
-        {% if user.identity == 'A' or user.identity == 'B' %}
+        {% if user.identity == 'A' or user.identity == 'E' %}
         <a href="{% url 'web_app:staff_orders' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
             <i class="bi bi-clipboard-data me-2"></i>訂單管理
         </a>

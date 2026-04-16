@@ -9,7 +9,7 @@ def employee_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('web_app:login')
-        if request.user.identity not in ('A', 'B'):
+        if request.user.identity not in ('A', 'E'):
             messages.error(request, '權限不足')
             return redirect('web_app:home')
         return view_func(request, *args, **kwargs)

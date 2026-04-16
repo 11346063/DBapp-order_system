@@ -2,3 +2,6 @@
 **/__pycache__/
 *.py[cod]
 *$py.class
+.claude
+/CLAUDE.md
+/order_system.md

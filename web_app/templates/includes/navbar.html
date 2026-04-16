@@ -36,7 +36,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="{% url 'web_app:order_history' %}"><i class="bi bi-clock-history"></i> 歷史訂單</a></li>
-                    {% if user.identity == 'A' or user.identity == 'B' %}
+                    {% if user.identity == 'A' or user.identity == 'E' %}
                     <li><a class="dropdown-item" href="{% url 'web_app:home' %}"><i class="bi bi-shop"></i> 前台菜單</a></li>
                     <li><a class="dropdown-item" href="{% url 'web_app:staff_orders' %}"><i class="bi bi-clipboard-data"></i> 訂單管理</a></li>
                     {% endif %}
