@@ -137,6 +137,30 @@ class MenuCreateTest(TestCase):
         item = Menu.objects.get(name='新品炸雞腿')
         self.assertTrue(item.status)
 
+    def test_create_with_negative_price_returns_400(self):
+        """負數價格回傳 400"""
+        self.client.login(username='employee1', password='pass')
+        payload = self.valid_payload.copy()
+        payload['price'] = -1
+        response = self.client.post(
+            self.url,
+            data=json.dumps(payload),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_create_with_zero_price_is_allowed(self):
+        """價格為 0 是允許的（免費品項）"""
+        self.client.login(username='employee1', password='pass')
+        payload = self.valid_payload.copy()
+        payload['price'] = 0
+        response = self.client.post(
+            self.url,
+            data=json.dumps(payload),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 201)
+
     def test_only_post_method_allowed(self):
         """只允許 POST 方法"""
         self.client.login(username='employee1', password='pass')

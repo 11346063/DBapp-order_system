@@ -123,13 +123,19 @@ function submitStaffMenuForm() {
     const info = document.getElementById('staffMenuInfo').value.trim();
     const remark = document.getElementById('staffMenuRemark').value.trim();
 
-    if (!name || !price) {
+    const priceInt = parseInt(price);
+    if (!name || price === '') {
         errorEl.textContent = '名稱與價格為必填';
         errorEl.classList.remove('d-none');
         return;
     }
+    if (isNaN(priceInt) || priceInt < 0) {
+        errorEl.textContent = '價格不能為負數';
+        errorEl.classList.remove('d-none');
+        return;
+    }
 
-    const payload = { name, price: parseInt(price), type_id: typeId, info, remark };
+    const payload = { name, price: priceInt, type_id: typeId, info, remark };
 
     let url, successHandler;
     if (staffMenuMode === 'edit' && currentItem) {
@@ -137,8 +143,8 @@ function submitStaffMenuForm() {
         successHandler = (data) => {
             // 更新 currentItem
             Object.assign(currentItem, data);
-            // 更新卡片上的品名
-            _refreshCardName(data.id, data.name);
+            // 更新卡片上的品名與金額
+            _refreshCardInfo(data.id, data.name, data.price);
             bootstrap.Modal.getInstance(document.getElementById('staffMenuModal'))?.hide();
         };
     } else {
@@ -163,13 +169,15 @@ function submitStaffMenuForm() {
     });
 }
 
-function _refreshCardName(menuId, newName) {
+function _refreshCardInfo(menuId, newName, newPrice) {
     document.querySelectorAll('.menu-item').forEach(card => {
         const btn = card.querySelector('.item-card');
         if (!btn) return;
         if (!(btn.getAttribute('onclick') || '').includes(`(${menuId})`)) return;
         const titleEl = card.querySelector('.card-title');
+        const priceEl = card.querySelector('.badge-yellow');
         if (titleEl) titleEl.textContent = newName;
+        if (priceEl) priceEl.textContent = `$${newPrice}`;
     });
 }
 

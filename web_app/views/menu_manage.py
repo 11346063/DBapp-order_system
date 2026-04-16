@@ -70,6 +70,9 @@ def menu_edit(request, pk):
     except (ValueError, TypeError):
         return _json({'error': '價格必須為整數'}, status=400)
 
+    if price < 0:
+        return _json({'error': '價格不能為負數'}, status=400)
+
     type_id = data.get('type_id')
     if type_id:
         try:
@@ -117,6 +120,9 @@ def menu_create(request):
         price = int(price)
     except (ValueError, TypeError):
         return _json({'error': '價格必須為整數'}, status=400)
+
+    if price < 0:
+        return _json({'error': '價格不能為負數'}, status=400)
 
     try:
         menu_type = Type.objects.get(pk=type_id)
