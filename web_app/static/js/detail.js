@@ -132,5 +132,5 @@ function addToCart() {
                 bootstrap.Modal.getInstance(modalEl)?.hide();
             }
         }
-    });
+    }).catch(() => {});
 }

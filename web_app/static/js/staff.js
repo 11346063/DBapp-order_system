@@ -12,5 +12,6 @@ function updateOrderStatus(orderId, newStatus) {
                     setTimeout(() => card.remove(), 300);
                 }
             }
-        });
+        })
+        .catch(() => {});
 }

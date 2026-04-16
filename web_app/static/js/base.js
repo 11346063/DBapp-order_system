@@ -24,7 +24,12 @@ function postJSON(url, data) {
             'X-CSRFToken': csrftoken,
         },
         body: JSON.stringify(data),
-    }).then(res => res.json());
+    }).then(res =>
+        res.json().then(body => {
+            if (!res.ok) return Promise.reject(body.error || '伺服器發生錯誤');
+            return body;
+        })
+    );
 }
 
 /* ===== Theme Toggle ===== */

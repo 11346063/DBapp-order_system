@@ -49,4 +49,4 @@ def menu_detail_api(request, pk):
         'options': options,
     }
 
-    return JsonResponse(data)
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})

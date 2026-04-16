@@ -8,10 +8,10 @@ function updateCartQty(index, delta) {
             if (data.success) {
                 qtyEl.textContent = qty;
                 document.getElementById('cartTotal').textContent = `$${data.total}`;
-                // Recalculate subtotal displayed
                 location.reload();
             }
-        });
+        })
+        .catch(() => {});
 }
 
 function removeCartItem(index) {
@@ -20,5 +20,6 @@ function removeCartItem(index) {
             if (data.success) {
                 location.reload();
             }
-        });
+        })
+        .catch(() => {});
 }

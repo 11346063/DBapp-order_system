@@ -8,24 +8,36 @@ function toggleItemStatus() {
 
     const url = window.URLS.menuToggle.replace('{id}', currentItem.id);
     postJSON(url, {}).then(data => {
-        if (data.status !== undefined) {
-            currentItem.status = data.status;
-            // 更新兩個 badge
-            ['offcanvas', 'modal'].forEach(prefix => {
-                const badge = document.getElementById(`${prefix}StatusBadge`);
-                if (!badge) return;
-                if (data.status) {
-                    badge.textContent = '上架中';
-                    badge.className = 'badge fs-6 px-3 py-2 bg-success';
-                } else {
-                    badge.textContent = '已下架';
-                    badge.className = 'badge fs-6 px-3 py-2 bg-danger';
-                }
-            });
+        currentItem.status = data.status;
+        ['offcanvas', 'modal'].forEach(prefix => {
+            const badge = document.getElementById(`${prefix}StatusBadge`);
+            if (!badge) return;
+            if (data.status) {
+                badge.textContent = '上架中';
+                badge.className = 'badge fs-6 px-3 py-2 bg-success';
+            } else {
+                badge.textContent = '已下架';
+                badge.className = 'badge fs-6 px-3 py-2 bg-danger';
+            }
+        });
+        _refreshCardBadge(currentItem.id, data.status);
+    }).catch(errMsg => {
+        _showDetailError(errMsg);
+    });
+}
 
-            // 更新卡片的下架 badge
-            _refreshCardBadge(currentItem.id, data.status);
-        }
+function _showDetailError(msg) {
+    ['offcanvas', 'modal'].forEach(prefix => {
+        const badge = document.getElementById(`${prefix}StatusBadge`);
+        if (!badge) return;
+        const origClass = badge.className;
+        const origText = badge.textContent;
+        badge.className = 'badge fs-6 px-3 py-2 bg-warning text-dark';
+        badge.textContent = msg || '發生錯誤，請再試一次';
+        setTimeout(() => {
+            badge.className = origClass;
+            badge.textContent = origText;
+        }, 3000);
     });
 }
 
@@ -145,8 +157,8 @@ function submitStaffMenuForm() {
         } else {
             successHandler(data);
         }
-    }).catch(() => {
-        errorEl.textContent = '發生錯誤，請再試一次';
+    }).catch(errMsg => {
+        errorEl.textContent = errMsg || '發生錯誤，請再試一次';
         errorEl.classList.remove('d-none');
     });
 }
