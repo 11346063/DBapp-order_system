@@ -1,14 +1,13 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from web_app.models import Order, OrderItem, Menu
 
 
-@login_required
 def payment_view(request):
-    if request.user.identity == "A" or request.user.identity == "E":
-        return redirect('web_app:staff_orders')
+    if request.user.is_authenticated:
+        if request.user.identity in ("A", "E"):
+            return redirect('web_app:staff_orders')
 
     cart = request.session.get('cart', [])
     if not cart:
@@ -19,13 +18,14 @@ def payment_view(request):
     return render(request, 'payment.html', {
         'cart_items': cart,
         'total': total,
+        'is_guest': not request.user.is_authenticated,
     })
 
 
-@login_required
 def order_submit(request):
-    if request.user.identity == "A" or request.user.identity == "E":
-        return redirect('web_app:staff_orders')
+    if request.user.is_authenticated:
+        if request.user.identity in ("A", "E"):
+            return redirect('web_app:staff_orders')
 
     if request.method != 'POST':
         return redirect('web_app:payment')
@@ -43,7 +43,7 @@ def order_submit(request):
 
     order = Order.objects.create(
         sno=sno,
-        user=request.user,
+        user=request.user if request.user.is_authenticated else None,
         create_time=timezone.now(),
         status=0,
         price_total=total,

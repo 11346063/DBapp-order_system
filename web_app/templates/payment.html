@@ -38,11 +38,34 @@
     </div>
 
     <div class="col-lg-5">
+        {% if is_guest %}
+        <div id="guest-login-prompt" class="card card-dark border-warning mb-3">
+            <div class="card-body">
+                <h6 class="text-yellow mb-2"><i class="bi bi-person-exclamation"></i> 您目前以訪客身分結帳</h6>
+                <p class="text-secondary small mb-3">登入後可查看歷史訂單紀錄，您要登入嗎？</p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'web_app:login' %}?next={% url 'web_app:payment' %}" class="btn btn-yellow btn-sm fw-bold flex-fill">
+                        <i class="bi bi-box-arrow-in-right"></i> 前往登入
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="document.getElementById('guest-login-prompt').style.display='none'">
+                        繼續以訪客結帳
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="card card-dark">
             <div class="card-header border-bottom border-secondary">
                 <h6 class="text-white mb-0">顧客資訊</h6>
             </div>
             <div class="card-body">
+                {% if is_guest %}
+                <div class="mb-2">
+                    <span class="text-secondary">身分：</span>
+                    <span class="text-white">訪客</span>
+                </div>
+                {% else %}
                 <div class="mb-2">
                     <span class="text-secondary">姓名：</span>
                     <span class="text-white">{{ user.name }}</span>
@@ -58,6 +81,7 @@
                     <span class="text-secondary">地址：</span>
                     <span class="text-white">{{ user.address }}</span>
                 </div>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
