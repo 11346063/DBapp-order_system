@@ -40,6 +40,13 @@
                     {% endfor %}
                 </div>
 
+                <!-- Remark -->
+                {% if order.remark %}
+                <div class="mb-3 pb-2" style="border-bottom: 1px solid var(--border-color);">
+                    <small style="color: var(--text-secondary);"><i class="bi bi-chat-left-text me-1"></i>{{ order.remark }}</small>
+                </div>
+                {% endif %}
+
                 <!-- Footer: total + reorder button -->
                 <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid var(--border-color);">
                     <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>

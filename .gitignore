@@ -2,6 +2,6 @@
 **/__pycache__/
 *.py[cod]
 *$py.class
-.claude
-/CLAUDE.md
+.claude/settings.local.json
+CLAUDE.local.md
 /order_system.md
