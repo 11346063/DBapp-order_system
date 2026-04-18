@@ -22,7 +22,7 @@
         <div class="order-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
-                    <span class="fw-bold" style="color: var(--text-primary);">訂單 #{{ order.sno }}</span>
+                    <span class="fw-bold" style="color: var(--text-primary);">訂單 #{{ order.pk }}</span>
                     <span class="status-badge ms-2 {% if order.status == 0 %}status-pending{% elif order.status == 1 %}status-completed{% else %}status-cancelled{% endif %}">
                         {% if order.status == 0 %}處理中{% elif order.status == 1 %}已完成{% else %}已取消{% endif %}
                     </span>

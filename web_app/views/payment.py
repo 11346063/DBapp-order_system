@@ -41,14 +41,9 @@ def order_submit(request):
 
     total = sum(item["subtotal"] for item in cart)
 
-    # Generate sno
-    last_order = Order.objects.order_by("-sno").first()
-    sno = (last_order.sno + 1) if last_order else 1
-
     remark = request.POST.get("remark", "").strip()[:200]
 
     order = Order.objects.create(
-        sno=sno,
         user=request.user if request.user.is_authenticated else None,
         create_time=timezone.now(),
         status=0,
@@ -69,5 +64,5 @@ def order_submit(request):
             continue
 
     request.session["cart"] = []
-    messages.success(request, f"訂單 #{sno} 已成功送出！")
+    messages.success(request, f"訂單 #{order.pk} 已成功送出！")
     return redirect("web_app:home")
