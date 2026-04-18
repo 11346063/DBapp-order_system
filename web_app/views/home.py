@@ -29,7 +29,11 @@ def menu_detail_api(request, pk):
     try:
         menu = Menu.objects.select_related("type").get(pk=pk)
     except Menu.DoesNotExist:
-        return JsonResponse({"error": "找不到此餐點"}, status=404)
+        return JsonResponse(
+            {"error": "找不到此餐點"},
+            status=404,
+            json_dumps_params={"ensure_ascii": False},
+        )
 
     opt_groups = OptGroup.objects.filter(menu=menu).select_related("opt")
     options = [
