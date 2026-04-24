@@ -12,13 +12,14 @@
             </button>
 
             <!-- Order History -->
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated and user.identity != 'A' and user.identity != 'E' %}
             <a href="{% url 'web_app:order_history' %}" class="nav-icon-btn" title="歷史訂單">
                 <i class="bi bi-clock-history"></i>
             </a>
             {% endif %}
 
             <!-- Cart -->
+            {% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
             <a href="{% url 'web_app:cart' %}" class="nav-icon-btn position-relative" title="購物車">
                 <i class="bi bi-cart3"></i>
                 {% if cart_count > 0 %}
@@ -27,6 +28,7 @@
                 </span>
                 {% endif %}
             </a>
+            {% endif %}
 
             <!-- User (Desktop only) -->
             {% if user.is_authenticated %}
@@ -35,7 +37,9 @@
                     <i class="bi bi-person-circle"></i> {{ user.name|default:user.account }}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
+                    {% if user.identity != 'A' and user.identity != 'E' %}
                     <li><a class="dropdown-item" href="{% url 'web_app:order_history' %}"><i class="bi bi-clock-history"></i> 歷史訂單</a></li>
+                    {% endif %}
                     {% if user.identity == 'A' or user.identity == 'E' %}
                     <li><a class="dropdown-item" href="{% url 'web_app:home' %}"><i class="bi bi-shop"></i> 前台菜單</a></li>
                     <li><a class="dropdown-item" href="{% url 'web_app:staff_orders' %}"><i class="bi bi-clipboard-data"></i> 訂單管理</a></li>

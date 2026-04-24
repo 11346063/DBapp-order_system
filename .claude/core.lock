@@ -1,0 +1,10 @@
+{
+  "scripts/harness/audit_trail.py": "9b861f8b38eedacc6c7c56fea31eaf5933dc4a932af9a824f8259d07207a6348",
+  "scripts/harness/context_compaction.py": "fff6c0c5828f62bfedf2d39df08b150642dd5f5e1484a358a7ee8a7e435c60db",
+  "scripts/harness/entropy_janitor.py": "9a05dbee4efaa8eb8dc642c2eabbd416927777ff82e8707e2726b8e865771d4b",
+  "scripts/harness/harness_orchestrator.py": "94d11796156766af7f32f196a680b6b9c567697ebeb3a9c4a5b367a32cdda317",
+  "scripts/harness/loop_detector.py": "4b4b0811e9d098684722612efe31ad8e511ac64766cdbc06e1ea2cd6257b6ed2",
+  "scripts/harness/observability.py": "6ab4976735b0451ba266782e5e953475eb79c4a36c9432818b4955c35f00ca34",
+  "scripts/harness/sandbox.py": "e8a8f40cfee7e707338fcac1ce631a59dc37b91c77b04fff8ecadc0097ba50b3",
+  "scripts/harness/token_budget.py": "36d80ea84be1e5c376f27cb0587ecf4025b5cd8cec12d7749b56d325cdac7333"
+}

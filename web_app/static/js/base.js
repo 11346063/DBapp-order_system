@@ -70,4 +70,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btn) {
         btn.addEventListener('click', toggleTheme);
     }
+
+    document.querySelectorAll('[data-auto-dismiss="success"]').forEach(function (alertEl) {
+        setTimeout(function () {
+            if (window.bootstrap && window.bootstrap.Alert) {
+                window.bootstrap.Alert.getOrCreateInstance(alertEl).close();
+            } else {
+                alertEl.remove();
+            }
+        }, 3000);
+    });
 });
