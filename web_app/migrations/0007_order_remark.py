@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0006_order_user_nullable'),
+        ("web_app", "0006_order_user_nullable"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='remark',
-            field=models.CharField(blank=True, default='', max_length=200),
+            model_name="order",
+            name="remark",
+            field=models.CharField(blank=True, default="", max_length=200),
         ),
     ]

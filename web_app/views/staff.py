@@ -12,17 +12,21 @@ from web_app.decorators import employee_required, admin_required
 
 @employee_required
 def staff_order_list(request):
-    status_filter = request.GET.get('status', '0')
+    status_filter = request.GET.get("status", "0")
     try:
         status_val = int(status_filter)
     except (ValueError, TypeError):
         status_val = 0
 
-    orders = Order.objects.filter(status=status_val).select_related('user').order_by('-create_time')
+    orders = (
+        Order.objects.filter(status=status_val)
+        .select_related("user")
+        .order_by("-create_time")
+    )
 
     # 附加每筆訂單的品項
     for order in orders:
-        order.items = OrderItem.objects.filter(order=order).select_related('menu')
+        order.items = OrderItem.objects.filter(order=order).select_related("menu")
 
     status_counts = {
         0: Order.objects.filter(status=0).count(),
@@ -30,11 +34,15 @@ def staff_order_list(request):
         2: Order.objects.filter(status=2).count(),
     }
 
-    return render(request, 'staff/order_list.html', {
-        'orders': orders,
-        'current_status': status_val,
-        'status_counts': status_counts,
-    })
+    return render(
+        request,
+        "staff/order_list.html",
+        {
+            "orders": orders,
+            "current_status": status_val,
+            "status_counts": status_counts,
+        },
+    )
 
 
 @employee_required
@@ -42,14 +50,14 @@ def staff_order_list(request):
 def staff_update_status(request, pk):
     order = get_object_or_404(Order, pk=pk)
     data = json.loads(request.body)
-    new_status = data.get('status')
+    new_status = data.get("status")
 
     if new_status in [0, 1, 2]:
         order.status = new_status
         order.save()
-        return JsonResponse({'success': True})
+        return JsonResponse({"success": True})
 
-    return JsonResponse({'error': '無效的狀態'}, status=400)
+    return JsonResponse({"error": "無效的狀態"}, status=400)
 
 
 @admin_required
@@ -60,32 +68,32 @@ def staff_report(request):
     thirty_days_ago = now - timedelta(days=30)
     daily = list(
         Order.objects.filter(status=1, create_time__gte=thirty_days_ago)
-        .annotate(date=TruncDate('create_time'))
-        .values('date')
-        .annotate(count=Count('id'), revenue=Sum('price_total'))
-        .order_by('date')
+        .annotate(date=TruncDate("create_time"))
+        .values("date")
+        .annotate(count=Count("id"), revenue=Sum("price_total"))
+        .order_by("date")
     )
 
     # 月報表（近 12 個月）
     one_year_ago = now - timedelta(days=365)
     monthly = list(
         Order.objects.filter(status=1, create_time__gte=one_year_ago)
-        .annotate(month=TruncMonth('create_time'))
-        .values('month')
-        .annotate(count=Count('id'), revenue=Sum('price_total'))
-        .order_by('month')
+        .annotate(month=TruncMonth("create_time"))
+        .values("month")
+        .annotate(count=Count("id"), revenue=Sum("price_total"))
+        .order_by("month")
     )
 
     # Format for JSON in template
     daily_data = {
-        'dates': [d['date'].strftime('%m/%d') for d in daily],
-        'counts': [d['count'] for d in daily],
-        'revenues': [d['revenue'] or 0 for d in daily],
+        "dates": [d["date"].strftime("%m/%d") for d in daily],
+        "counts": [d["count"] for d in daily],
+        "revenues": [d["revenue"] or 0 for d in daily],
     }
     monthly_data = {
-        'months': [m['month'].strftime('%Y/%m') for m in monthly],
-        'counts': [m['count'] for m in monthly],
-        'revenues': [m['revenue'] or 0 for m in monthly],
+        "months": [m["month"].strftime("%Y/%m") for m in monthly],
+        "counts": [m["count"] for m in monthly],
+        "revenues": [m["revenue"] or 0 for m in monthly],
     }
 
     status_counts = {
@@ -94,8 +102,12 @@ def staff_report(request):
         2: Order.objects.filter(status=2).count(),
     }
 
-    return render(request, 'staff/report.html', {
-        'daily_data': json.dumps(daily_data),
-        'monthly_data': json.dumps(monthly_data),
-        'status_counts': status_counts,
-    })
+    return render(
+        request,
+        "staff/report.html",
+        {
+            "daily_data": json.dumps(daily_data),
+            "monthly_data": json.dumps(monthly_data),
+            "status_counts": status_counts,
+        },
+    )

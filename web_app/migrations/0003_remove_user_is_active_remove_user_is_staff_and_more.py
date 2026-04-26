@@ -4,28 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0002_menu_status'),
+        ("web_app", "0002_menu_status"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='is_active',
+            model_name="user",
+            name="is_active",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_staff',
+            model_name="user",
+            name="is_staff",
         ),
         migrations.AlterField(
-            model_name='user',
-            name='identity',
-            field=models.CharField(default='C', max_length=1),
+            model_name="user",
+            name="identity",
+            field=models.CharField(default="C", max_length=1),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='is_superuser',
-            field=models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status'),
+            model_name="user",
+            name="is_superuser",
+            field=models.BooleanField(
+                default=False,
+                help_text="Designates that this user has all permissions without explicitly assigning them.",
+                verbose_name="superuser status",
+            ),
         ),
     ]

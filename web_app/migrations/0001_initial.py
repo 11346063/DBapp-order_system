@@ -6,112 +6,246 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
+        ("auth", "0012_alter_user_first_name_max_length"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Menu',
+            name="Menu",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True)),
-                ('price', models.IntegerField()),
-                ('info', models.CharField(blank=True, max_length=100, null=True)),
-                ('remark', models.CharField(blank=True, max_length=100, null=True)),
-                ('file_path', models.ImageField(blank=True, null=True, upload_to='image/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50, unique=True)),
+                ("price", models.IntegerField()),
+                ("info", models.CharField(blank=True, max_length=100, null=True)),
+                ("remark", models.CharField(blank=True, max_length=100, null=True)),
+                (
+                    "file_path",
+                    models.ImageField(blank=True, null=True, upload_to="image/"),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Options',
+            name="Options",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('price', models.IntegerField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                ("price", models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
-            name='Type',
+            name="Type",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type_name', models.CharField(max_length=10, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("type_name", models.CharField(max_length=10, unique=True)),
             ],
         ),
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('account', models.CharField(max_length=20, unique=True)),
-                ('name', models.CharField(max_length=50)),
-                ('email', models.CharField(blank=True, max_length=50, null=True)),
-                ('phone_number', models.CharField(blank=True, max_length=20, null=True)),
-                ('address', models.CharField(blank=True, max_length=100, null=True)),
-                ('identity', models.CharField(max_length=1)),
-                ('create_time', models.DateTimeField(auto_now_add=True)),
-                ('update_time', models.DateTimeField(auto_now=True)),
-                ('is_staff', models.BooleanField(default=False)),
-                ('is_superuser', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
-                ('status', models.BooleanField(default=True)),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.permission', verbose_name='user permissions')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last login"
+                    ),
+                ),
+                ("account", models.CharField(max_length=20, unique=True)),
+                ("name", models.CharField(max_length=50)),
+                ("email", models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "phone_number",
+                    models.CharField(blank=True, max_length=20, null=True),
+                ),
+                ("address", models.CharField(blank=True, max_length=100, null=True)),
+                ("identity", models.CharField(max_length=1)),
+                ("create_time", models.DateTimeField(auto_now_add=True)),
+                ("update_time", models.DateTimeField(auto_now=True)),
+                ("is_staff", models.BooleanField(default=False)),
+                ("is_superuser", models.BooleanField(default=False)),
+                ("is_active", models.BooleanField(default=True)),
+                ("status", models.BooleanField(default=True)),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('sno', models.IntegerField()),
-                ('create_time', models.DateTimeField()),
-                ('status', models.IntegerField()),
-                ('price_total', models.IntegerField()),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("sno", models.IntegerField()),
+                ("create_time", models.DateTimeField()),
+                ("status", models.IntegerField()),
+                ("price_total", models.IntegerField()),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='OrderItem',
+            name="OrderItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.IntegerField()),
-                ('total_price', models.IntegerField()),
-                ('menu', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.menu')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("amount", models.IntegerField()),
+                ("total_price", models.IntegerField()),
+                (
+                    "menu",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="web_app.menu"
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="web_app.order"
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='menu',
-            name='type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.type'),
+            model_name="menu",
+            name="type",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="web_app.type"
+            ),
         ),
         migrations.CreateModel(
-            name='OptGroup',
+            name="OptGroup",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('menu', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.menu')),
-                ('opt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.options')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "menu",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="web_app.menu"
+                    ),
+                ),
+                (
+                    "opt",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="web_app.options",
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('menu', 'opt')},
+                "unique_together": {("menu", "opt")},
             },
         ),
         migrations.CreateModel(
-            name='OrderItemOptions',
+            name="OrderItemOptions",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('level', models.IntegerField()),
-                ('opt', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.options')),
-                ('order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='web_app.order')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("level", models.IntegerField()),
+                (
+                    "opt",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="web_app.options",
+                    ),
+                ),
+                (
+                    "order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="web_app.order"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('order', 'opt')},
+                "unique_together": {("order", "opt")},
             },
         ),
     ]

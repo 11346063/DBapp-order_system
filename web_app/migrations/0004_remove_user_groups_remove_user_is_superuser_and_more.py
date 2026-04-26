@@ -4,27 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0003_remove_user_is_active_remove_user_is_staff_and_more'),
+        ("web_app", "0003_remove_user_is_active_remove_user_is_staff_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='groups',
+            model_name="user",
+            name="groups",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='is_superuser',
+            model_name="user",
+            name="is_superuser",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='user_permissions',
+            model_name="user",
+            name="user_permissions",
         ),
         migrations.AlterField(
-            model_name='user',
-            name='identity',
-            field=models.CharField(choices=[('A', '管理員'), ('B', '員工'), ('C', '顧客')], default='C', max_length=1),
+            model_name="user",
+            name="identity",
+            field=models.CharField(
+                choices=[("A", "管理員"), ("B", "員工"), ("C", "顧客")],
+                default="C",
+                max_length=1,
+            ),
         ),
     ]

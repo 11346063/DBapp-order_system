@@ -3,19 +3,19 @@ from django.db import models
 
 
 class Identity(models.TextChoices):
-    ADMIN    = 'A', '管理員'
-    EMPLOYEE = 'E', '員工'
-    CUSTOMER = 'C', '顧客'
-    GUEST    = 'G', '訪客'
+    ADMIN = "A", "管理員"
+    EMPLOYEE = "E", "員工"
+    CUSTOMER = "C", "顧客"
+    GUEST = "G", "訪客"
 
 
 class UserManager(BaseUserManager):
     def create_user(self, account, password=None, **extra_fields):
         if not account:
-            raise ValueError('必須輸入帳號')
+            raise ValueError("必須輸入帳號")
 
-        if 'email' in extra_fields:
-            extra_fields['email'] = self.normalize_email(extra_fields['email'])
+        if "email" in extra_fields:
+            extra_fields["email"] = self.normalize_email(extra_fields["email"])
 
         user = self.model(account=account, **extra_fields)
         user.set_password(password)
@@ -23,7 +23,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, account, password=None, **extra_fields):
-        extra_fields.setdefault('identity', Identity.ADMIN)
+        extra_fields.setdefault("identity", Identity.ADMIN)
         return self.create_user(account, password, **extra_fields)
 
 
@@ -44,8 +44,8 @@ class User(AbstractBaseUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'account'
-    REQUIRED_FIELDS = ['name']
+    USERNAME_FIELD = "account"
+    REQUIRED_FIELDS = ["name"]
 
     def __str__(self):
         return self.account
