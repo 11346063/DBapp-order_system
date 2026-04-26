@@ -1,133 +1,142 @@
-(function() {
+(function () {
     var dailyData = window.REPORT_DATA.daily;
     var monthlyData = window.REPORT_DATA.monthly;
 
     var isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
     var textColor = isDark ? '#aaa' : '#666';
-    var axisLineColor = isDark ? '#333' : '#ddd';
+    var gridColor = isDark ? '#222' : '#eee';
     var yellow = '#F3E800';
+    var red = '#ff6b6b';
 
-    // Daily Chart
-    var dailyChart = echarts.init(document.getElementById('dailyChart'));
-    dailyChart.setOption({
-        tooltip: {
-            trigger: 'axis',
-            backgroundColor: isDark ? '#1a1a1a' : '#fff',
-            borderColor: isDark ? '#333' : '#ddd',
-            textStyle: { color: isDark ? '#fff' : '#333' }
-        },
-        legend: {
-            data: ['訂單數', '營收'],
-            textStyle: { color: textColor }
-        },
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: {
-            type: 'category',
-            data: dailyData.dates,
-            axisLabel: { color: textColor, rotate: 45 },
-            axisLine: { lineStyle: { color: axisLineColor } }
-        },
-        yAxis: [
-            {
-                type: 'value',
-                name: '訂單數',
-                nameTextStyle: { color: textColor },
-                axisLabel: { color: textColor },
-                axisLine: { lineStyle: { color: axisLineColor } },
-                splitLine: { lineStyle: { color: isDark ? '#222' : '#eee' } }
-            },
-            {
-                type: 'value',
-                name: '營收 ($)',
-                nameTextStyle: { color: textColor },
-                axisLabel: { color: textColor },
-                axisLine: { lineStyle: { color: axisLineColor } },
-                splitLine: { show: false }
-            }
-        ],
-        series: [
-            {
-                name: '訂單數',
-                type: 'bar',
-                yAxisIndex: 0,
-                data: dailyData.counts,
-                itemStyle: { color: yellow }
-            },
-            {
-                name: '營收',
-                type: 'line',
-                yAxisIndex: 1,
-                data: dailyData.revenues,
-                smooth: true,
-                itemStyle: { color: '#ff6b6b' },
-                lineStyle: { width: 2 }
-            }
-        ]
-    });
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
-    // Monthly Chart
-    var monthlyChart = echarts.init(document.getElementById('monthlyChart'));
-    monthlyChart.setOption({
-        tooltip: {
-            trigger: 'axis',
-            backgroundColor: isDark ? '#1a1a1a' : '#fff',
-            borderColor: isDark ? '#333' : '#ddd',
-            textStyle: { color: isDark ? '#fff' : '#333' }
-        },
-        legend: {
-            data: ['訂單數', '營收'],
-            textStyle: { color: textColor }
-        },
-        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-        xAxis: {
-            type: 'category',
-            data: monthlyData.months,
-            axisLabel: { color: textColor },
-            axisLine: { lineStyle: { color: axisLineColor } }
-        },
-        yAxis: [
-            {
-                type: 'value',
-                name: '訂單數',
-                nameTextStyle: { color: textColor },
-                axisLabel: { color: textColor },
-                axisLine: { lineStyle: { color: axisLineColor } },
-                splitLine: { lineStyle: { color: isDark ? '#222' : '#eee' } }
+    function buildOptions(orderAxisLabel, revenueAxisLabel) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
             },
-            {
-                type: 'value',
-                name: '營收 ($)',
-                nameTextStyle: { color: textColor },
-                axisLabel: { color: textColor },
-                axisLine: { lineStyle: { color: axisLineColor } },
-                splitLine: { show: false }
-            }
-        ],
-        series: [
-            {
-                name: '訂單數',
-                type: 'bar',
-                yAxisIndex: 0,
-                data: monthlyData.counts,
-                itemStyle: { color: yellow },
-                barWidth: '40%'
+            plugins: {
+                legend: {
+                    labels: {
+                        color: textColor,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: isDark ? '#1a1a1a' : '#fff',
+                    borderColor: isDark ? '#333' : '#ddd',
+                    borderWidth: 1,
+                    titleColor: isDark ? '#fff' : '#333',
+                    bodyColor: isDark ? '#fff' : '#333'
+                }
             },
-            {
-                name: '營收',
-                type: 'line',
-                yAxisIndex: 1,
-                data: monthlyData.revenues,
-                smooth: true,
-                itemStyle: { color: '#ff6b6b' },
-                lineStyle: { width: 3 },
-                areaStyle: { color: 'rgba(255,107,107,0.1)' }
+            scales: {
+                x: {
+                    ticks: {
+                        color: textColor,
+                        maxRotation: 45,
+                        minRotation: 0
+                    },
+                    grid: {
+                        color: gridColor
+                    }
+                },
+                orders: {
+                    type: 'linear',
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: orderAxisLabel,
+                        color: textColor
+                    },
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        precision: 0
+                    },
+                    grid: {
+                        color: gridColor
+                    }
+                },
+                revenue: {
+                    type: 'linear',
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: revenueAxisLabel,
+                        color: textColor
+                    },
+                    beginAtZero: true,
+                    ticks: {
+                        color: textColor,
+                        callback: function (value) {
+                            return '$' + value;
+                        }
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
             }
-        ]
-    });
+        };
+    }
 
-    // Responsive resize
-    window.addEventListener('resize', function() {
-        dailyChart.resize();
-        monthlyChart.resize();
-    });
+    function buildMixedChart(canvasId, labels, counts, revenues, barPercentage) {
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
+
+        return new Chart(canvas, {
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: '訂單數',
+                        data: counts,
+                        yAxisID: 'orders',
+                        backgroundColor: yellow,
+                        borderColor: yellow,
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barPercentage: barPercentage
+                    },
+                    {
+                        type: 'line',
+                        label: '營收',
+                        data: revenues,
+                        yAxisID: 'revenue',
+                        borderColor: red,
+                        backgroundColor: 'rgba(255, 107, 107, 0.12)',
+                        borderWidth: 3,
+                        pointBackgroundColor: red,
+                        pointBorderColor: red,
+                        pointRadius: 3,
+                        tension: 0.35,
+                        fill: false
+                    }
+                ]
+            },
+            options: buildOptions('訂單數', '營收 ($)')
+        });
+    }
+
+    buildMixedChart(
+        'dailyChart',
+        dailyData.dates,
+        dailyData.counts,
+        dailyData.revenues,
+        0.7
+    );
+
+    buildMixedChart(
+        'monthlyChart',
+        monthlyData.months,
+        monthlyData.counts,
+        monthlyData.revenues,
+        0.45
+    );
 })();
