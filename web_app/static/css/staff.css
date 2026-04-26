@@ -16,6 +16,19 @@
     transition: all 0.2s;
 }
 
+.staff-nav-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.staff-status-badge {
+    margin-left: auto;
+    min-width: 2rem;
+    text-align: center;
+}
+
 .sidebar-link:hover {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
@@ -28,6 +41,10 @@
 }
 
 .staff-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 132px;
     border-radius: 20px;
     padding: 6px 16px;
     color: #ccc;
@@ -35,6 +52,12 @@
     border: 1px solid var(--border-color);
     text-decoration: none;
     font-size: 0.9rem;
+}
+
+@media (max-width: 575.98px) {
+    .staff-tab {
+        min-width: calc(50vw - 20px);
+    }
 }
 
 .staff-tab:hover {

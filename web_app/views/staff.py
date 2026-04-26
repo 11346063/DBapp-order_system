@@ -109,5 +109,6 @@ def staff_report(request):
             "daily_data": json.dumps(daily_data),
             "monthly_data": json.dumps(monthly_data),
             "status_counts": status_counts,
+            "current_status": None,
         },
     )

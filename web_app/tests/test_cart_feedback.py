@@ -22,6 +22,7 @@ class CartFeedbackTemplateTest(TestCase):
         response = self.client.get(reverse("web_app:home"))
 
         self.assertContains(response, 'id="cartFeedback"')
+        self.assertContains(response, 'class="cart-feedback d-none"')
         self.assertContains(response, 'data-cart-action="continue"')
         self.assertContains(response, 'data-bs-dismiss="modal"')
         self.assertContains(response, 'data-bs-dismiss="offcanvas"')
@@ -29,6 +30,19 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertContains(response, "繼續點餐")
         self.assertContains(response, "查看購物車")
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
+
+    def test_home_keeps_cart_feedback_visible_when_cart_has_items(self):
+        self.client.login(username="cart_feedback_user", password="pass")
+        session = self.client.session
+        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
+        session.save()
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertContains(response, 'id="cartFeedback"')
+        self.assertContains(response, "購物車目前有 2 件商品")
+        self.assertContains(response, 'id="cartFeedback" class="cart-feedback "')
+        self.assertNotContains(response, 'class="cart-feedback d-none"')
 
 
 class CartPageNavigationTest(TestCase):

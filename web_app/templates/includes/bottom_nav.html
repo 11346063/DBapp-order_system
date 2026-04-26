@@ -1,4 +1,14 @@
 <!-- Mobile Bottom Navigation - only visible on small screens -->
+{% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
+{% with mobile_cart_count=cart_count|default:0 %}
+<a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="前往購物車">
+    <span class="mobile-cart-summary-label">
+        <i class="bi bi-cart3"></i> 購物車
+    </span>
+    <span class="mobile-cart-summary-count" id="mobileCartSummaryCount">{{ mobile_cart_count }}</span>
+</a>
+{% endwith %}
+{% endif %}
 <nav class="bottom-nav">
     <a href="{% url 'web_app:home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
         <i class="bi bi-house-door-fill"></i>

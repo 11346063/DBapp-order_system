@@ -112,10 +112,11 @@
 </div>
 
 {% if not is_staff %}
-<div id="cartFeedback" class="cart-feedback d-none" role="status" aria-live="polite">
+{% with current_cart_count=cart_count|default:0 %}
+<div id="cartFeedback" class="cart-feedback {% if not current_cart_count %}d-none{% endif %}" role="status" aria-live="polite">
     <div>
-        <strong>已加入購物車</strong>
-        <span id="cartFeedbackText">可以繼續點餐，或前往購物車確認訂單。</span>
+        <strong>購物車</strong>
+        <span id="cartFeedbackText">購物車目前有 {{ current_cart_count }} 件商品。</span>
     </div>
     <div class="cart-feedback-actions">
         <button type="button" class="btn btn-outline-light btn-sm" data-cart-action="dismiss-feedback">
@@ -126,4 +127,5 @@
         </a>
     </div>
 </div>
+{% endwith %}
 {% endif %}

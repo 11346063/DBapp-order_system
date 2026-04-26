@@ -101,16 +101,18 @@ function closeItemDetail() {
 
 function continueOrdering() {
     closeItemDetail();
-    dismissCartFeedback();
 }
 
 function dismissCartFeedback() {
-    document.getElementById('cartFeedback')?.classList.add('d-none');
+    closeItemDetail();
 }
 
 function updateCartBadge(cartCount) {
     const cartLink = document.querySelector('.navbar a[href="/cart/"]');
-    if (!cartLink) return;
+    if (!cartLink) {
+        updateMobileCartSummary(cartCount);
+        return;
+    }
 
     let badge = cartLink.querySelector('.badge');
     if (!badge) {
@@ -126,6 +128,16 @@ function updateCartBadge(cartCount) {
 
     badge.textContent = cartCount;
     badge.style.display = cartCount > 0 ? '' : 'none';
+    updateMobileCartSummary(cartCount);
+}
+
+function updateMobileCartSummary(cartCount) {
+    const summary = document.getElementById('mobileCartSummary');
+    const count = document.getElementById('mobileCartSummaryCount');
+    if (!summary || !count) return;
+
+    count.textContent = cartCount;
+    summary.classList.toggle('d-none', cartCount <= 0);
 }
 
 function showCartFeedback(data) {

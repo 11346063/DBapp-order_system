@@ -40,6 +40,39 @@ class NavigationVisibilityTest(TestCase):
         self.assertContains(response, f'href="{reverse("web_app:staff_orders")}"')
         self.assertContains(response, f'href="{reverse("web_app:logout")}"')
 
+    def test_mobile_cart_summary_is_hidden_when_cart_is_empty(self):
+        self.client.login(username="customer_nav", password="pass")
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertContains(response, 'id="mobileCartSummary"')
+        self.assertContains(response, "mobile-cart-summary d-md-none d-none")
+
+    def test_mobile_cart_summary_shows_cart_count(self):
+        self.client.login(username="customer_nav", password="pass")
+        session = self.client.session
+        session["cart"] = [
+            {"name": "香脆炸雞", "quantity": 2, "subtotal": 160},
+            {"name": "薯條", "quantity": 1, "subtotal": 50},
+        ]
+        session.save()
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertContains(response, 'id="mobileCartSummary"')
+        self.assertContains(response, "購物車")
+        self.assertContains(response, 'id="mobileCartSummaryCount">3</span>')
+
+    def test_admin_does_not_render_mobile_cart_summary(self):
+        self.client.login(username="admin_nav", password="pass")
+        session = self.client.session
+        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
+        session.save()
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertNotContains(response, 'id="mobileCartSummary"')
+
 
 class SuccessMessageAutoDismissTest(TestCase):
     def setUp(self):
