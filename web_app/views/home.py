@@ -25,6 +25,12 @@ def home_view(request):
     )
 
 
+def _menu_image_url(menu):
+    if not menu.file_path:
+        return ""
+    return menu.file_path.url
+
+
 def menu_detail_api(request, pk):
     try:
         menu = Menu.objects.select_related("type").get(pk=pk)
@@ -50,6 +56,7 @@ def menu_detail_api(request, pk):
         "type_id": menu.type_id,
         "type_name": menu.type.type_name,
         "status": menu.status,
+        "image_url": _menu_image_url(menu),
         "options": options,
     }
 

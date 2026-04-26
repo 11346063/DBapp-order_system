@@ -26,6 +26,7 @@ function fillDetail(data) {
         const nameEl = document.getElementById(`${prefix}ItemName`);
         const priceEl = document.getElementById(`${prefix}ItemPrice`);
         const infoEl = document.getElementById(`${prefix}ItemInfo`);
+        const imageEl = document.getElementById(`${prefix}ItemImage`);
         const qtyEl = document.getElementById(`${prefix}Qty`);
         const optEl = document.getElementById(`${prefix}Options`);
         const statusBadge = document.getElementById(`${prefix}StatusBadge`);
@@ -35,6 +36,20 @@ function fillDetail(data) {
         if (infoEl) {
             infoEl.textContent = data.info || '';
             infoEl.style.display = data.info ? '' : 'none';
+        }
+        if (imageEl) {
+            const iconEl = imageEl.parentElement?.querySelector('i');
+            if (data.image_url) {
+                imageEl.src = data.image_url;
+                imageEl.alt = data.name;
+                imageEl.classList.remove('d-none');
+                if (iconEl) iconEl.classList.add('d-none');
+            } else {
+                imageEl.removeAttribute('src');
+                imageEl.alt = '';
+                imageEl.classList.add('d-none');
+                if (iconEl) iconEl.classList.remove('d-none');
+            }
         }
         if (qtyEl) qtyEl.textContent = '1';
 

@@ -82,6 +82,7 @@ function openEditForm() {
     document.getElementById('staffMenuPrice').value = currentItem.price;
     document.getElementById('staffMenuInfo').value = currentItem.info || '';
     document.getElementById('staffMenuRemark').value = currentItem.remark || '';
+    document.getElementById('staffMenuImage').value = '';
 
     // 關閉詳情 modal/offcanvas，開啟編輯 modal
     _closeDetailPanel();
@@ -101,6 +102,7 @@ function openCreateForm() {
     document.getElementById('staffMenuPrice').value = '';
     document.getElementById('staffMenuInfo').value = '';
     document.getElementById('staffMenuRemark').value = '';
+    document.getElementById('staffMenuImage').value = '';
 
     const modal = new bootstrap.Modal(document.getElementById('staffMenuModal'));
     modal.show();
@@ -122,6 +124,7 @@ function submitStaffMenuForm() {
     const typeId = parseInt(document.getElementById('staffMenuType').value);
     const info = document.getElementById('staffMenuInfo').value.trim();
     const remark = document.getElementById('staffMenuRemark').value.trim();
+    const imageInput = document.getElementById('staffMenuImage');
 
     const priceInt = parseInt(price);
     if (!name || price === '') {
@@ -135,7 +138,15 @@ function submitStaffMenuForm() {
         return;
     }
 
-    const payload = { name, price: priceInt, type_id: typeId, info, remark };
+    const payload = new FormData();
+    payload.append('name', name);
+    payload.append('price', priceInt);
+    payload.append('type_id', typeId);
+    payload.append('info', info);
+    payload.append('remark', remark);
+    if (imageInput && imageInput.files.length > 0) {
+        payload.append('file_path', imageInput.files[0]);
+    }
 
     let url, successHandler;
     if (staffMenuMode === 'edit' && currentItem) {
@@ -144,7 +155,7 @@ function submitStaffMenuForm() {
             // 更新 currentItem
             Object.assign(currentItem, data);
             // 更新卡片上的品名與金額
-            _refreshCardInfo(data.id, data.name, data.price);
+            _refreshCardInfo(data.id, data.name, data.price, data.image_url);
             bootstrap.Modal.getInstance(document.getElementById('staffMenuModal'))?.hide();
         };
     } else {
@@ -156,7 +167,7 @@ function submitStaffMenuForm() {
         };
     }
 
-    postJSON(url, payload).then(data => {
+    postFormData(url, payload).then(data => {
         if (data.error) {
             errorEl.textContent = data.error;
             errorEl.classList.remove('d-none');
@@ -169,7 +180,7 @@ function submitStaffMenuForm() {
     });
 }
 
-function _refreshCardInfo(menuId, newName, newPrice) {
+function _refreshCardInfo(menuId, newName, newPrice, imageUrl) {
     document.querySelectorAll('.menu-item').forEach(card => {
         const btn = card.querySelector('.item-card');
         if (!btn) return;
@@ -178,12 +189,45 @@ function _refreshCardInfo(menuId, newName, newPrice) {
         const priceEl = card.querySelector('.badge-yellow');
         if (titleEl) titleEl.textContent = newName;
         if (priceEl) priceEl.textContent = `$${newPrice}`;
+        _renderCardImage(card, imageUrl, newName);
     });
+}
+
+function _renderCardImage(card, imageUrl, name) {
+    const placeholder = card.querySelector('.card-img-top-placeholder');
+    if (!placeholder) return;
+
+    let imageEl = placeholder.querySelector('.menu-card-image');
+    const iconEl = placeholder.querySelector('i.bi-egg-fried');
+
+    if (imageUrl) {
+        if (!imageEl) {
+            imageEl = document.createElement('img');
+            imageEl.className = 'menu-card-image';
+            placeholder.prepend(imageEl);
+        }
+        imageEl.src = imageUrl;
+        imageEl.alt = name;
+        if (iconEl) iconEl.classList.add('d-none');
+        return;
+    }
+
+    if (imageEl) imageEl.remove();
+    if (iconEl) iconEl.classList.remove('d-none');
+}
+
+function _escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
 }
 
 function _appendNewCard(item) {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
+
+    const safeName = _escapeHtml(item.name);
+    const safeImageUrl = _escapeHtml(item.image_url);
 
     const col = document.createElement('div');
     col.className = 'col-6 col-md-4 col-lg-3 menu-item';
@@ -191,10 +235,13 @@ function _appendNewCard(item) {
     col.innerHTML = `
         <div class="card card-dark h-100 item-card" role="button" onclick="openItemDetail(${item.id})">
             <div class="card-img-top-placeholder d-flex align-items-center justify-content-center position-relative">
-                <i class="bi bi-egg-fried fs-1 text-secondary"></i>
+                ${item.image_url
+                    ? `<img src="${safeImageUrl}" alt="${safeName}" class="menu-card-image">`
+                    : '<i class="bi bi-egg-fried fs-1 text-secondary"></i>'
+                }
             </div>
             <div class="card-body p-3">
-                <h6 class="card-title mb-2 text-white">${item.name}</h6>
+                <h6 class="card-title mb-2 text-white">${safeName}</h6>
                 <span class="badge badge-yellow">$${item.price}</span>
             </div>
         </div>

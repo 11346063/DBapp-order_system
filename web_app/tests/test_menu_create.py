@@ -1,11 +1,17 @@
 import json
-from django.test import TestCase, Client
+import shutil
+import tempfile
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from web_app.models import User, Identity, Type, Menu
 
 
 class MenuCreateTest(TestCase):
     def setUp(self):
+        self.media_root = tempfile.mkdtemp()
+        self.settings_override = override_settings(MEDIA_ROOT=self.media_root)
+        self.settings_override.enable()
         self.client = Client()
         self.type = Type.objects.create(type_name="炸雞")
         self.customer = User.objects.create_user(
@@ -31,6 +37,10 @@ class MenuCreateTest(TestCase):
             "remark": "",
             "type_id": self.type.pk,
         }
+
+    def tearDown(self):
+        self.settings_override.disable()
+        shutil.rmtree(self.media_root, ignore_errors=True)
 
     def test_employee_can_create_item(self):
         """員工可以新增品項"""
@@ -65,6 +75,39 @@ class MenuCreateTest(TestCase):
         self.assertIn("id", data)
         self.assertEqual(data["name"], "新品炸雞腿")
         self.assertEqual(data["price"], 120)
+        self.assertEqual(data["image_url"], "")
+
+    def test_create_with_image_upload_saves_file(self):
+        """新增品項可透過 multipart 上傳圖片"""
+        self.client.login(username="employee1", password="pass")
+        image = SimpleUploadedFile(
+            "chicken.png",
+            b"fake-image-content",
+            content_type="image/png",
+        )
+        response = self.client.post(
+            self.url,
+            data={**self.valid_payload, "file_path": image},
+        )
+        self.assertEqual(response.status_code, 201)
+        item = Menu.objects.get(name="新品炸雞腿")
+        self.assertTrue(item.file_path.name.startswith("image/chicken"))
+        data = json.loads(response.content)
+        self.assertIn("/media/image/chicken", data["image_url"])
+
+    def test_create_with_non_image_file_returns_400(self):
+        """非圖片檔案不可作為品項照片"""
+        self.client.login(username="employee1", password="pass")
+        upload = SimpleUploadedFile(
+            "notes.txt",
+            b"not an image",
+            content_type="text/plain",
+        )
+        response = self.client.post(
+            self.url,
+            data={**self.valid_payload, "file_path": upload},
+        )
+        self.assertEqual(response.status_code, 400)
 
     def test_customer_cannot_create_item(self):
         """顧客無法新增品項（403）"""

@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
-<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=11">
 {% endblock %}
 
 {% block content %}
@@ -53,8 +53,8 @@ window.TYPES = [
 ];
 </script>
 <script src="{% static 'js/home.js' %}"></script>
-<script src="{% static 'js/detail.js' %}?v=6"></script>
+<script src="{% static 'js/detail.js' %}?v=7"></script>
 {% if is_staff %}
-<script src="{% static 'js/staff_menu.js' %}?v=2"></script>
+<script src="{% static 'js/staff_menu.js' %}?v=3"></script>
 {% endif %}
 {% endblock %}

@@ -7,6 +7,7 @@
     <div class="offcanvas-body text-center">
         <div class="detail-icon mb-3">
             <i class="bi bi-egg-fried display-1 text-secondary"></i>
+            <img id="offcanvasItemImage" class="detail-image d-none" alt="">
         </div>
         <h5 class="text-white mb-1" id="offcanvasItemName"></h5>
         <p class="text-yellow fs-5 fw-bold mb-3" id="offcanvasItemPrice"></p>
@@ -62,7 +63,10 @@
             <div class="modal-body">
                 <div class="row">
                     <div class="col-5 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-egg-fried display-1 text-secondary"></i>
+                        <div class="detail-icon">
+                            <i class="bi bi-egg-fried display-1 text-secondary"></i>
+                            <img id="modalItemImage" class="detail-image d-none" alt="">
+                        </div>
                     </div>
                     <div class="col-7">
                         <p class="text-yellow fs-4 fw-bold mb-2" id="modalItemPrice"></p>

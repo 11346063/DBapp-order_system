@@ -121,6 +121,9 @@ SESSION_SAVE_EVERY_REQUEST = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "web_app/static"]
 
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 LOGIN_URL = "/login/"
 
 # Default primary key field type

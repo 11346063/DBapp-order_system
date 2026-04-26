@@ -2,6 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import redirect
+from django.core.exceptions import ValidationError
 from web_app.models import Menu, Type, Identity
 
 _DUMPS = {"ensure_ascii": False}
@@ -10,6 +11,46 @@ _DUMPS = {"ensure_ascii": False}
 def _json(data, status=200):
     """統一回傳 UTF-8 JSON（中文不轉義）"""
     return JsonResponse(data, status=status, json_dumps_params=_DUMPS)
+
+
+def _menu_image_url(menu):
+    if not menu.file_path:
+        return ""
+    return menu.file_path.url
+
+
+def _menu_payload(menu):
+    return {
+        "id": menu.pk,
+        "name": menu.name,
+        "price": menu.price,
+        "info": menu.info,
+        "remark": menu.remark,
+        "type_id": menu.type_id,
+        "type_name": menu.type.type_name,
+        "status": menu.status,
+        "image_url": _menu_image_url(menu),
+    }
+
+
+def _parse_menu_request(request):
+    if request.content_type and request.content_type.startswith("multipart/form-data"):
+        return request.POST
+
+    try:
+        return json.loads(request.body)
+    except json.JSONDecodeError:
+        return None
+
+
+def _validate_uploaded_image(uploaded_file):
+    if not uploaded_file:
+        return None
+
+    content_type = getattr(uploaded_file, "content_type", "")
+    if not content_type.startswith("image/"):
+        raise ValidationError("圖片格式不正確")
+    return uploaded_file
 
 
 def _check_staff_permission(request):
@@ -55,9 +96,8 @@ def menu_edit(request, pk):
     except Menu.DoesNotExist:
         return _json({"error": "找不到此商品"}, status=404)
 
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
+    data = _parse_menu_request(request)
+    if data is None:
         return _json({"error": "無效的 JSON"}, status=400)
 
     name = data.get("name", "").strip()
@@ -80,23 +120,22 @@ def menu_edit(request, pk):
         except Type.DoesNotExist:
             return _json({"error": "找不到此分類"}, status=400)
 
+    try:
+        uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
+    except ValidationError as exc:
+        return _json({"error": exc.message}, status=400)
+
     menu.name = name
     menu.price = price
     menu.info = data.get("info", "") or ""
     menu.remark = data.get("remark", "") or ""
-    menu.save(update_fields=["name", "price", "info", "remark", "type"])
+    update_fields = ["name", "price", "info", "remark", "type"]
+    if uploaded_image:
+        menu.file_path = uploaded_image
+        update_fields.append("file_path")
+    menu.save(update_fields=update_fields)
 
-    return _json(
-        {
-            "id": menu.pk,
-            "name": menu.name,
-            "price": menu.price,
-            "info": menu.info,
-            "remark": menu.remark,
-            "type_id": menu.type_id,
-            "type_name": menu.type.type_name,
-        }
-    )
+    return _json(_menu_payload(menu))
 
 
 @require_POST
@@ -106,9 +145,8 @@ def menu_create(request):
     if denied:
         return denied
 
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
+    data = _parse_menu_request(request)
+    if data is None:
         return _json({"error": "無效的 JSON"}, status=400)
 
     name = data.get("name", "").strip()
@@ -134,25 +172,19 @@ def menu_create(request):
     if Menu.objects.filter(name=name).exists():
         return _json({"error": "品項名稱已存在"}, status=400)
 
+    try:
+        uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
+    except ValidationError as exc:
+        return _json({"error": exc.message}, status=400)
+
     menu = Menu.objects.create(
         name=name,
         price=price,
         type=menu_type,
         info=data.get("info", "") or "",
         remark=data.get("remark", "") or "",
+        file_path=uploaded_image,
         status=True,
     )
 
-    return _json(
-        {
-            "id": menu.pk,
-            "name": menu.name,
-            "price": menu.price,
-            "info": menu.info,
-            "remark": menu.remark,
-            "type_id": menu.type_id,
-            "type_name": menu.type.type_name,
-            "status": menu.status,
-        },
-        status=201,
-    )
+    return _json(_menu_payload(menu), status=201)

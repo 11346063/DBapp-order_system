@@ -32,6 +32,21 @@ function postJSON(url, data) {
     );
 }
 
+function postFormData(url, formData) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData,
+    }).then(res =>
+        res.json().then(body => {
+            if (!res.ok) return Promise.reject(body.error || '伺服器發生錯誤');
+            return body;
+        })
+    );
+}
+
 /* ===== Theme Toggle ===== */
 function getStoredTheme() {
     return localStorage.getItem('theme') || 'dark';
