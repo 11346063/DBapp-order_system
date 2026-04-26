@@ -85,6 +85,61 @@ function changeQty(delta) {
     if (modQty) modQty.textContent = currentQty;
 }
 
+function closeItemDetail() {
+    const offcanvasEl = document.getElementById('itemOffcanvas');
+    const modalEl = document.getElementById('itemModal');
+
+    if (!window.bootstrap) return;
+
+    if (offcanvasEl && offcanvasEl.classList.contains('show')) {
+        bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl).hide();
+    }
+    if (modalEl && modalEl.classList.contains('show')) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    }
+}
+
+function continueOrdering() {
+    closeItemDetail();
+    dismissCartFeedback();
+}
+
+function dismissCartFeedback() {
+    document.getElementById('cartFeedback')?.classList.add('d-none');
+}
+
+function updateCartBadge(cartCount) {
+    const cartLink = document.querySelector('.navbar a[href="/cart/"]');
+    if (!cartLink) return;
+
+    let badge = cartLink.querySelector('.badge');
+    if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'position-absolute badge rounded-pill';
+        badge.style.top = '-4px';
+        badge.style.right = '-4px';
+        badge.style.backgroundColor = 'var(--primary-yellow)';
+        badge.style.color = '#000';
+        badge.style.fontSize = '0.65rem';
+        cartLink.appendChild(badge);
+    }
+
+    badge.textContent = cartCount;
+    badge.style.display = cartCount > 0 ? '' : 'none';
+}
+
+function showCartFeedback(data) {
+    const feedback = document.getElementById('cartFeedback');
+    const feedbackText = document.getElementById('cartFeedbackText');
+    if (!feedback) return;
+
+    if (feedbackText) {
+        feedbackText.textContent = `購物車目前有 ${data.cart_count} 件商品。`;
+    }
+
+    feedback.classList.remove('d-none');
+}
+
 function getSelectedOptions() {
     const container = window.innerWidth < 768
         ? document.getElementById('offcanvasOptions')
@@ -113,24 +168,25 @@ function addToCart() {
         options: selectedOptions,
     }).then(data => {
         if (data.success) {
-            // Update cart badge
-            const badge = document.querySelector('.navbar .badge');
-            if (badge) {
-                badge.textContent = data.cart_count;
-                badge.style.display = '';
-            } else {
-                // Reload to show badge
-                location.reload();
-            }
-
-            // Close modal/offcanvas
-            const offcanvasEl = document.getElementById('itemOffcanvas');
-            const modalEl = document.getElementById('itemModal');
-            if (window.innerWidth < 768 && offcanvasEl) {
-                bootstrap.Offcanvas.getInstance(offcanvasEl)?.hide();
-            } else if (modalEl) {
-                bootstrap.Modal.getInstance(modalEl)?.hide();
-            }
+            updateCartBadge(data.cart_count);
+            closeItemDetail();
+            showCartFeedback(data);
         }
     }).catch(() => {});
 }
+
+document.addEventListener('click', function (event) {
+    const actionButton = event.target.closest('[data-cart-action]');
+    if (!actionButton) return;
+
+    const action = actionButton.dataset.cartAction;
+    if (action === 'continue') {
+        continueOrdering();
+    }
+    if (action === 'dismiss-feedback') {
+        dismissCartFeedback();
+    }
+});
+
+window.continueOrdering = continueOrdering;
+window.dismissCartFeedback = dismissCartFeedback;

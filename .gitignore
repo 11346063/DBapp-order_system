@@ -5,3 +5,9 @@
 .claude/settings.local.json
 CLAUDE.local.md
 /order_system.md
+# Agentic Harness Engineering (Local AI Agent Files)
+# These files should NEVER be committed to the repository
+AGENTS.md
+docs/progress.md
+.opencode/
+scripts/harness/
