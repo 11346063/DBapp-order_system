@@ -1,0 +1,18 @@
+{% comment %}
+Component: ActionButton
+Props:
+  - label (required): str，按鈕文字
+  - icon (optional): Bootstrap Icon class，例如 'bi-plus-lg'
+  - onclick (optional): str，onclick JS
+  - variant (optional, default 'btn-yellow'): Bootstrap button class
+  - extra_class (optional): str，額外 class（例如 'fw-bold'）
+  - wrapper_class (optional): str，外層 div 的 class（不給就不包 wrapper）
+  - btn_type (optional, default 'button'): 'button' | 'submit'
+Usage:
+  {% include 'includes/components/action_button.html' with icon='bi-plus-lg' label='新增品項' onclick='openCreateForm()' wrapper_class='d-flex justify-content-end mb-3' %}
+{% endcomment %}
+{% if wrapper_class %}<div class="{{ wrapper_class }}">{% endif %}
+<button type="{{ btn_type|default:'button' }}" class="btn {{ variant|default:'btn-yellow' }} fw-bold {{ extra_class }}"{% if onclick %} onclick="{{ onclick }}"{% endif %}>
+    {% if icon %}<i class="bi {{ icon }}"></i> {% endif %}{{ label }}
+</button>
+{% if wrapper_class %}</div>{% endif %}

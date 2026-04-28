@@ -1,3 +1,10 @@
+{% comment %}
+Component: CategoryTabs
+Props:
+  - types (required): iterable，每個元素需有 .id 與 .type_name
+Usage:
+  {% include 'includes/components/category_tabs.html' with types=types %}
+{% endcomment %}
 <div class="category-tabs-wrapper mb-4">
     <ul class="nav nav-pills flex-nowrap overflow-auto" id="categoryTabs">
         <li class="nav-item">

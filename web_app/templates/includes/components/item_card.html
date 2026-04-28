@@ -1,5 +1,15 @@
+{% comment %}
+Component: ItemCard
+Props:
+  - item (required): Menu instance，需要 .id .name .price .file_path .status .type_id
+  - is_staff (optional, default false): bool，員工模式才會顯示「已下架」badge 與灰階樣式
+  - on_click_fn (optional, default 'openItemDetail'): JS 函式名，點擊卡片時呼叫並傳入 item.id
+Usage:
+  {% include 'includes/components/item_card.html' with item=m is_staff=is_staff %}
+  {% include 'includes/components/item_card.html' with item=m on_click_fn='customHandler' %}
+{% endcomment %}
 <div class="col-6 col-md-4 col-lg-3 menu-item" data-type-id="{{ item.type_id }}">
-    <div class="card card-dark h-100 item-card{% if is_staff and not item.status %} item-card-inactive{% endif %}" role="button" onclick="openItemDetail({{ item.id }})">
+    <div class="card card-dark h-100 item-card{% if is_staff and not item.status %} item-card-inactive{% endif %}" role="button" onclick="{{ on_click_fn|default:'openItemDetail' }}({{ item.id }})">
         <div class="card-img-top-placeholder d-flex align-items-center justify-content-center position-relative">
             {% if item.file_path %}
             <img src="{{ item.file_path.url }}" alt="{{ item.name }}" class="menu-card-image">

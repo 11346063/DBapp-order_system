@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.urls import reverse
 from web_app.models import Menu, Type, OptGroup, Identity
 
 
@@ -15,6 +16,17 @@ def home_view(request):
         menus = Menu.objects.select_related("type").all()
     else:
         menus = Menu.objects.select_related("type").filter(status=True)
+
+    page_urls = {
+        "menuToggle": reverse("web_app:menu_toggle", kwargs={"pk": 0}).replace(
+            "/0/", "/{id}/"
+        ),
+        "menuEdit": reverse("web_app:menu_edit", kwargs={"pk": 0}).replace(
+            "/0/", "/{id}/"
+        ),
+        "menuCreate": reverse("web_app:menu_create"),
+    }
+
     return render(
         request,
         "home.html",
@@ -23,6 +35,7 @@ def home_view(request):
             "menus": menus,
             "is_staff": is_staff,
             "can_manage_menu": can_manage_menu,
+            "page_urls": page_urls,
         },
     )
 

@@ -1,0 +1,17 @@
+{% comment %}
+Component: PageDataScript
+把後端資料注入到前端的 window 物件，集中管理 page-level data。
+Props（皆為選用，未提供就輸出該欄位的預設）：
+  - is_staff: bool，注入 window.IS_STAFF
+  - can_manage_menu: bool，注入 window.CAN_MANAGE_MENU
+  - urls (dict[str, str]): 注入 window.URLS
+  - types (iterable，需有 .pk 與 .type_name): 注入 window.TYPES = [{id, name}]
+Usage:
+  {% include 'includes/components/page_data_script.html' with is_staff=is_staff can_manage_menu=can_manage_menu urls=page_urls types=types %}
+{% endcomment %}
+<script>
+window.IS_STAFF = {{ is_staff|yesno:"true,false" }};
+window.CAN_MANAGE_MENU = {{ can_manage_menu|yesno:"true,false" }};
+window.URLS = { {% for key, value in urls.items %}"{{ key }}": "{{ value }}"{% if not forloop.last %}, {% endif %}{% endfor %} };
+window.TYPES = [ {% for t in types %}{"id": {{ t.pk }}, "name": "{{ t.type_name }}"}{% if not forloop.last %}, {% endif %}{% endfor %} ];
+</script>
