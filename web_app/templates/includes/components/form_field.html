@@ -1,0 +1,19 @@
+{% comment %}
+Component: FormField
+Props:
+  - field (required): Django form field
+  - label_class (optional): label CSS classes
+  - wrapper_class (optional, default 'mb-3'): wrapper CSS classes
+  - error_mode (optional): 'first' shows first error, otherwise renders stripped errors
+Usage:
+  {% include 'includes/components/form_field.html' with field=field label_class='form-label text-secondary small' %}
+{% endcomment %}
+<div class="{{ wrapper_class|default:'mb-3' }}">
+    <label for="{{ field.id_for_label }}" class="{{ label_class|default:'form-label' }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.errors %}
+    <div class="text-danger small mt-1">
+        {% if error_mode == 'first' %}{{ field.errors.0 }}{% else %}{{ field.errors|striptags }}{% endif %}
+    </div>
+    {% endif %}
+</div>

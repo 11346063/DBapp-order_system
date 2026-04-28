@@ -2,36 +2,25 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/staff.css' %}">
+<link rel="stylesheet" href="{% static 'css/staff.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
 <div class="row g-0">
+    {% url 'web_app:staff_report' as staff_report_url %}
+    {% url 'web_app:account_management' as account_management_url %}
     <!-- Desktop Sidebar -->
     <div class="col-lg-3 d-none d-lg-block">
         <div class="staff-sidebar card-dark p-3">
             <h5 class="text-yellow mb-4"><i class="bi bi-clipboard-data"></i> 訂單管理</h5>
             <nav class="nav flex-column gap-2">
-                <a class="nav-link sidebar-link {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
-                    <span class="staff-nav-label"><i class="bi bi-clock"></i> 等待中</span>
-                    <span class="badge badge-yellow staff-status-badge" data-status-count="0">{{ status_counts.0 }}</span>
-                </a>
-                <a class="nav-link sidebar-link {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
-                    <span class="staff-nav-label"><i class="bi bi-check-circle"></i> 已完成</span>
-                    <span class="badge bg-success staff-status-badge" data-status-count="1">{{ status_counts.1 }}</span>
-                </a>
-                <a class="nav-link sidebar-link {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
-                    <span class="staff-nav-label"><i class="bi bi-x-circle"></i> 已取消</span>
-                    <span class="badge bg-danger staff-status-badge" data-status-count="2">{{ status_counts.2 }}</span>
-                </a>
+                {% include 'includes/staff/status_nav_link.html' with status=0 current_status=current_status count=status_counts.0 link_class='sidebar-link' %}
+                {% include 'includes/staff/status_nav_link.html' with status=1 current_status=current_status count=status_counts.1 link_class='sidebar-link' %}
+                {% include 'includes/staff/status_nav_link.html' with status=2 current_status=current_status count=status_counts.2 link_class='sidebar-link' %}
                 {% if user.identity == 'A' %}
                 <hr class="border-secondary my-3">
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
-                    <i class="bi bi-bar-chart-line"></i> 報表
-                </a>
-                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'account_management' %}active{% endif %}" href="{% url 'web_app:account_management' %}">
-                    <i class="bi bi-people"></i> 管理者帳號管理
-                </a>
+                {% include 'includes/staff/admin_nav_link.html' with target_url=staff_report_url url_name='staff_report' active_url_name=request.resolver_match.url_name icon='bi-bar-chart-line' label='報表' link_class='sidebar-link' %}
+                {% include 'includes/staff/admin_nav_link.html' with target_url=account_management_url url_name='account_management' active_url_name=request.resolver_match.url_name icon='bi-people' label='管理者帳號管理' link_class='sidebar-link' %}
                 {% endif %}
             </nav>
         </div>
@@ -40,35 +29,12 @@
     <!-- Mobile Tabs -->
     <div class="d-lg-none mb-3 w-100">
         <ul class="nav nav-pills justify-content-center gap-2">
-            <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
-                    <span class="staff-nav-label"><i class="bi bi-clock"></i> 等待中</span>
-                    <span class="badge badge-yellow staff-status-badge" data-status-count="0">{{ status_counts.0 }}</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
-                    <span class="staff-nav-label"><i class="bi bi-check-circle"></i> 已完成</span>
-                    <span class="badge bg-success staff-status-badge" data-status-count="1">{{ status_counts.1 }}</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link staff-tab {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
-                    <span class="staff-nav-label"><i class="bi bi-x-circle"></i> 已取消</span>
-                    <span class="badge bg-danger staff-status-badge" data-status-count="2">{{ status_counts.2 }}</span>
-                </a>
-            </li>
+            {% include 'includes/staff/status_nav_link.html' with status=0 current_status=current_status count=status_counts.0 link_class='staff-tab' wrapper='li' %}
+            {% include 'includes/staff/status_nav_link.html' with status=1 current_status=current_status count=status_counts.1 link_class='staff-tab' wrapper='li' %}
+            {% include 'includes/staff/status_nav_link.html' with status=2 current_status=current_status count=status_counts.2 link_class='staff-tab' wrapper='li' %}
             {% if user.identity == 'A' %}
-            <li class="nav-item">
-                <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
-                    <i class="bi bi-bar-chart-line"></i> 報表
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'account_management' %}active{% endif %}" href="{% url 'web_app:account_management' %}">
-                    <i class="bi bi-people"></i> 帳號管理
-                </a>
-            </li>
+            {% include 'includes/staff/admin_nav_link.html' with target_url=staff_report_url url_name='staff_report' active_url_name=request.resolver_match.url_name icon='bi-bar-chart-line' label='報表' link_class='staff-tab' wrapper='li' %}
+            {% include 'includes/staff/admin_nav_link.html' with target_url=account_management_url url_name='account_management' active_url_name=request.resolver_match.url_name icon='bi-people' label='帳號管理' link_class='staff-tab' wrapper='li' %}
             {% endif %}
         </ul>
     </div>

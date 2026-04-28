@@ -1,0 +1,28 @@
+{% comment %}
+Component: PaymentOrderSummary
+Props:
+  - cart_items (required): cart item list
+{% endcomment %}
+<div class="card card-dark">
+    <div class="card-header border-bottom border-secondary">
+        <h6 class="text-white mb-0">訂單明細</h6>
+    </div>
+    <div class="card-body">
+        {% for item in cart_items %}
+        <div class="d-flex justify-content-between align-items-start mb-3 {% if not forloop.last %}pb-3 border-bottom border-secondary{% endif %}">
+            <div>
+                <span class="text-white">{{ item.name }}</span>
+                <span class="text-secondary small ms-2">x{{ item.quantity }}</span>
+                {% if item.options %}
+                <div class="text-secondary small">
+                    {% for opt in item.options %}
+                    <span class="me-2">+ {{ opt.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <span class="text-yellow fw-bold">${{ item.subtotal }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>

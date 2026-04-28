@@ -4,7 +4,9 @@ Props:
   - icon (optional, default 'bi-inbox'): Bootstrap Icon class
   - message (required): str，主要文字
   - action_label (optional): str，若提供則顯示一顆按鈕
+  - action_href (optional): str，若提供則顯示連結按鈕
   - action_onclick (optional): str，按鈕的 onclick JS
+  - action_variant (optional, default 'btn-yellow'): Bootstrap button class
 Usage:
   {% include 'includes/components/empty_state.html' with message='目前沒有餐點' %}
   {% include 'includes/components/empty_state.html' with icon='bi-cart-x' message='購物車是空的' action_label='去點餐' action_onclick="location.href='/'" %}
@@ -12,7 +14,9 @@ Usage:
 <div class="text-center py-5 text-secondary">
     <i class="bi {{ icon|default:'bi-inbox' }} fs-1"></i>
     <p class="mt-2">{{ message }}</p>
-    {% if action_label %}
-    <button type="button" class="btn btn-yellow fw-bold mt-2" onclick="{{ action_onclick }}">{{ action_label }}</button>
+    {% if action_label and action_href %}
+    <a href="{{ action_href }}" class="btn {{ action_variant|default:'btn-yellow' }} fw-bold mt-2">{{ action_label }}</a>
+    {% elif action_label %}
+    <button type="button" class="btn {{ action_variant|default:'btn-yellow' }} fw-bold mt-2" onclick="{{ action_onclick }}">{{ action_label }}</button>
     {% endif %}
 </div>

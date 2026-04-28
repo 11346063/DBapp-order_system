@@ -1,0 +1,10 @@
+{% comment %}
+Component: ItemDetailMedia
+Props:
+  - image_id (required): img element id used by detail.js
+  - wrapper_class (optional): outer wrapper classes
+{% endcomment %}
+<div class="{{ wrapper_class|default:'detail-icon' }}">
+    <i class="bi bi-egg-fried display-1 text-secondary"></i>
+    <img id="{{ image_id }}" class="detail-image d-none" alt="">
+</div>

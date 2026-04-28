@@ -1,0 +1,36 @@
+{% comment %}
+Component: CustomerInfoCard
+Props:
+  - user (required): current user
+  - is_guest (required): bool
+{% endcomment %}
+<div class="card card-dark">
+    <div class="card-header border-bottom border-secondary">
+        <h6 class="text-white mb-0">顧客資訊</h6>
+    </div>
+    <div class="card-body">
+        {% if is_guest %}
+        <div class="mb-2">
+            <span class="text-secondary">身分：</span>
+            <span class="text-white">訪客</span>
+        </div>
+        {% else %}
+        <div class="mb-2">
+            <span class="text-secondary">姓名：</span>
+            <span class="text-white">{{ user.name }}</span>
+        </div>
+        {% if user.phone_number %}
+        <div class="mb-2">
+            <span class="text-secondary">電話：</span>
+            <span class="text-white">{{ user.phone_number }}</span>
+        </div>
+        {% endif %}
+        {% if user.address %}
+        <div class="mb-2">
+            <span class="text-secondary">地址：</span>
+            <span class="text-white">{{ user.address }}</span>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>

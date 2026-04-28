@@ -1,0 +1,19 @@
+{% comment %}
+Component: ReportChartCard
+Props:
+  - icon (required): Bootstrap Icon class
+  - title (required): card title
+  - canvas_id (required): chart canvas id used by report.js
+{% endcomment %}
+<div class="card card-dark mb-4">
+    <div class="card-header border-bottom border-secondary">
+        <h5 class="mb-0" style="color: var(--text-primary);">
+            <i class="bi {{ icon }}"></i> {{ title }}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="report-chart-frame">
+            <canvas id="{{ canvas_id }}"></canvas>
+        </div>
+    </div>
+</div>

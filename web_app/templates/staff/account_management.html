@@ -20,13 +20,7 @@
                 <form method="post" novalidate>
                     {% csrf_token %}
                     {% for field in form %}
-                    <div class="mb-3">
-                        <label class="form-label text-secondary small" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                        <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
-                        {% endif %}
-                    </div>
+                    {% include 'includes/components/form_field.html' with field=field label_class='form-label text-secondary small' %}
                     {% endfor %}
                     {% if form.non_field_errors %}
                     <div class="alert alert-danger py-2">{{ form.non_field_errors|striptags }}</div>
@@ -44,20 +38,7 @@
             <div class="card-header border-bottom border-secondary">
                 <div class="d-flex flex-column gap-3">
                     <h6 class="text-white mb-0">所有帳號</h6>
-                    <div class="account-filter-group">
-                        <a class="account-filter {% if not identity_filter %}active{% endif %}" href="{% url 'web_app:account_management' %}">
-                            全部 <span>{{ identity_counts.all }}</span>
-                        </a>
-                        <a class="account-filter {% if identity_filter == 'A' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=A">
-                            管理者 <span>{{ identity_counts.A }}</span>
-                        </a>
-                        <a class="account-filter {% if identity_filter == 'E' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=E">
-                            員工 <span>{{ identity_counts.E }}</span>
-                        </a>
-                        <a class="account-filter {% if identity_filter == 'C' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=C">
-                            顧客 <span>{{ identity_counts.C }}</span>
-                        </a>
-                    </div>
+                    {% include 'includes/staff/account_filter_group.html' with identity_filter=identity_filter identity_counts=identity_counts %}
                 </div>
             </div>
             <div class="table-responsive">
@@ -73,23 +54,7 @@
                     </thead>
                     <tbody>
                         {% for account in accounts %}
-                        <tr>
-                            <td class="fw-semibold">{{ account.account }}</td>
-                            <td>{{ account.name }}</td>
-                            <td>
-                                {% if account.identity == 'A' %}
-                                <span class="badge badge-yellow">管理者</span>
-                                {% elif account.identity == 'E' %}
-                                <span class="badge bg-info text-dark">員工</span>
-                                {% elif account.identity == 'C' %}
-                                <span class="badge bg-secondary">顧客</span>
-                                {% else %}
-                                <span class="badge bg-dark border">{{ account.get_identity_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-secondary">{{ account.email|default:"-" }}</td>
-                            <td class="text-secondary small">{{ account.create_time|date:"Y/m/d H:i" }}</td>
-                        </tr>
+                        {% include 'includes/staff/account_table_row.html' with account=account %}
                         {% empty %}
                         <tr>
                             <td colspan="5" class="text-center text-secondary py-4">目前沒有符合條件的帳號</td>

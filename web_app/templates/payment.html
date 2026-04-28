@@ -12,100 +12,20 @@
 
 <div class="row g-4 payment-layout">
     <div class="col-lg-7">
-        <div class="card card-dark">
-            <div class="card-header border-bottom border-secondary">
-                <h6 class="text-white mb-0">訂單明細</h6>
-            </div>
-            <div class="card-body">
-                {% for item in cart_items %}
-                <div class="d-flex justify-content-between align-items-start mb-3 {% if not forloop.last %}pb-3 border-bottom border-secondary{% endif %}">
-                    <div>
-                        <span class="text-white">{{ item.name }}</span>
-                        <span class="text-secondary small ms-2">x{{ item.quantity }}</span>
-                        {% if item.options %}
-                        <div class="text-secondary small">
-                            {% for opt in item.options %}
-                            <span class="me-2">+ {{ opt.name }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <span class="text-yellow fw-bold">${{ item.subtotal }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
+        {% include 'includes/components/payment_order_summary.html' with cart_items=cart_items %}
     </div>
 
     <div class="col-lg-5 payment-summary-col">
-        <div class="card card-dark">
-            <div class="card-header border-bottom border-secondary">
-                <h6 class="text-white mb-0">顧客資訊</h6>
-            </div>
-            <div class="card-body">
-                {% if is_guest %}
-                <div class="mb-2">
-                    <span class="text-secondary">身分：</span>
-                    <span class="text-white">訪客</span>
-                </div>
-                {% else %}
-                <div class="mb-2">
-                    <span class="text-secondary">姓名：</span>
-                    <span class="text-white">{{ user.name }}</span>
-                </div>
-                {% if user.phone_number %}
-                <div class="mb-2">
-                    <span class="text-secondary">電話：</span>
-                    <span class="text-white">{{ user.phone_number }}</span>
-                </div>
-                {% endif %}
-                {% if user.address %}
-                <div class="mb-2">
-                    <span class="text-secondary">地址：</span>
-                    <span class="text-white">{{ user.address }}</span>
-                </div>
-                {% endif %}
-                {% endif %}
-            </div>
-        </div>
+        {% include 'includes/components/customer_info_card.html' with user=user is_guest=is_guest %}
 
         {% if is_guest %}
-        <div id="guest-login-prompt" class="card card-dark border-warning mt-3 guest-login-prompt">
-            <div class="card-body">
-                <h6 class="text-yellow mb-2"><i class="bi bi-person-exclamation"></i> 您目前以訪客身分結帳</h6>
-                <p class="text-secondary small mb-3">登入後可查看歷史訂單紀錄，您要登入嗎？</p>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'web_app:login' %}?next={% url 'web_app:payment' %}" class="btn btn-yellow btn-sm fw-bold flex-fill">
-                        <i class="bi bi-box-arrow-in-right"></i> 前往登入
-                    </a>
-                    <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="document.getElementById('guest-login-prompt').style.display='none'">
-                        繼續以訪客結帳
-                    </button>
-                </div>
-            </div>
-        </div>
+        {% url 'web_app:login' as login_url %}
+        {% url 'web_app:payment' as payment_url %}
+        {% include 'includes/components/guest_login_prompt.html' with login_url=login_url|add:'?next='|add:payment_url %}
         {% endif %}
 
-        <div class="card card-dark mt-3 payment-submit-card">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-secondary fs-5">總金額</span>
-                    <span class="text-yellow fs-4 fw-bold">${{ total }}</span>
-                </div>
-                <form method="POST" action="{% url 'web_app:order_submit' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label text-secondary small">備註（選填）</label>
-                        <textarea name="remark" class="form-control remark-input"
-                                  rows="2" maxlength="200"
-                                  placeholder="例如：少辣、不要蔥"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
-                        <i class="bi bi-check-circle"></i> 確認送出訂單
-                    </button>
-                </form>
-            </div>
-        </div>
+        {% url 'web_app:order_submit' as order_submit_url %}
+        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url %}
     </div>
 </div>
 {% endblock %}

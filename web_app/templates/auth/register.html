@@ -20,13 +20,7 @@
                 {% csrf_token %}
 
                 {% for field in form %}
-                <div class="mb-3">
-                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-                    {% endif %}
-                </div>
+                {% include 'includes/components/form_field.html' with field=field error_mode='first' %}
                 {% endfor %}
 
                 <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold mb-3">

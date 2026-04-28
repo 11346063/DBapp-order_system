@@ -1,0 +1,54 @@
+{% comment %}
+Component: StaffOrderCard
+Props:
+  - order (required): order with items
+  - current_status (required): current status filter
+{% endcomment %}
+<div class="col-12 col-md-6" id="order-{{ order.pk }}">
+    <div class="card card-dark h-100">
+        <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
+            <span class="text-white fw-bold">訂單 #{{ order.pk }}</span>
+            <small class="text-secondary">{{ order.create_time|date:"m/d H:i" }}</small>
+        </div>
+        <div class="card-body">
+            <div class="mb-2">
+                <small class="text-secondary">顧客：</small>
+                <span class="text-white">{{ order.user.name }}</span>
+            </div>
+            {% if order.remark %}
+            <div class="mb-2">
+                <small class="text-secondary"><i class="bi bi-chat-left-text"></i> {{ order.remark }}</small>
+            </div>
+            {% endif %}
+            <div class="mb-3">
+                {% for item in order.items %}
+                <div class="d-flex justify-content-between align-items-center py-1" style="color: var(--text-primary);">
+                    <span>
+                        <i class="bi bi-dot fs-5"></i>
+                        {{ item.menu.name }}
+                        <span class="text-yellow fw-bold">x{{ item.amount }}</span>
+                    </span>
+                    <span class="text-yellow">${{ item.total_price }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>
+                <div class="d-flex gap-2">
+                    {% if current_status == 0 %}
+                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 1)">
+                        <i class="bi bi-check-lg"></i> 完成
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 2)">
+                        <i class="bi bi-x-lg"></i> 取消
+                    </button>
+                    {% elif current_status == 2 %}
+                    <button class="btn btn-sm btn-outline-light" onclick="updateOrderStatus({{ order.pk }}, 0)">
+                        <i class="bi bi-arrow-counterclockwise"></i> 恢復
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

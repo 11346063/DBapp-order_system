@@ -1,0 +1,26 @@
+{% comment %}
+Component: PaymentSubmitCard
+Props:
+  - total (required): order total
+  - submit_url (required): form action URL
+{% endcomment %}
+<div class="card card-dark mt-3 payment-submit-card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-secondary fs-5">總金額</span>
+            <span class="text-yellow fs-4 fw-bold">${{ total }}</span>
+        </div>
+        <form method="POST" action="{{ submit_url }}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label text-secondary small">備註（選填）</label>
+                <textarea name="remark" class="form-control remark-input"
+                          rows="2" maxlength="200"
+                          placeholder="例如：少辣、不要蔥"></textarea>
+            </div>
+            <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
+                <i class="bi bi-check-circle"></i> 確認送出訂單
+            </button>
+        </form>
+    </div>
+</div>

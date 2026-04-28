@@ -19,21 +19,9 @@
             <form method="POST">
                 {% csrf_token %}
 
-                <div class="mb-3">
-                    <label for="id_account" class="form-label">{{ form.account.label }}</label>
-                    {{ form.account }}
-                    {% if form.account.errors %}
-                    <div class="text-danger small mt-1">{{ form.account.errors.0 }}</div>
-                    {% endif %}
-                </div>
+                {% include 'includes/components/form_field.html' with field=form.account error_mode='first' %}
 
-                <div class="mb-4">
-                    <label for="id_password" class="form-label">{{ form.password.label }}</label>
-                    {{ form.password }}
-                    {% if form.password.errors %}
-                    <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                    {% endif %}
-                </div>
+                {% include 'includes/components/form_field.html' with field=form.password wrapper_class='mb-4' error_mode='first' %}
 
                 <div class="mb-4">
                     <label class="form-label">{{ form.captcha.label }}</label>

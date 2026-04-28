@@ -1,0 +1,21 @@
+{% comment %}
+Component: ItemStaffActions
+Props:
+  - badge_id (required): status badge id used by detail.js
+  - can_manage_menu (required): bool
+{% endcomment %}
+<div class="staff-actions d-none">
+    <div class="mb-3">
+        <span id="{{ badge_id }}" class="badge fs-6 px-3 py-2"></span>
+    </div>
+    <div class="d-grid gap-2">
+        <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
+            <i class="bi bi-arrow-repeat"></i> 切換上下架
+        </button>
+        {% if can_manage_menu %}
+        <button class="btn btn-yellow fw-bold" onclick="openEditForm()">
+            <i class="bi bi-pencil"></i> 編輯品項
+        </button>
+        {% endif %}
+    </div>
+</div>

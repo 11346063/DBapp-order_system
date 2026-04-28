@@ -6,33 +6,8 @@
 {% block staff_content %}
 <h4 class="text-yellow mb-4"><i class="bi bi-bar-chart-line"></i> 營運報表</h4>
 
-<!-- Daily Report -->
-<div class="card card-dark mb-4">
-    <div class="card-header border-bottom border-secondary">
-        <h5 class="mb-0" style="color: var(--text-primary);">
-            <i class="bi bi-calendar-day"></i> 日報表（近 30 天）
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="report-chart-frame">
-            <canvas id="dailyChart"></canvas>
-        </div>
-    </div>
-</div>
-
-<!-- Monthly Report -->
-<div class="card card-dark mb-4">
-    <div class="card-header border-bottom border-secondary">
-        <h5 class="mb-0" style="color: var(--text-primary);">
-            <i class="bi bi-calendar-month"></i> 月報表（近 12 個月）
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="report-chart-frame">
-            <canvas id="monthlyChart"></canvas>
-        </div>
-    </div>
-</div>
+{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-day' title='日報表（近 30 天）' canvas_id='dailyChart' %}
+{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-month' title='月報表（近 12 個月）' canvas_id='monthlyChart' %}
 {% endblock %}
 
 {% block extra_css %}

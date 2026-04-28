@@ -39,6 +39,8 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "等待中")
         self.assertContains(response, "已完成")
         self.assertContains(response, "已取消")
+        self.assertContains(response, "css/staff.css")
+        self.assertContains(response, "?v=2")
         self.assertContains(response, "js/staff.js")
         self.assertContains(response, "?v=4")
         self.assertContains(response, 'id="orderStatusConfirmModal"')

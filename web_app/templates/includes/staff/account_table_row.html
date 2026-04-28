@@ -1,0 +1,22 @@
+{% comment %}
+Component: AccountTableRow
+Props:
+  - account (required): user account row
+{% endcomment %}
+<tr>
+    <td class="fw-semibold">{{ account.account }}</td>
+    <td>{{ account.name }}</td>
+    <td>
+        {% if account.identity == 'A' %}
+        <span class="badge badge-yellow">管理者</span>
+        {% elif account.identity == 'E' %}
+        <span class="badge bg-info text-dark">員工</span>
+        {% elif account.identity == 'C' %}
+        <span class="badge bg-secondary">顧客</span>
+        {% else %}
+        <span class="badge bg-dark border">{{ account.get_identity_display }}</span>
+        {% endif %}
+    </td>
+    <td class="text-secondary">{{ account.email|default:"-" }}</td>
+    <td class="text-secondary small">{{ account.create_time|date:"Y/m/d H:i" }}</td>
+</tr>
