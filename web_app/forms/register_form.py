@@ -1,8 +1,33 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from web_app.models import Identity, User
 
 
 class RegisterForm(forms.ModelForm):
+    email = forms.EmailField(
+        label="Email",
+        required=False,
+        error_messages={"invalid": "請輸入有效的 Email 格式"},
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "選填",
+                "autocomplete": "email",
+            }
+        ),
+    )
+    phone_number = forms.CharField(
+        label="手機號碼",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "選填，例如 0912345678",
+                "inputmode": "tel",
+                "autocomplete": "tel",
+            }
+        ),
+    )
     password = forms.CharField(
         label="密碼 *",
         widget=forms.PasswordInput(
@@ -31,7 +56,7 @@ class RegisterForm(forms.ModelForm):
             "name": "名字 *",
             "account": "帳號 *",
             "email": "Email",
-            "phone_number": "電話號碼",
+            "phone_number": "手機號碼",
             "address": "地址",
         }
         widgets = {
@@ -41,16 +66,23 @@ class RegisterForm(forms.ModelForm):
             "account": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "請輸入帳號"}
             ),
-            "email": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "選填"}
-            ),
-            "phone_number": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "選填"}
-            ),
             "address": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "選填"}
             ),
         }
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data.get("phone_number", "")
+        normalized = phone_number.replace(" ", "").replace("-", "")
+        if normalized and not (
+            normalized.startswith("09") and len(normalized) == 10 and normalized.isdigit()
+        ) and not (
+            normalized.startswith("+8869")
+            and len(normalized) == 13
+            and normalized[1:].isdigit()
+        ):
+            raise ValidationError("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
+        return normalized
 
     def clean(self):
         cleaned_data = super().clean()
