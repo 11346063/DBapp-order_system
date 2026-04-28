@@ -74,14 +74,22 @@ class RegisterForm(forms.ModelForm):
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get("phone_number", "")
         normalized = phone_number.replace(" ", "").replace("-", "")
-        if normalized and not (
-            normalized.startswith("09") and len(normalized) == 10 and normalized.isdigit()
-        ) and not (
-            normalized.startswith("+8869")
-            and len(normalized) == 13
-            and normalized[1:].isdigit()
+        if (
+            normalized
+            and not (
+                normalized.startswith("09")
+                and len(normalized) == 10
+                and normalized.isdigit()
+            )
+            and not (
+                normalized.startswith("+8869")
+                and len(normalized) == 13
+                and normalized[1:].isdigit()
+            )
         ):
-            raise ValidationError("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
+            raise ValidationError(
+                "請輸入有效的手機號碼，例如 0912345678 或 +886912345678"
+            )
         return normalized
 
     def clean(self):
