@@ -66,4 +66,27 @@
     <i class="bi bi-inbox fs-1"></i>
     <p class="mt-2">目前沒有訂單</p>
 </div>
+
+<div class="modal fade" id="orderStatusConfirmModal" tabindex="-1" aria-labelledby="orderStatusConfirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-dark order-status-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="orderStatusConfirmTitle">
+                    <i class="bi bi-check-circle text-yellow"></i> 確認更新訂單
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-white mb-2" id="orderStatusConfirmMessage">確定要更新此訂單狀態嗎？</p>
+                <p class="text-secondary small mb-0">更新後訂單會從目前列表移除，狀態數字會同步更新。</p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-yellow fw-bold" id="orderStatusConfirmBtn">
+                    <i class="bi bi-check-lg"></i> 確認
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -40,7 +40,9 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "已完成")
         self.assertContains(response, "已取消")
         self.assertContains(response, "js/staff.js")
-        self.assertContains(response, "?v=3")
+        self.assertContains(response, "?v=4")
+        self.assertContains(response, 'id="orderStatusConfirmModal"')
+        self.assertContains(response, "確認更新訂單")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")
