@@ -14,15 +14,15 @@
             <nav class="nav flex-column gap-2">
                 <a class="nav-link sidebar-link {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
                     <span class="staff-nav-label"><i class="bi bi-clock"></i> 等待中</span>
-                    <span class="badge badge-yellow staff-status-badge">{{ status_counts.0 }}</span>
+                    <span class="badge badge-yellow staff-status-badge" data-status-count="0">{{ status_counts.0 }}</span>
                 </a>
                 <a class="nav-link sidebar-link {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
                     <span class="staff-nav-label"><i class="bi bi-check-circle"></i> 已完成</span>
-                    <span class="badge bg-success staff-status-badge">{{ status_counts.1 }}</span>
+                    <span class="badge bg-success staff-status-badge" data-status-count="1">{{ status_counts.1 }}</span>
                 </a>
                 <a class="nav-link sidebar-link {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
                     <span class="staff-nav-label"><i class="bi bi-x-circle"></i> 已取消</span>
-                    <span class="badge bg-danger staff-status-badge">{{ status_counts.2 }}</span>
+                    <span class="badge bg-danger staff-status-badge" data-status-count="2">{{ status_counts.2 }}</span>
                 </a>
                 {% if user.identity == 'A' %}
                 <hr class="border-secondary my-3">
@@ -43,19 +43,19 @@
             <li class="nav-item">
                 <a class="nav-link staff-tab {% if current_status == 0 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=0">
                     <span class="staff-nav-label"><i class="bi bi-clock"></i> 等待中</span>
-                    <span class="badge badge-yellow staff-status-badge">{{ status_counts.0 }}</span>
+                    <span class="badge badge-yellow staff-status-badge" data-status-count="0">{{ status_counts.0 }}</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link staff-tab {% if current_status == 1 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=1">
                     <span class="staff-nav-label"><i class="bi bi-check-circle"></i> 已完成</span>
-                    <span class="badge bg-success staff-status-badge">{{ status_counts.1 }}</span>
+                    <span class="badge bg-success staff-status-badge" data-status-count="1">{{ status_counts.1 }}</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link staff-tab {% if current_status == 2 %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status=2">
                     <span class="staff-nav-label"><i class="bi bi-x-circle"></i> 已取消</span>
-                    <span class="badge bg-danger staff-status-badge">{{ status_counts.2 }}</span>
+                    <span class="badge bg-danger staff-status-badge" data-status-count="2">{{ status_counts.2 }}</span>
                 </a>
             </li>
             {% if user.identity == 'A' %}
@@ -83,6 +83,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/staff.js' %}"></script>
+<script src="{% static 'js/staff.js' %}?v=3"></script>
 {% block staff_js %}{% endblock %}
 {% endblock %}

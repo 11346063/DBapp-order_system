@@ -5,13 +5,37 @@ function updateOrderStatus(orderId, newStatus) {
     postJSON(`/staff/orders/${orderId}/status/`, { status: newStatus })
         .then(data => {
             if (data.success) {
+                updateStatusBadges(data.status_counts);
                 const card = document.getElementById(`order-${orderId}`);
                 if (card) {
                     card.style.transition = 'opacity 0.3s';
                     card.style.opacity = '0';
-                    setTimeout(() => card.remove(), 300);
+                    setTimeout(() => {
+                        card.remove();
+                        showEmptyStateIfNeeded();
+                    }, 300);
                 }
             }
         })
         .catch(() => {});
+}
+
+function updateStatusBadges(statusCounts) {
+    if (!statusCounts) return;
+
+    Object.entries(statusCounts).forEach(([status, count]) => {
+        document.querySelectorAll(`[data-status-count="${status}"]`).forEach(badge => {
+            badge.textContent = count;
+        });
+    });
+}
+
+function showEmptyStateIfNeeded() {
+    const grid = document.getElementById('staffOrderGrid');
+    if (!grid || grid.querySelector('[id^="order-"]')) return;
+
+    const emptyState = document.getElementById('staffOrderEmptyTemplate');
+    if (emptyState) {
+        emptyState.classList.remove('d-none');
+    }
 }

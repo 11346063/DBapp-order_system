@@ -4,7 +4,7 @@
 
 {% block staff_content %}
 {% if orders %}
-<div class="row g-3">
+<div class="row g-3" id="staffOrderGrid">
     {% for order in orders %}
     <div class="col-12 col-md-6" id="order-{{ order.pk }}">
         <div class="card card-dark h-100">
@@ -57,9 +57,13 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="text-center py-5 text-secondary">
+<div class="text-center py-5 text-secondary" id="staffOrderEmptyState">
     <i class="bi bi-inbox fs-1"></i>
     <p class="mt-2">目前沒有訂單</p>
 </div>
 {% endif %}
+<div class="text-center py-5 text-secondary d-none" id="staffOrderEmptyTemplate">
+    <i class="bi bi-inbox fs-1"></i>
+    <p class="mt-2">目前沒有訂單</p>
+</div>
 {% endblock %}

@@ -1,6 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
+import json
 
 from web_app.models import Identity, Order, User
 
@@ -32,9 +33,14 @@ class StaffNavigationBadgeTest(TestCase):
 
         self.assertContains(response, "staff-nav-label", count=6)
         self.assertContains(response, "staff-status-badge", count=6)
+        self.assertContains(response, 'data-status-count="0"', count=2)
+        self.assertContains(response, 'data-status-count="1"', count=2)
+        self.assertContains(response, 'data-status-count="2"', count=2)
         self.assertContains(response, "等待中")
         self.assertContains(response, "已完成")
         self.assertContains(response, "已取消")
+        self.assertContains(response, "js/staff.js")
+        self.assertContains(response, "?v=3")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")
@@ -45,3 +51,20 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "staff-status-badge", count=6)
         self.assertContains(response, reverse("web_app:staff_report"))
         self.assertContains(response, "報表")
+
+    def test_status_update_returns_refreshed_counts(self):
+        self.client.login(username="staff_nav_employee", password="pass")
+        order = Order.objects.filter(status=0).first()
+
+        response = self.client.post(
+            reverse("web_app:staff_order_status", kwargs={"pk": order.pk}),
+            data=json.dumps({"status": 1}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["status_counts"]["0"], 0)
+        self.assertEqual(data["status_counts"]["1"], 2)
+        self.assertEqual(data["status_counts"]["2"], 1)

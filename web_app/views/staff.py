@@ -12,6 +12,14 @@ from web_app.models import Identity, Order, OrderItem, User
 from web_app.decorators import employee_required, admin_required
 
 
+def _order_status_counts():
+    return {
+        0: Order.objects.filter(status=0).count(),
+        1: Order.objects.filter(status=1).count(),
+        2: Order.objects.filter(status=2).count(),
+    }
+
+
 @employee_required
 def staff_order_list(request):
     status_filter = request.GET.get("status", "0")
@@ -30,11 +38,7 @@ def staff_order_list(request):
     for order in orders:
         order.items = OrderItem.objects.filter(order=order).select_related("menu")
 
-    status_counts = {
-        0: Order.objects.filter(status=0).count(),
-        1: Order.objects.filter(status=1).count(),
-        2: Order.objects.filter(status=2).count(),
-    }
+    status_counts = _order_status_counts()
 
     return render(
         request,
@@ -57,7 +61,7 @@ def staff_update_status(request, pk):
     if new_status in [0, 1, 2]:
         order.status = new_status
         order.save()
-        return JsonResponse({"success": True})
+        return JsonResponse({"success": True, "status_counts": _order_status_counts()})
 
     return JsonResponse({"error": "無效的狀態"}, status=400)
 
@@ -98,11 +102,7 @@ def staff_report(request):
         "revenues": [m["revenue"] or 0 for m in monthly],
     }
 
-    status_counts = {
-        0: Order.objects.filter(status=0).count(),
-        1: Order.objects.filter(status=1).count(),
-        2: Order.objects.filter(status=2).count(),
-    }
+    status_counts = _order_status_counts()
 
     return render(
         request,
@@ -135,11 +135,7 @@ def account_management(request):
             messages.success(request, "帳號建立成功")
             return redirect("web_app:account_management")
 
-    status_counts = {
-        0: Order.objects.filter(status=0).count(),
-        1: Order.objects.filter(status=1).count(),
-        2: Order.objects.filter(status=2).count(),
-    }
+    status_counts = _order_status_counts()
     identity_counts = {
         "all": User.objects.count(),
         Identity.ADMIN: User.objects.filter(identity=Identity.ADMIN).count(),
