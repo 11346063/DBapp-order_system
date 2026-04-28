@@ -78,34 +78,81 @@
 .account-filter-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 0;
+    width: fit-content;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .account-filter {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
+    justify-content: center;
+    gap: 8px;
+    min-width: 88px;
+    padding: 8px 14px;
+    border-right: 1px solid var(--border-color);
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    transition: background 0.2s, color 0.2s;
+}
+
+.account-filter:last-child {
+    border-right: 0;
 }
 
 .account-filter span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+    font-size: 0.78rem;
     font-weight: 700;
 }
 
 .account-filter:hover {
     color: var(--text-primary);
-    border-color: var(--primary-yellow);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .account-filter.active {
     background: var(--primary-yellow);
-    border-color: var(--primary-yellow);
     color: #000;
+}
+
+.account-filter.active span {
+    background: rgba(0, 0, 0, 0.16);
+    color: #000;
+}
+
+@media (max-width: 575.98px) {
+    .account-filter-group {
+        width: 100%;
+    }
+
+    .account-filter {
+        flex: 1 1 50%;
+        min-width: 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .account-filter:nth-child(2n) {
+        border-right: 0;
+    }
+
+    .account-filter:nth-last-child(-n + 2) {
+        border-bottom: 0;
+    }
 }
 
 .account-table th,
