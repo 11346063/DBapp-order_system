@@ -16,9 +16,88 @@
     box-shadow: 0 0 0 0.2rem rgba(243, 232, 0, 0.2);
 }
 
-@media (max-width: 991.98px) {
-    .col-lg-5 {
-        position: sticky;
-        bottom: 0;
+@media (max-width: 575.98px) {
+    .payment-layout {
+        --bs-gutter-y: 1rem;
+    }
+
+    .payment-summary-col {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding-bottom: 88px;
+    }
+
+    .payment-submit-card {
+        position: static;
+        left: 12px;
+        right: 12px;
+        bottom: calc(76px + env(safe-area-inset-bottom, 0));
+        z-index: 10;
+        margin-top: 0 !important;
+        margin-bottom: 0;
+    }
+
+    .payment-submit-card .card-body {
+        padding: 16px;
+    }
+
+    .payment-submit-card .card-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .payment-submit-card .d-flex {
+        display: block !important;
+        margin-bottom: 0 !important;
+    }
+
+    .payment-submit-card .text-secondary.fs-5 {
+        display: block;
+        font-size: 0.9rem !important;
+        margin-bottom: 4px;
+    }
+
+    .payment-submit-card #cartTotal {
+        font-size: 1.55rem;
+    }
+
+    .payment-submit-card form {
+        display: contents;
+    }
+
+    .payment-submit-card form .mb-3 {
+        grid-column: 1 / -1;
+        margin-bottom: 0 !important;
+    }
+
+    .payment-submit-card .remark-input {
+        min-height: 52px;
+    }
+
+    .payment-submit-card .btn {
+        min-width: 148px;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .guest-login-prompt .d-flex {
+        flex-direction: column;
+    }
+
+    .guest-login-prompt {
+        margin-top: 0 !important;
+        margin-bottom: 0;
+        order: 2;
+    }
+
+    .payment-submit-card {
+        order: 3;
+    }
+
+    .payment-summary-col > .card:not(.guest-login-prompt):not(.payment-submit-card) {
+        order: 1;
     }
 }

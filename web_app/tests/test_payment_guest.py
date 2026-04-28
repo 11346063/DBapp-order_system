@@ -48,6 +48,9 @@ class GuestCheckoutTest(TestCase):
         response = self.client.get(reverse("web_app:payment"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "guest-login-prompt")
+        self.assertContains(response, "payment-summary-col")
+        self.assertContains(response, "payment-submit-card")
+        self.assertContains(response, "css/payment.css")
 
     def test_payment_page_no_login_prompt_for_logged_in_user(self):
         """已登入顧客的付款頁不顯示登入詢問提示"""
