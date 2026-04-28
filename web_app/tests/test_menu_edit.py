@@ -51,18 +51,18 @@ class MenuEditTest(TestCase):
         self.settings_override.disable()
         shutil.rmtree(self.media_root, ignore_errors=True)
 
-    def test_employee_can_edit_item(self):
-        """員工可以編輯品項"""
+    def test_employee_cannot_edit_item(self):
+        """員工無法編輯品項"""
         self.client.login(username="employee1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
         self.item.refresh_from_db()
-        self.assertEqual(self.item.name, "超脆炸雞")
-        self.assertEqual(self.item.price, 90)
+        self.assertEqual(self.item.name, "香脆炸雞")
+        self.assertEqual(self.item.price, 80)
 
     def test_admin_can_edit_item(self):
         """管理員可以編輯品項"""
@@ -76,7 +76,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_returns_updated_data(self):
         """編輯後回傳更新後的資料"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
@@ -89,7 +89,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_with_image_upload_updates_file(self):
         """編輯品項可更新照片"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         image = SimpleUploadedFile(
             "crispy.png",
             b"fake-image-content",
@@ -109,7 +109,7 @@ class MenuEditTest(TestCase):
         """未選新照片時保留原本照片"""
         self.item.file_path = "image/original.png"
         self.item.save(update_fields=["file_path"])
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
@@ -140,7 +140,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_with_missing_name_returns_400(self):
         """缺少必填欄位 name 回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         del payload["name"]
         response = self.client.post(
@@ -152,7 +152,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_with_missing_price_returns_400(self):
         """缺少必填欄位 price 回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         del payload["price"]
         response = self.client.post(
@@ -164,7 +164,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_nonexistent_item_returns_404(self):
         """編輯不存在的品項回傳 404"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         url = reverse("web_app:menu_edit", kwargs={"pk": 9999})
         response = self.client.post(
             url,
@@ -175,7 +175,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_can_change_type(self):
         """可以修改品項的分類"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         payload["type_id"] = self.other_type.pk
         response = self.client.post(
@@ -189,7 +189,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_with_negative_price_returns_400(self):
         """負數價格回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         payload["price"] = -1
         response = self.client.post(
@@ -201,7 +201,7 @@ class MenuEditTest(TestCase):
 
     def test_edit_with_zero_price_is_allowed(self):
         """價格為 0 是允許的（免費品項）"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         payload["price"] = 0
         response = self.client.post(

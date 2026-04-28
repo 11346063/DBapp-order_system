@@ -44,9 +44,11 @@
                 <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
                     <i class="bi bi-arrow-repeat"></i> 切換上下架
                 </button>
+                {% if can_manage_menu %}
                 <button class="btn btn-yellow fw-bold" onclick="openEditForm()">
                     <i class="bi bi-pencil"></i> 編輯品項
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -103,9 +105,11 @@
                                 <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
                                     <i class="bi bi-arrow-repeat"></i> 切換上下架
                                 </button>
+                                {% if can_manage_menu %}
                                 <button class="btn btn-yellow fw-bold" onclick="openEditForm()">
                                     <i class="bi bi-pencil"></i> 編輯品項
                                 </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

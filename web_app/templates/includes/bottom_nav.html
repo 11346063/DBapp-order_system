@@ -1,4 +1,5 @@
 <!-- Mobile Bottom Navigation - only visible on small screens -->
+{% if request.resolver_match.url_name != 'payment' %}
 {% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
 {% with mobile_cart_count=cart_count|default:0 %}
 <a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="前往購物車">
@@ -8,6 +9,7 @@
     <span class="mobile-cart-summary-count" id="mobileCartSummaryCount">{{ mobile_cart_count }}</span>
 </a>
 {% endwith %}
+{% endif %}
 {% endif %}
 <nav class="bottom-nav">
     <a href="{% url 'web_app:home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
@@ -73,6 +75,11 @@
         <a href="{% url 'web_app:staff_orders' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
             <i class="bi bi-clipboard-data me-2"></i>訂單管理
         </a>
+        {% if user.identity == 'A' %}
+        <a href="{% url 'web_app:account_management' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
+            <i class="bi bi-people me-2"></i>管理者帳號管理
+        </a>
+        {% endif %}
         {% endif %}
         <hr class="border-secondary">
         <a href="{% url 'web_app:logout' %}" class="d-block py-2 text-decoration-none text-danger">

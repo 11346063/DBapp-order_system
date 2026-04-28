@@ -38,6 +38,7 @@ class NavigationVisibilityTest(TestCase):
         self.assertNotContains(response, f'href="{reverse("web_app:order_history")}"')
         self.assertNotContains(response, f'href="{reverse("web_app:cart")}"')
         self.assertContains(response, f'href="{reverse("web_app:staff_orders")}"')
+        self.assertContains(response, f'href="{reverse("web_app:account_management")}"')
         self.assertContains(response, f'href="{reverse("web_app:logout")}"')
 
     def test_mobile_cart_summary_is_hidden_when_cart_is_empty(self):
@@ -62,6 +63,16 @@ class NavigationVisibilityTest(TestCase):
         self.assertContains(response, 'id="mobileCartSummary"')
         self.assertContains(response, "購物車")
         self.assertContains(response, 'id="mobileCartSummaryCount">3</span>')
+
+    def test_payment_page_hides_mobile_cart_summary(self):
+        self.client.login(username="customer_nav", password="pass")
+        session = self.client.session
+        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
+        session.save()
+
+        response = self.client.get(reverse("web_app:payment"))
+
+        self.assertNotContains(response, 'id="mobileCartSummary"')
 
     def test_admin_does_not_render_mobile_cart_summary(self):
         self.client.login(username="admin_nav", password="pass")

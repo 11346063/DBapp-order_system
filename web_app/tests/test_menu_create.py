@@ -42,16 +42,16 @@ class MenuCreateTest(TestCase):
         self.settings_override.disable()
         shutil.rmtree(self.media_root, ignore_errors=True)
 
-    def test_employee_can_create_item(self):
-        """員工可以新增品項"""
+    def test_employee_cannot_create_item(self):
+        """員工無法新增品項"""
         self.client.login(username="employee1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 201)
-        self.assertTrue(Menu.objects.filter(name="新品炸雞腿").exists())
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Menu.objects.filter(name="新品炸雞腿").exists())
 
     def test_admin_can_create_item(self):
         """管理員可以新增品項"""
@@ -65,7 +65,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_returns_new_item_data(self):
         """新增後回傳新品項的資料（含 id）"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
@@ -79,7 +79,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_image_upload_saves_file(self):
         """新增品項可透過 multipart 上傳圖片"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         image = SimpleUploadedFile(
             "chicken.png",
             b"fake-image-content",
@@ -97,7 +97,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_non_image_file_returns_400(self):
         """非圖片檔案不可作為品項照片"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         upload = SimpleUploadedFile(
             "notes.txt",
             b"not an image",
@@ -130,7 +130,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_missing_name_returns_400(self):
         """缺少 name 回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         del payload["name"]
         response = self.client.post(
@@ -142,7 +142,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_missing_price_returns_400(self):
         """缺少 price 回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         del payload["price"]
         response = self.client.post(
@@ -154,7 +154,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_missing_type_returns_400(self):
         """缺少 type_id 回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         del payload["type_id"]
         response = self.client.post(
@@ -167,7 +167,7 @@ class MenuCreateTest(TestCase):
     def test_create_duplicate_name_returns_400(self):
         """名稱重複回傳 400"""
         Menu.objects.create(type=self.type, name="新品炸雞腿", price=120)
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
@@ -177,7 +177,7 @@ class MenuCreateTest(TestCase):
 
     def test_new_item_is_active_by_default(self):
         """新增品項預設為上架狀態"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
@@ -188,7 +188,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_negative_price_returns_400(self):
         """負數價格回傳 400"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         payload["price"] = -1
         response = self.client.post(
@@ -200,7 +200,7 @@ class MenuCreateTest(TestCase):
 
     def test_create_with_zero_price_is_allowed(self):
         """價格為 0 是允許的（免費品項）"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         payload = self.valid_payload.copy()
         payload["price"] = 0
         response = self.client.post(

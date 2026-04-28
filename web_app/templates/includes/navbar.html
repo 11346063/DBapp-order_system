@@ -43,6 +43,9 @@
                     {% if user.identity == 'A' or user.identity == 'E' %}
                     <li><a class="dropdown-item" href="{% url 'web_app:home' %}"><i class="bi bi-shop"></i> 前台菜單</a></li>
                     <li><a class="dropdown-item" href="{% url 'web_app:staff_orders' %}"><i class="bi bi-clipboard-data"></i> 訂單管理</a></li>
+                    {% if user.identity == 'A' %}
+                    <li><a class="dropdown-item" href="{% url 'web_app:account_management' %}"><i class="bi bi-people"></i> 管理者帳號管理</a></li>
+                    {% endif %}
                     {% endif %}
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="{% url 'web_app:logout' %}"><i class="bi bi-box-arrow-right"></i> 登出</a></li>

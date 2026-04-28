@@ -11,7 +11,7 @@
 {% block content %}
 {% include 'includes/category_tabs.html' %}
 
-{% if is_staff %}
+{% if can_manage_menu %}
 <div class="d-flex justify-content-end mb-3">
     <button class="btn btn-yellow fw-bold" onclick="openCreateForm()">
         <i class="bi bi-plus-lg"></i> 新增品項
@@ -35,7 +35,7 @@
 
 {% block modals %}
 {% include 'item_detail_modal.html' %}
-{% if is_staff %}
+{% if can_manage_menu %}
 {% include 'staff_menu_modal.html' %}
 {% endif %}
 {% endblock %}
@@ -43,6 +43,7 @@
 {% block extra_js %}
 <script>
 window.IS_STAFF = {{ is_staff|yesno:"true,false" }};
+window.CAN_MANAGE_MENU = {{ can_manage_menu|yesno:"true,false" }};
 window.URLS = {
     menuToggle: "{% url 'web_app:menu_toggle' pk=0 %}".replace('/0/', '/{id}/'),
     menuEdit:   "{% url 'web_app:menu_edit'   pk=0 %}".replace('/0/', '/{id}/'),

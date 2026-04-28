@@ -85,6 +85,23 @@ class HomeViewFilterTest(TestCase):
         response = self.client.get(self.url)
         self.assertTrue(response.context["is_staff"])
 
+    def test_employee_cannot_manage_menu_items(self):
+        """員工不能看到新增品項與編輯品項入口"""
+        self.client.login(username="employee1", password="pass")
+        response = self.client.get(self.url)
+        self.assertTrue(response.context["is_staff"])
+        self.assertFalse(response.context["can_manage_menu"])
+        self.assertNotContains(response, "新增品項")
+        self.assertNotContains(response, "編輯品項")
+
+    def test_admin_can_manage_menu_items(self):
+        """管理員可以看到新增品項與編輯品項入口"""
+        self.client.login(username="admin1", password="pass")
+        response = self.client.get(self.url)
+        self.assertTrue(response.context["can_manage_menu"])
+        self.assertContains(response, "新增品項")
+        self.assertContains(response, "編輯品項")
+
     def test_context_has_is_staff_false_for_anonymous(self):
         """未登入使用者的 context 中 is_staff 為 False"""
         response = self.client.get(self.url)

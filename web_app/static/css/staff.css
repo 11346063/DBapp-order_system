@@ -70,3 +70,45 @@
     border-color: var(--primary-yellow) !important;
     font-weight: 600;
 }
+
+.account-panel {
+    overflow: hidden;
+}
+
+.account-filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.account-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.account-filter span {
+    font-weight: 700;
+}
+
+.account-filter:hover {
+    color: var(--text-primary);
+    border-color: var(--primary-yellow);
+}
+
+.account-filter.active {
+    background: var(--primary-yellow);
+    border-color: var(--primary-yellow);
+    color: #000;
+}
+
+.account-table th,
+.account-table td {
+    white-space: nowrap;
+}

@@ -1,12 +1,14 @@
 import json
 from datetime import timedelta
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncMonth
-from web_app.models import Order, OrderItem
+from django.contrib import messages
+from web_app.forms.register_form import AdminAccountCreateForm
+from web_app.models import Identity, Order, OrderItem, User
 from web_app.decorators import employee_required, admin_required
 
 
@@ -108,6 +110,51 @@ def staff_report(request):
         {
             "daily_data": json.dumps(daily_data),
             "monthly_data": json.dumps(monthly_data),
+            "status_counts": status_counts,
+            "current_status": None,
+        },
+    )
+
+
+@admin_required
+def account_management(request):
+    identity_filter = request.GET.get("identity", "")
+    allowed_filters = {Identity.ADMIN, Identity.EMPLOYEE, Identity.CUSTOMER}
+    accounts = User.objects.order_by("-create_time")
+    if identity_filter in allowed_filters:
+        accounts = accounts.filter(identity=identity_filter)
+
+    form = AdminAccountCreateForm()
+    if request.method == "POST":
+        form = AdminAccountCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.identity = form.cleaned_data["identity"]
+            user.set_password(form.cleaned_data["password"])
+            user.save()
+            messages.success(request, "帳號建立成功")
+            return redirect("web_app:account_management")
+
+    status_counts = {
+        0: Order.objects.filter(status=0).count(),
+        1: Order.objects.filter(status=1).count(),
+        2: Order.objects.filter(status=2).count(),
+    }
+    identity_counts = {
+        "all": User.objects.count(),
+        Identity.ADMIN: User.objects.filter(identity=Identity.ADMIN).count(),
+        Identity.EMPLOYEE: User.objects.filter(identity=Identity.EMPLOYEE).count(),
+        Identity.CUSTOMER: User.objects.filter(identity=Identity.CUSTOMER).count(),
+    }
+
+    return render(
+        request,
+        "staff/account_management.html",
+        {
+            "accounts": accounts,
+            "form": form,
+            "identity_filter": identity_filter,
+            "identity_counts": identity_counts,
             "status_counts": status_counts,
             "current_status": None,
         },

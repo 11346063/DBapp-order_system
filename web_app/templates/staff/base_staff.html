@@ -29,6 +29,9 @@
                 <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
                     <i class="bi bi-bar-chart-line"></i> 報表
                 </a>
+                <a class="nav-link sidebar-link {% if request.resolver_match.url_name == 'account_management' %}active{% endif %}" href="{% url 'web_app:account_management' %}">
+                    <i class="bi bi-people"></i> 管理者帳號管理
+                </a>
                 {% endif %}
             </nav>
         </div>
@@ -59,6 +62,11 @@
             <li class="nav-item">
                 <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'staff_report' %}active{% endif %}" href="{% url 'web_app:staff_report' %}">
                     <i class="bi bi-bar-chart-line"></i> 報表
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link staff-tab {% if request.resolver_match.url_name == 'account_management' %}active{% endif %}" href="{% url 'web_app:account_management' %}">
+                    <i class="bi bi-people"></i> 帳號管理
                 </a>
             </li>
             {% endif %}

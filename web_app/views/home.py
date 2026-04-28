@@ -10,6 +10,7 @@ def home_view(request):
         Identity.ADMIN,
         Identity.EMPLOYEE,
     )
+    can_manage_menu = user.is_authenticated and user.identity == Identity.ADMIN
     if is_staff:
         menus = Menu.objects.select_related("type").all()
     else:
@@ -21,6 +22,7 @@ def home_view(request):
             "types": types,
             "menus": menus,
             "is_staff": is_staff,
+            "can_manage_menu": can_manage_menu,
         },
     )
 

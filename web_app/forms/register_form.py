@@ -1,5 +1,5 @@
 from django import forms
-from web_app.models import User
+from web_app.models import Identity, User
 
 
 class RegisterForm(forms.ModelForm):
@@ -59,3 +59,18 @@ class RegisterForm(forms.ModelForm):
         if pw and pw2 and pw != pw2:
             self.add_error("password_confirm", "兩次密碼不一致")
         return cleaned_data
+
+
+class AdminAccountCreateForm(RegisterForm):
+    identity = forms.ChoiceField(
+        label="帳號權限 *",
+        choices=[
+            (Identity.CUSTOMER, "顧客"),
+            (Identity.EMPLOYEE, "員工"),
+            (Identity.ADMIN, "管理者"),
+        ],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    class Meta(RegisterForm.Meta):
+        fields = RegisterForm.Meta.fields + ["identity"]

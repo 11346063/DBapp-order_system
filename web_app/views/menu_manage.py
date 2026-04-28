@@ -66,6 +66,14 @@ def _check_staff_permission(request):
     return None
 
 
+def _check_admin_permission(request):
+    if not request.user.is_authenticated:
+        return redirect("web_app:login")
+    if request.user.identity != Identity.ADMIN:
+        return _json({"error": "權限不足"}, status=403)
+    return None
+
+
 @require_POST
 def menu_toggle_status(request, pk):
     """切換商品上下架狀態（員工/管理員）"""
@@ -86,8 +94,8 @@ def menu_toggle_status(request, pk):
 
 @require_POST
 def menu_edit(request, pk):
-    """編輯品項資料（員工/管理員）"""
-    denied = _check_staff_permission(request)
+    """編輯品項資料（管理員）"""
+    denied = _check_admin_permission(request)
     if denied:
         return denied
 
@@ -140,8 +148,8 @@ def menu_edit(request, pk):
 
 @require_POST
 def menu_create(request):
-    """新增品項（員工/管理員）"""
-    denied = _check_staff_permission(request)
+    """新增品項（管理員）"""
+    denied = _check_admin_permission(request)
     if denied:
         return denied
 
