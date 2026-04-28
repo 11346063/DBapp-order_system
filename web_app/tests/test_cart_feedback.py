@@ -79,3 +79,5 @@ class CartPageNavigationTest(TestCase):
 
         self.assertContains(response, "返回點餐")
         self.assertContains(response, f'href="{reverse("web_app:home")}"')
+        self.assertContains(response, "css/cart.css")
+        self.assertContains(response, "?v=2")

@@ -74,6 +74,16 @@ class NavigationVisibilityTest(TestCase):
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
+    def test_cart_page_hides_mobile_cart_summary(self):
+        self.client.login(username="customer_nav", password="pass")
+        session = self.client.session
+        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
+        session.save()
+
+        response = self.client.get(reverse("web_app:cart"))
+
+        self.assertNotContains(response, 'id="mobileCartSummary"')
+
     def test_admin_does_not_render_mobile_cart_summary(self):
         self.client.login(username="admin_nav", password="pass")
         session = self.client.session

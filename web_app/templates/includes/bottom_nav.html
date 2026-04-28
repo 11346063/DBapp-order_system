@@ -1,5 +1,5 @@
 <!-- Mobile Bottom Navigation - only visible on small screens -->
-{% if request.resolver_match.url_name != 'payment' %}
+{% if request.resolver_match.url_name != 'cart' and request.resolver_match.url_name != 'payment' %}
 {% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
 {% with mobile_cart_count=cart_count|default:0 %}
 <a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="前往購物車">

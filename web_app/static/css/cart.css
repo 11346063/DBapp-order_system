@@ -15,9 +15,33 @@
 .cart-footer {
     position: sticky;
     bottom: 0;
+    z-index: 10;
 }
 
 @media (max-width: 575.98px) {
+    .cart-list {
+        padding-bottom: 132px;
+    }
+
+    .cart-footer {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(76px + env(safe-area-inset-bottom, 0));
+        margin-top: 0 !important;
+    }
+
+    .cart-footer .card-body {
+        gap: 12px;
+        padding: 14px 16px;
+    }
+
+    .cart-footer .btn {
+        flex-shrink: 0;
+        padding-left: 18px !important;
+        padding-right: 18px !important;
+    }
+
     .cart-item .card-body {
         flex-wrap: wrap;
         gap: 10px !important;
