@@ -9,7 +9,7 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "order_system.settings")
 django.setup()
 
-from web_app.models import Type, Menu
+from web_app.models import Menu, Type  # noqa: E402
 
 # 定義分類規則
 CATEGORY_RULES = {

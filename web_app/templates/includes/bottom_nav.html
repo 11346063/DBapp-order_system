@@ -1,6 +1,5 @@
 <!-- Mobile Bottom Navigation - only visible on small screens -->
-{% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'order_history' %}
-{% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
+{% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'order_history' or request.resolver_match.url_name == 'assisted_ordering' %}
 {% with mobile_cart_count=cart_count|default:0 %}
 <a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="前往購物車">
     <span class="mobile-cart-summary-label">
@@ -10,20 +9,19 @@
 </a>
 {% endwith %}
 {% endif %}
-{% endif %}
 <nav class="bottom-nav">
     <a href="{% url 'web_app:home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
         <i class="bi bi-house-door-fill"></i>
-        <span>首頁</span>
+        <span>{% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}菜單{% else %}首頁{% endif %}</span>
     </a>
     {% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}
+    <a href="{% url 'web_app:assisted_ordering' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'assisted_ordering' %}active{% endif %}">
+        <i class="bi bi-cart-plus"></i>
+        <span>點餐</span>
+    </a>
     <a href="{% url 'web_app:staff_orders' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'staff_orders' %}active{% endif %}">
         <i class="bi bi-clipboard-data"></i>
-        <span>訂單管理</span>
-    </a>
-    <a href="{% url 'web_app:logout' %}" class="bottom-nav-item">
-        <i class="bi bi-box-arrow-right"></i>
-        <span>登出</span>
+        <span>後台</span>
     </a>
     {% elif user.is_authenticated %}
     <a href="{% url 'web_app:order_history' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
@@ -36,10 +34,14 @@
         <span>歷史訂單</span>
     </a>
     {% endif %}
-    {% if not user.is_authenticated or user.identity != 'A' and user.identity != 'E' %}
     <a href="{% url 'web_app:cart' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
         <i class="bi bi-receipt"></i>
         <span>訂單</span>
+    </a>
+    {% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}
+    <a href="{% url 'web_app:logout' %}" class="bottom-nav-item">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>登出</span>
     </a>
     {% endif %}
     {% if user.is_authenticated and user.identity != 'A' and user.identity != 'E' %}
@@ -69,8 +71,11 @@
         </a>
         {% endif %}
         {% if user.identity == 'A' or user.identity == 'E' %}
+        <a href="{% url 'web_app:assisted_ordering' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
+            <i class="bi bi-cart-plus me-2"></i>代客點餐
+        </a>
         <a href="{% url 'web_app:home' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-shop me-2"></i>前台菜單
+            <i class="bi bi-shop me-2"></i>菜單管理
         </a>
         <a href="{% url 'web_app:staff_orders' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
             <i class="bi bi-clipboard-data me-2"></i>訂單管理

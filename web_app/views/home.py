@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from web_app.models import Menu, Type, OptGroup, Identity
 
 
+@ensure_csrf_cookie
 def home_view(request):
     types = Type.objects.all()
     user = request.user
@@ -35,7 +37,35 @@ def home_view(request):
             "menus": menus,
             "is_staff": is_staff,
             "can_manage_menu": can_manage_menu,
+            "show_customer_ordering": not is_staff,
             "page_urls": page_urls,
+        },
+    )
+
+
+@ensure_csrf_cookie
+def assisted_ordering_view(request):
+    user = request.user
+    if not user.is_authenticated or user.identity not in (
+        Identity.ADMIN,
+        Identity.EMPLOYEE,
+    ):
+        return redirect("web_app:home")
+
+    types = Type.objects.all()
+    menus = Menu.objects.select_related("type").filter(status=True)
+
+    return render(
+        request,
+        "home.html",
+        {
+            "types": types,
+            "menus": menus,
+            "is_staff": False,
+            "can_manage_menu": False,
+            "show_customer_ordering": True,
+            "page_urls": {},
+            "page_title": "代客點餐",
         },
     )
 

@@ -1,5 +1,5 @@
 from django.urls import path
-from web_app.views.home import home_view, menu_detail_api
+from web_app.views.home import assisted_ordering_view, home_view, menu_detail_api
 from web_app.views.auth_views import login_view, register_view, logout_view
 from web_app.views.cart import cart_view, cart_add, cart_update, cart_remove
 from web_app.views.payment import payment_view, order_submit
@@ -17,6 +17,11 @@ app_name = "web_app"
 
 urlpatterns = [
     path("", home_view, name="home"),
+    path(
+        "staff/assisted-ordering/",
+        assisted_ordering_view,
+        name="assisted_ordering",
+    ),
     path("api/menu/<int:pk>/", menu_detail_api, name="menu_detail_api"),
     path("cart/", cart_view, name="cart"),
     path("cart/add/", cart_add, name="cart_add"),

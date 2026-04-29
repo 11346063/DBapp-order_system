@@ -30,13 +30,14 @@ class NavigationVisibilityTest(TestCase):
         self.assertContains(response, f'href="{reverse("web_app:order_history")}"')
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
 
-    def test_admin_navigation_hides_customer_history_and_cart(self):
+    def test_admin_navigation_hides_customer_history_but_keeps_cart(self):
         self.client.login(username="admin_nav", password="pass")
 
         response = self.client.get(reverse("web_app:home"))
 
         self.assertNotContains(response, f'href="{reverse("web_app:order_history")}"')
-        self.assertNotContains(response, f'href="{reverse("web_app:cart")}"')
+        self.assertContains(response, f'href="{reverse("web_app:cart")}"')
+        self.assertContains(response, f'href="{reverse("web_app:assisted_ordering")}"')
         self.assertContains(response, f'href="{reverse("web_app:staff_orders")}"')
         self.assertContains(response, f'href="{reverse("web_app:account_management")}"')
         self.assertContains(response, f'href="{reverse("web_app:logout")}"')
@@ -93,7 +94,7 @@ class NavigationVisibilityTest(TestCase):
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
-    def test_admin_does_not_render_mobile_cart_summary(self):
+    def test_admin_mobile_cart_summary_shows_cart_count(self):
         self.client.login(username="admin_nav", password="pass")
         session = self.client.session
         session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
@@ -101,7 +102,8 @@ class NavigationVisibilityTest(TestCase):
 
         response = self.client.get(reverse("web_app:home"))
 
-        self.assertNotContains(response, 'id="mobileCartSummary"')
+        self.assertContains(response, 'id="mobileCartSummary"')
+        self.assertContains(response, 'id="mobileCartSummaryCount">2</span>')
 
 
 class SuccessMessageAutoDismissTest(TestCase):

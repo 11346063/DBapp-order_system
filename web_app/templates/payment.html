@@ -16,7 +16,7 @@
     </div>
 
     <div class="col-lg-5 payment-summary-col">
-        {% include 'includes/components/customer_info_card.html' with user=user is_guest=is_guest %}
+        {% include 'includes/components/customer_info_card.html' with user=user is_guest=is_guest is_staff_order=is_staff_order %}
 
         {% if is_guest %}
         {% url 'web_app:login' as login_url %}
@@ -25,7 +25,7 @@
         {% endif %}
 
         {% url 'web_app:order_submit' as order_submit_url %}
-        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url %}
+        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url is_staff_order=is_staff_order %}
     </div>
 </div>
 {% endblock %}

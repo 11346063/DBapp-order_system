@@ -1,5 +1,6 @@
 from django.test import Client, TestCase
 from django.urls import reverse
+import json
 
 from web_app.models import Identity, Menu, Type, User
 
@@ -14,6 +15,12 @@ class CartFeedbackTemplateTest(TestCase):
             password="pass",
             name="回流測試",
             identity=Identity.CUSTOMER,
+        )
+        self.employee = User.objects.create_user(
+            account="cart_emp",
+            password="pass",
+            name="代客員工",
+            identity=Identity.EMPLOYEE,
         )
 
     def test_home_includes_cart_feedback_actions(self):
@@ -31,6 +38,12 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertContains(response, "查看購物車")
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
 
+    def test_guest_home_sets_csrf_cookie_for_cart_ajax(self):
+        """訪客首頁需要設定 CSRF cookie，加入購物車 AJAX 才不會被 403 擋下"""
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertIn("csrftoken", response.cookies)
+
     def test_home_keeps_cart_feedback_visible_when_cart_has_items(self):
         self.client.login(username="cart_feedback_user", password="pass")
         session = self.client.session
@@ -43,6 +56,31 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertContains(response, "購物車目前有 2 件商品")
         self.assertContains(response, 'id="cartFeedback" class="cart-feedback "')
         self.assertNotContains(response, 'class="cart-feedback d-none"')
+
+    def test_employee_home_keeps_ordering_actions_separate(self):
+        """員工菜單管理頁不混入代客點餐操作"""
+        self.client.login(username="cart_emp", password="pass")
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertTrue(response.context["is_staff"])
+        self.assertNotContains(response, 'class="customer-actions"')
+        self.assertNotContains(response, "加入購物車")
+        self.assertNotContains(response, 'id="cartFeedback"')
+
+    def test_employee_assisted_ordering_includes_customer_ordering_actions(self):
+        """員工代客點餐頁只顯示點餐與購物車操作"""
+        self.client.login(username="cart_emp", password="pass")
+
+        response = self.client.get(reverse("web_app:assisted_ordering"))
+
+        self.assertFalse(response.context["is_staff"])
+        self.assertTrue(response.context["show_customer_ordering"])
+        self.assertContains(response, 'class="customer-actions"')
+        self.assertContains(response, "加入購物車")
+        self.assertContains(response, 'id="cartFeedback"')
+        self.assertContains(response, f'href="{reverse("web_app:cart")}"')
+        self.assertNotContains(response, "編輯品項")
 
 
 class CartPageNavigationTest(TestCase):
@@ -81,3 +119,45 @@ class CartPageNavigationTest(TestCase):
         self.assertContains(response, f'href="{reverse("web_app:home")}"')
         self.assertContains(response, "css/cart.css")
         self.assertContains(response, "?v=2")
+
+    def test_employee_can_access_cart_page(self):
+        employee = User.objects.create_user(
+            account="cart_page_emp",
+            password="pass",
+            name="代客員工",
+            identity=Identity.EMPLOYEE,
+        )
+        self.client.login(username=employee.account, password="pass")
+        self._set_cart()
+
+        response = self.client.get(reverse("web_app:cart"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "購物車")
+        self.assertContains(response, f'href="{reverse("web_app:assisted_ordering")}"')
+
+    def test_employee_can_add_to_cart(self):
+        employee = User.objects.create_user(
+            account="cart_add_emp",
+            password="pass",
+            name="代客員工",
+            identity=Identity.EMPLOYEE,
+        )
+        self.client.login(username=employee.account, password="pass")
+
+        response = self.client.post(
+            reverse("web_app:cart_add"),
+            data=json.dumps(
+                {
+                    "menu_id": self.menu.pk,
+                    "name": self.menu.name,
+                    "price": self.menu.price,
+                    "quantity": 1,
+                    "options": [],
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])

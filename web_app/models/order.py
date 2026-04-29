@@ -7,3 +7,4 @@ class Order(models.Model):
     status = models.IntegerField()
     price_total = models.IntegerField()
     remark = models.CharField(max_length=200, blank=True, default="")
+    customer_phone = models.CharField(max_length=20, blank=True, default="")

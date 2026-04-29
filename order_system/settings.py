@@ -1,6 +1,9 @@
 from pathlib import Path
 import os
 
+from django.contrib.messages import constants as messages_constants
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,7 +68,6 @@ WSGI_APPLICATION = "order_system.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -132,7 +134,6 @@ LOGIN_URL = "/login/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Messages tags mapping for Bootstrap alert classes
-from django.contrib.messages import constants as messages_constants
 
 MESSAGE_TAGS = {
     messages_constants.ERROR: "danger",

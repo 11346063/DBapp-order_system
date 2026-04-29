@@ -94,6 +94,23 @@ class HomeViewFilterTest(TestCase):
         self.assertNotContains(response, "新增品項")
         self.assertNotContains(response, "編輯品項")
 
+    def test_employee_assisted_ordering_sees_only_active_items(self):
+        """員工代客點餐頁只顯示上架商品，不混入管理操作"""
+        self.client.login(username="employee1", password="pass")
+        response = self.client.get(reverse("web_app:assisted_ordering"))
+        menus = response.context["menus"]
+        self.assertIn(self.active_item, menus)
+        self.assertNotIn(self.inactive_item, menus)
+        self.assertFalse(response.context["is_staff"])
+        self.assertFalse(response.context["can_manage_menu"])
+        self.assertContains(response, "加入購物車")
+        self.assertNotContains(response, "編輯品項")
+
+    def test_anonymous_cannot_access_assisted_ordering(self):
+        """非員工不可進入代客點餐頁"""
+        response = self.client.get(reverse("web_app:assisted_ordering"))
+        self.assertRedirects(response, reverse("web_app:home"))
+
     def test_admin_can_manage_menu_items(self):
         """管理員可以看到新增品項與編輯品項入口"""
         self.client.login(username="admin1", password="pass")

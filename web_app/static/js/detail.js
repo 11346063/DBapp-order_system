@@ -54,7 +54,7 @@ function fillDetail(data) {
         if (qtyEl) qtyEl.textContent = '1';
 
         if (optEl) {
-            if (!isStaff && data.options && data.options.length > 0) {
+            if (data.options && data.options.length > 0) {
                 optEl.innerHTML = data.options.map(opt => `
                     <label class="option-check">
                         <input type="checkbox" value="${opt.id}" data-price="${opt.price}">
@@ -85,7 +85,7 @@ function fillDetail(data) {
 
     // 依身份切換操作區
     document.querySelectorAll('.customer-actions').forEach(el => {
-        el.classList.toggle('d-none', isStaff);
+        el.classList.remove('d-none');
     });
     document.querySelectorAll('.staff-actions').forEach(el => {
         el.classList.toggle('d-none', !isStaff);

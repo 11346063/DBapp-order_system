@@ -1,15 +1,17 @@
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 
-def cart_view(request):
-    if request.user.is_authenticated and (
-        request.user.identity == "A" or request.user.identity == "E"
-    ):
-        return redirect("web_app:staff_orders")
+def _ordering_return_url(request):
+    if request.user.is_authenticated and request.user.identity in ("A", "E"):
+        return reverse("web_app:assisted_ordering")
+    return reverse("web_app:home")
 
+
+def cart_view(request):
     cart = request.session.get("cart", [])
     total = sum(item["subtotal"] for item in cart)
     return render(
@@ -18,17 +20,13 @@ def cart_view(request):
         {
             "cart_items": cart,
             "total": total,
+            "ordering_return_url": _ordering_return_url(request),
         },
     )
 
 
 @require_POST
 def cart_add(request):
-    if request.user.is_authenticated and (
-        request.user.identity == "A" or request.user.identity == "E"
-    ):
-        return JsonResponse({"error": "error2"}, status=403)
-
     data = json.loads(request.body)
     cart = request.session.get("cart", [])
 
@@ -63,11 +61,6 @@ def cart_add(request):
 
 @require_POST
 def cart_update(request):
-    if request.user.is_authenticated and (
-        request.user.identity == "A" or request.user.identity == "E"
-    ):
-        return JsonResponse({"error": "error2"}, status=403)
-
     data = json.loads(request.body)
     index = data["index"]
     quantity = data["quantity"]
@@ -89,11 +82,6 @@ def cart_update(request):
 
 @require_POST
 def cart_remove(request):
-    if request.user.is_authenticated and (
-        request.user.identity == "A" or request.user.identity == "E"
-    ):
-        return JsonResponse({"error": "error2"}, status=403)
-
     data = json.loads(request.body)
     index = data["index"]
     cart = request.session.get("cart", [])

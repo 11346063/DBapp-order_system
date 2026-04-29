@@ -19,6 +19,12 @@ class GuestCheckoutTest(TestCase):
             name="顧客",
             identity=Identity.CUSTOMER,
         )
+        self.employee = User.objects.create_user(
+            account="employee1",
+            password="pass",
+            name="員工",
+            identity=Identity.EMPLOYEE,
+        )
 
     def _set_cart(self):
         session = self.client.session
@@ -59,6 +65,18 @@ class GuestCheckoutTest(TestCase):
         response = self.client.get(reverse("web_app:payment"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "guest-login-prompt")
+
+    def test_employee_can_access_payment_page_with_phone_field(self):
+        """員工代客點餐可以進入付款頁，且必須看到客人電話欄位"""
+        self.client.login(username="employee1", password="pass")
+        self._set_cart()
+
+        response = self.client.get(reverse("web_app:payment"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "電話代客點餐")
+        self.assertContains(response, 'name="customer_phone"')
+        self.assertContains(response, "客人電話")
 
     def test_guest_payment_empty_cart_redirects_home(self):
         """訪客購物車為空時，付款頁應導向首頁"""
@@ -107,3 +125,28 @@ class GuestCheckoutTest(TestCase):
         order = Order.objects.first()
         self.assertIsNotNone(order)
         self.assertEqual(order.user, self.customer)
+
+    def test_employee_order_requires_customer_phone(self):
+        """員工代客點餐未填電話時不建立訂單"""
+        self.client.login(username="employee1", password="pass")
+        self._set_cart()
+
+        response = self.client.post(reverse("web_app:order_submit"))
+
+        self.assertRedirects(response, reverse("web_app:payment"))
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_employee_order_saves_customer_phone(self):
+        """員工代客點餐會把客人電話註記在訂單上"""
+        self.client.login(username="employee1", password="pass")
+        self._set_cart()
+
+        self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "0912345678"},
+        )
+
+        order = Order.objects.first()
+        self.assertIsNotNone(order)
+        self.assertEqual(order.user, self.employee)
+        self.assertEqual(order.customer_phone, "0912345678")

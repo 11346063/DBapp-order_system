@@ -13,8 +13,16 @@ Props:
         <div class="card-body">
             <div class="mb-2">
                 <small class="text-secondary">顧客：</small>
-                <span class="text-white">{{ order.user.name }}</span>
+                <span class="text-white">
+                    {% if order.customer_phone %}電話客人{% elif order.user %}{{ order.user.name }}{% else %}訪客{% endif %}
+                </span>
             </div>
+            {% if order.customer_phone %}
+            <div class="mb-2">
+                <small class="text-secondary"><i class="bi bi-telephone"></i> 電話：</small>
+                <span class="text-white">{{ order.customer_phone }}</span>
+            </div>
+            {% endif %}
             {% if order.remark %}
             <div class="mb-2">
                 <small class="text-secondary"><i class="bi bi-chat-left-text"></i> {{ order.remark }}</small>

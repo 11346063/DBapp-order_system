@@ -1,8 +1,9 @@
-from .type import Type
-from .menu import Menu
-from .order_item import OrderItem
-from .options import Options
-from .opt_group import OptGroup
-from .order_item_options import OrderItemOptions
-from .user import User, Identity
-from .order import Order
+from .type import Type as Type
+from .menu import Menu as Menu
+from .order_item import OrderItem as OrderItem
+from .options import Options as Options
+from .opt_group import OptGroup as OptGroup
+from .order_item_options import OrderItemOptions as OrderItemOptions
+from .user import Identity as Identity
+from .user import User as User
+from .order import Order as Order

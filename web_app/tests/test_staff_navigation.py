@@ -25,6 +25,13 @@ class StaffNavigationBadgeTest(TestCase):
         Order.objects.create(status=0, price_total=100, create_time=now)
         Order.objects.create(status=1, price_total=200, create_time=now)
         Order.objects.create(status=2, price_total=300, create_time=now)
+        Order.objects.create(
+            user=self.employee,
+            status=0,
+            price_total=400,
+            create_time=now,
+            customer_phone="0912345678",
+        )
 
     def test_staff_order_tabs_use_right_aligned_badge_structure(self):
         self.client.login(username="staff_nav_employee", password="pass")
@@ -45,6 +52,8 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "?v=4")
         self.assertContains(response, 'id="orderStatusConfirmModal"')
         self.assertContains(response, "確認更新訂單")
+        self.assertContains(response, "電話客人")
+        self.assertContains(response, "0912345678")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")
@@ -69,6 +78,6 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data["success"])
-        self.assertEqual(data["status_counts"]["0"], 0)
+        self.assertEqual(data["status_counts"]["0"], 1)
         self.assertEqual(data["status_counts"]["1"], 2)
         self.assertEqual(data["status_counts"]["2"], 1)

@@ -10,13 +10,15 @@
         <p class="text-yellow fs-5 fw-bold mb-3" id="offcanvasItemPrice"></p>
         <p class="text-secondary small mb-3" id="offcanvasItemInfo"></p>
 
-        <!-- 顧客操作區 -->
-        {% if not is_staff %}
+        {% if show_customer_ordering %}
+        <!-- 點餐操作區 -->
         {% include 'includes/components/item_customer_actions.html' with options_id='offcanvasOptions' qty_id='offcanvasQty' dismiss_target='offcanvas' qty_wrapper_class='d-flex align-items-center justify-content-center gap-3 mb-3' %}
         {% endif %}
 
+        {% if is_staff %}
         <!-- 員工/管理員操作區 -->
         {% include 'includes/components/item_staff_actions.html' with badge_id='offcanvasStatusBadge' can_manage_menu=can_manage_menu %}
+        {% endif %}
     </div>
 </div>
 
@@ -37,13 +39,15 @@
                         <p class="text-yellow fs-4 fw-bold mb-2" id="modalItemPrice"></p>
                         <p class="text-secondary mb-3" id="modalItemInfo"></p>
 
-                        <!-- 顧客操作區 -->
-                        {% if not is_staff %}
+                        {% if show_customer_ordering %}
+                        <!-- 點餐操作區 -->
                         {% include 'includes/components/item_customer_actions.html' with options_id='modalOptions' qty_id='modalQty' dismiss_target='modal' qty_wrapper_class='d-flex align-items-center gap-3 mb-3' %}
                         {% endif %}
 
+                        {% if is_staff %}
                         <!-- 員工/管理員操作區 -->
                         {% include 'includes/components/item_staff_actions.html' with badge_id='modalStatusBadge' can_manage_menu=can_manage_menu %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -51,7 +55,7 @@
     </div>
 </div>
 
-{% if not is_staff %}
+{% if show_customer_ordering %}
 {% with current_cart_count=cart_count|default:0 %}
 <div id="cartFeedback" class="cart-feedback {% if not current_cart_count %}d-none{% endif %}" role="status" aria-live="polite">
     <div>

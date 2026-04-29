@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}絕佳食雞 — 菜單{% endblock %}
+{% block title %}絕佳食雞 — {{ page_title|default:'菜單' }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}?v=4">

@@ -3,13 +3,23 @@ Component: CustomerInfoCard
 Props:
   - user (required): current user
   - is_guest (required): bool
+  - is_staff_order (optional): bool
 {% endcomment %}
 <div class="card card-dark">
     <div class="card-header border-bottom border-secondary">
         <h6 class="text-white mb-0">顧客資訊</h6>
     </div>
     <div class="card-body">
-        {% if is_guest %}
+        {% if is_staff_order %}
+        <div class="mb-2">
+            <span class="text-secondary">身分：</span>
+            <span class="text-white">電話代客點餐</span>
+        </div>
+        <div class="mb-2">
+            <span class="text-secondary">建單員工：</span>
+            <span class="text-white">{{ user.name|default:user.account }}</span>
+        </div>
+        {% elif is_guest %}
         <div class="mb-2">
             <span class="text-secondary">身分：</span>
             <span class="text-white">訪客</span>
