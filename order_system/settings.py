@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "captcha",
     "web_app",
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +65,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "order_system.wsgi.application"
+ASGI_APPLICATION = "order_system.asgi.application"
 
 
 # Database
