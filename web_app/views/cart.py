@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from web_app.exceptions import handle_api_exceptions
 
 
 def _ordering_return_url(request):
@@ -26,6 +27,7 @@ def cart_view(request):
 
 
 @require_POST
+@handle_api_exceptions
 def cart_add(request):
     data = json.loads(request.body)
     cart = request.session.get("cart", [])
@@ -60,6 +62,7 @@ def cart_add(request):
 
 
 @require_POST
+@handle_api_exceptions
 def cart_adjust(request):
     data = json.loads(request.body)
     cart = request.session.get("cart", [])
@@ -109,6 +112,7 @@ def cart_adjust(request):
 
 
 @require_POST
+@handle_api_exceptions
 def cart_update(request):
     data = json.loads(request.body)
     index = data["index"]
@@ -130,6 +134,7 @@ def cart_update(request):
 
 
 @require_POST
+@handle_api_exceptions
 def cart_remove(request):
     data = json.loads(request.body)
     index = data["index"]
