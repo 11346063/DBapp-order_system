@@ -6,7 +6,13 @@ from web_app.forms.password_reset_form import (
     AccountPasswordResetForm,
     AccountSetPasswordForm,
 )
-from web_app.views.cart import cart_view, cart_add, cart_adjust, cart_update, cart_remove
+from web_app.views.cart import (
+    cart_view,
+    cart_add,
+    cart_adjust,
+    cart_update,
+    cart_remove,
+)
 from web_app.views.payment import payment_view, order_submit
 from web_app.views.staff import (
     account_management,
@@ -15,6 +21,7 @@ from web_app.views.staff import (
     staff_report,
 )
 from web_app.views.order_history import order_history_view, reorder
+from web_app.views.request_response import request_response_demo
 from web_app.views.type.type_views import typeCreate
 from web_app.views.menu_manage import menu_toggle_status, menu_edit, menu_create
 
@@ -28,6 +35,7 @@ urlpatterns = [
         name="assisted_ordering",
     ),
     path("api/menu/<int:pk>/", menu_detail_api, name="menu_detail_api"),
+    path("request-response/", request_response_demo, name="request_response_demo"),
     path("cart/", cart_view, name="cart"),
     path("cart/add/", cart_add, name="cart_add"),
     path("cart/adjust/", cart_adjust, name="cart_adjust"),
