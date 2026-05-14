@@ -96,7 +96,9 @@ def cart_adjust(request):
         cart.pop(target_index)
     elif target_index is not None:
         cart[target_index]["quantity"] = item_quantity
-        cart[target_index]["subtotal"] = cart[target_index]["unit_price"] * item_quantity
+        cart[target_index]["subtotal"] = (
+            cart[target_index]["unit_price"] * item_quantity
+        )
 
     request.session["cart"] = cart
     cart_count = sum(item["quantity"] for item in cart)

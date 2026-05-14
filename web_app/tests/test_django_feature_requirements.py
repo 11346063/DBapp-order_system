@@ -13,7 +13,9 @@ class RequestResponseDemoTest(TestCase):
         session["cart"] = [{"quantity": 2}, {"quantity": 3}]
         session.save()
 
-        response = self.client.get(reverse("web_app:request_response_demo"), {"foo": "bar"})
+        response = self.client.get(
+            reverse("web_app:request_response_demo"), {"foo": "bar"}
+        )
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
@@ -100,4 +102,3 @@ class InternationalizationSettingsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-

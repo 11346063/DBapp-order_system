@@ -15,4 +15,3 @@ def request_response_demo(request):
         },
         json_dumps_params={"ensure_ascii": False},
     )
-
