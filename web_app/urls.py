@@ -1,6 +1,11 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from web_app.views.home import assisted_ordering_view, home_view, menu_detail_api
 from web_app.views.auth_views import login_view, register_view, logout_view
+from web_app.forms.password_reset_form import (
+    AccountPasswordResetForm,
+    AccountSetPasswordForm,
+)
 from web_app.views.cart import cart_view, cart_add, cart_update, cart_remove
 from web_app.views.payment import payment_view, order_submit
 from web_app.views.staff import (
@@ -32,6 +37,40 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("register/", register_view, name="register"),
     path("logout/", logout_view, name="logout"),
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            template_name="auth/password_reset.html",
+            email_template_name="auth/password_reset_email.html",
+            subject_template_name="auth/password_reset_subject.txt",
+            form_class=AccountPasswordResetForm,
+            success_url="done/",
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="auth/password_reset_done.html",
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "password-reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="auth/password_reset_confirm.html",
+            form_class=AccountSetPasswordForm,
+            success_url="/password-reset/complete/",
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "password-reset/complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="auth/password_reset_complete.html",
+        ),
+        name="password_reset_complete",
+    ),
     path("orders/", order_history_view, name="order_history"),
     path("orders/reorder/", reorder, name="reorder"),
     path("staff/orders/", staff_order_list, name="staff_orders"),

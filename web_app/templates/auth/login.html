@@ -21,7 +21,11 @@
 
                 {% include 'includes/components/form_field.html' with field=form.account error_mode='first' %}
 
-                {% include 'includes/components/form_field.html' with field=form.password wrapper_class='mb-4' error_mode='first' %}
+                {% include 'includes/components/form_field.html' with field=form.password wrapper_class='mb-2' error_mode='first' %}
+
+                <div class="text-end mb-4">
+                    <a href="{% url 'web_app:password_reset' %}" class="text-yellow text-decoration-none small">忘記密碼？</a>
+                </div>
 
                 <div class="mb-4">
                     <label class="form-label">{{ form.captcha.label }}</label>
