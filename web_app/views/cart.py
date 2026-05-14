@@ -60,6 +60,53 @@ def cart_add(request):
 
 
 @require_POST
+def cart_adjust(request):
+    data = json.loads(request.body)
+    cart = request.session.get("cart", [])
+
+    menu_id = data["menu_id"]
+    name = data["name"]
+    price = data["price"]
+    delta = data["delta"]
+    item_quantity = 0
+    target_index = None
+
+    for index, item in enumerate(cart):
+        if item.get("menu_id") == menu_id and item.get("options", []) == []:
+            target_index = index
+            item_quantity = item["quantity"]
+            break
+
+    item_quantity = max(0, item_quantity + delta)
+
+    if target_index is None and item_quantity > 0:
+        cart.append(
+            {
+                "menu_id": menu_id,
+                "name": name,
+                "base_price": price,
+                "options": [],
+                "options_price": 0,
+                "unit_price": price,
+                "quantity": item_quantity,
+                "subtotal": price * item_quantity,
+            }
+        )
+    elif target_index is not None and item_quantity <= 0:
+        cart.pop(target_index)
+    elif target_index is not None:
+        cart[target_index]["quantity"] = item_quantity
+        cart[target_index]["subtotal"] = cart[target_index]["unit_price"] * item_quantity
+
+    request.session["cart"] = cart
+    cart_count = sum(item["quantity"] for item in cart)
+
+    return JsonResponse(
+        {"success": True, "cart_count": cart_count, "item_quantity": item_quantity}
+    )
+
+
+@require_POST
 def cart_update(request):
     data = json.loads(request.body)
     index = data["index"]

@@ -202,7 +202,35 @@ function addToCart() {
     }).catch(() => {});
 }
 
+function adjustAssistedCart(control, delta) {
+    const qtyEl = control.querySelector('[data-assisted-qty]');
+    const menuId = parseInt(control.dataset.menuId, 10);
+    const price = parseInt(control.dataset.menuPrice, 10);
+
+    postJSON('/cart/adjust/', {
+        menu_id: menuId,
+        name: control.dataset.menuName,
+        price: price,
+        delta: delta,
+    }).then(data => {
+        if (data.success) {
+            if (qtyEl) qtyEl.textContent = data.item_quantity;
+            updateCartBadge(data.cart_count);
+            showCartFeedback(data);
+        }
+    }).catch(() => {});
+}
+
 document.addEventListener('click', function (event) {
+    const assistedButton = event.target.closest('[data-assisted-delta]');
+    if (assistedButton) {
+        const control = assistedButton.closest('.assisted-qty-controls');
+        if (control) {
+            adjustAssistedCart(control, parseInt(assistedButton.dataset.assistedDelta, 10));
+        }
+        return;
+    }
+
     const actionButton = event.target.closest('[data-cart-action]');
     if (!actionButton) return;
 

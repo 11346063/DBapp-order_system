@@ -21,6 +21,12 @@ class NavigationVisibilityTest(TestCase):
             name="管理員",
             identity=Identity.ADMIN,
         )
+        self.employee = User.objects.create_user(
+            account="employee_nav",
+            password="pass",
+            name="員工",
+            identity=Identity.EMPLOYEE,
+        )
 
     def test_customer_keeps_history_and_cart_navigation(self):
         self.client.login(username="customer_nav", password="pass")
@@ -41,6 +47,29 @@ class NavigationVisibilityTest(TestCase):
         self.assertContains(response, f'href="{reverse("web_app:staff_orders")}"')
         self.assertContains(response, f'href="{reverse("web_app:account_management")}"')
         self.assertContains(response, f'href="{reverse("web_app:logout")}"')
+
+    def test_staff_brand_link_goes_to_assisted_ordering(self):
+        for account in ("admin_nav", "employee_nav"):
+            with self.subTest(account=account):
+                self.client.login(username=account, password="pass")
+
+                response = self.client.get(reverse("web_app:home"))
+
+                self.assertContains(
+                    response,
+                    f'class="navbar-brand fw-bold" href="{reverse("web_app:assisted_ordering")}"',
+                )
+                self.client.logout()
+
+    def test_customer_brand_link_goes_to_home(self):
+        self.client.login(username="customer_nav", password="pass")
+
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertContains(
+            response,
+            f'class="navbar-brand fw-bold" href="{reverse("web_app:home")}"',
+        )
 
     def test_mobile_cart_summary_is_hidden_when_cart_is_empty(self):
         self.client.login(username="customer_nav", password="pass")

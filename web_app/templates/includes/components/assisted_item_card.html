@@ -1,0 +1,23 @@
+{% comment %}
+Component: AssistedItemCard
+Props:
+  - item (required): Menu instance
+{% endcomment %}
+<div class="col-12 col-md-6 col-xl-4 menu-item" data-type-id="{{ item.type_id }}">
+    <div class="card card-dark assisted-item-card h-100">
+        <div class="card-body p-3 d-flex align-items-center justify-content-between gap-3">
+            <div class="assisted-item-text">
+                <h6 class="card-title mb-0 text-white">{{ item.name }}</h6>
+            </div>
+            <div class="assisted-qty-controls" data-menu-id="{{ item.id }}" data-menu-name="{{ item.name }}" data-menu-price="{{ item.price }}">
+                <button type="button" class="btn btn-outline-light btn-sm assisted-qty-btn" data-assisted-delta="-1" aria-label="減少 {{ item.name }} 數量">
+                    <i class="bi bi-dash"></i>
+                </button>
+                <span class="assisted-qty-value" data-assisted-qty>0</span>
+                <button type="button" class="btn btn-yellow btn-sm assisted-qty-btn" data-assisted-delta="1" aria-label="增加 {{ item.name }} 數量">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

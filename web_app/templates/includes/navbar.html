@@ -1,7 +1,7 @@
 {% load static %}
 <nav class="navbar sticky-top top-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="{% url 'web_app:home' %}" style="color: var(--primary-yellow);">
+        <a class="navbar-brand fw-bold" href="{% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}{% url 'web_app:assisted_ordering' %}{% else %}{% url 'web_app:home' %}{% endif %}" style="color: var(--primary-yellow);">
             <i class="bi bi-fire"></i> 絕佳食雞
         </a>
         <div class="d-flex align-items-center nav-actions">

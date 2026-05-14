@@ -41,6 +41,48 @@
     box-shadow: 0 8px 25px rgba(243, 232, 0, 0.1);
 }
 
+.assisted-item-card {
+    min-height: 88px;
+}
+
+.assisted-item-text {
+    min-width: 0;
+}
+
+.assisted-item-text .card-title {
+    overflow-wrap: anywhere;
+    font-size: 1.12rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.assisted-qty-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 18px;
+    flex: 0 0 auto;
+}
+
+.assisted-qty-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.assisted-qty-value {
+    min-width: 4ch;
+    padding: 0 4px;
+    text-align: center;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 34px;
+}
+
 .card-img-top-placeholder {
     height: 140px;
     background: linear-gradient(135deg, var(--card-bg), var(--border-color));

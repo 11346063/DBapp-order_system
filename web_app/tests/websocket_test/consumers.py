@@ -1,5 +1,7 @@
-import json,asyncio
+import json
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -20,17 +22,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 "type": "chat_message",
                 "message": message,
-            }
+            },
         )
 
     async def chat_message(self, event):
         print("✅ 廣播觸發")  # ✅ debug 用
-        await self.send(text_data=json.dumps({
-            "message": event["message"]
-        }))
+        await self.send(text_data=json.dumps({"message": event["message"]}))
+
 
 class LogConsumer(AsyncWebsocketConsumer):
-    
     async def connect(self):
         await self.accept()
         self.is_active = True
@@ -42,7 +42,5 @@ class LogConsumer(AsyncWebsocketConsumer):
     async def send_logs_periodically(self):
         while self.is_active:
             # logs = get_logs_data()  # ← 回傳為 list 或 dict 都可以
-            await self.send(text_data=json.dumps({
-                "msg":"successful"
-            }))
+            await self.send(text_data=json.dumps({"msg": "successful"}))
             # await asyncio.sleep(2)

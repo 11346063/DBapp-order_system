@@ -69,17 +69,21 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertNotContains(response, 'id="cartFeedback"')
 
     def test_employee_assisted_ordering_includes_customer_ordering_actions(self):
-        """員工代客點餐頁只顯示點餐與購物車操作"""
+        """員工代客點餐頁使用精簡數量控制，不顯示圖片與詳情彈窗操作"""
         self.client.login(username="cart_emp", password="pass")
 
         response = self.client.get(reverse("web_app:assisted_ordering"))
 
         self.assertFalse(response.context["is_staff"])
         self.assertTrue(response.context["show_customer_ordering"])
-        self.assertContains(response, 'class="customer-actions"')
-        self.assertContains(response, "加入購物車")
+        self.assertTrue(response.context["is_assisted_ordering"])
+        self.assertContains(response, "assisted-item-card")
+        self.assertContains(response, 'data-assisted-delta="-1"')
+        self.assertContains(response, 'data-assisted-delta="1"')
         self.assertContains(response, 'id="cartFeedback"')
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
+        self.assertNotContains(response, "card-img-top-placeholder")
+        self.assertNotContains(response, "加入購物車")
         self.assertNotContains(response, "編輯品項")
 
 
@@ -161,3 +165,44 @@ class CartPageNavigationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()["success"])
+
+    def test_employee_can_adjust_assisted_cart_quantity(self):
+        employee = User.objects.create_user(
+            account="cart_adjust_emp",
+            password="pass",
+            name="代客員工",
+            identity=Identity.EMPLOYEE,
+        )
+        self.client.login(username=employee.account, password="pass")
+
+        add_response = self.client.post(
+            reverse("web_app:cart_adjust"),
+            data=json.dumps(
+                {
+                    "menu_id": self.menu.pk,
+                    "name": self.menu.name,
+                    "price": self.menu.price,
+                    "delta": 1,
+                }
+            ),
+            content_type="application/json",
+        )
+        remove_response = self.client.post(
+            reverse("web_app:cart_adjust"),
+            data=json.dumps(
+                {
+                    "menu_id": self.menu.pk,
+                    "name": self.menu.name,
+                    "price": self.menu.price,
+                    "delta": -1,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        self.assertEqual(add_response.status_code, 200)
+        self.assertEqual(add_response.json()["item_quantity"], 1)
+        self.assertEqual(add_response.json()["cart_count"], 1)
+        self.assertEqual(remove_response.status_code, 200)
+        self.assertEqual(remove_response.json()["item_quantity"], 0)
+        self.assertEqual(remove_response.json()["cart_count"], 0)

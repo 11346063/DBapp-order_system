@@ -6,7 +6,7 @@ from web_app.forms.password_reset_form import (
     AccountPasswordResetForm,
     AccountSetPasswordForm,
 )
-from web_app.views.cart import cart_view, cart_add, cart_update, cart_remove
+from web_app.views.cart import cart_view, cart_add, cart_adjust, cart_update, cart_remove
 from web_app.views.payment import payment_view, order_submit
 from web_app.views.staff import (
     account_management,
@@ -30,6 +30,7 @@ urlpatterns = [
     path("api/menu/<int:pk>/", menu_detail_api, name="menu_detail_api"),
     path("cart/", cart_view, name="cart"),
     path("cart/add/", cart_add, name="cart_add"),
+    path("cart/adjust/", cart_adjust, name="cart_adjust"),
     path("cart/update/", cart_update, name="cart_update"),
     path("cart/remove/", cart_remove, name="cart_remove"),
     path("payment/", payment_view, name="payment"),

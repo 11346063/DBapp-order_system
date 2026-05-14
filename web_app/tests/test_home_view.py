@@ -103,7 +103,12 @@ class HomeViewFilterTest(TestCase):
         self.assertNotIn(self.inactive_item, menus)
         self.assertFalse(response.context["is_staff"])
         self.assertFalse(response.context["can_manage_menu"])
-        self.assertContains(response, "加入購物車")
+        self.assertTrue(response.context["is_assisted_ordering"])
+        self.assertContains(response, "assisted-item-card")
+        self.assertContains(response, 'data-assisted-delta="-1"')
+        self.assertContains(response, 'data-assisted-delta="1"')
+        self.assertNotContains(response, "card-img-top-placeholder")
+        self.assertNotContains(response, "加入購物車")
         self.assertNotContains(response, "編輯品項")
 
     def test_anonymous_cannot_access_assisted_ordering(self):

@@ -17,7 +17,11 @@
 
 <div class="row g-3" id="menuGrid">
     {% for item in menus %}
+    {% if is_assisted_ordering %}
+    {% include 'includes/components/assisted_item_card.html' with item=item %}
+    {% else %}
     {% include 'includes/components/item_card.html' with item=item is_staff=is_staff %}
+    {% endif %}
     {% endfor %}
 </div>
 
@@ -27,7 +31,11 @@
 {% endblock %}
 
 {% block modals %}
+{% if is_assisted_ordering %}
+{% include 'includes/components/cart_feedback.html' %}
+{% else %}
 {% include 'item_detail_modal.html' %}
+{% endif %}
 {% if can_manage_menu %}
 {% include 'staff_menu_modal.html' %}
 {% endif %}
@@ -36,7 +44,7 @@
 {% block extra_js %}
 {% include 'includes/components/page_data_script.html' with is_staff=is_staff can_manage_menu=can_manage_menu urls=page_urls types=types %}
 <script src="{% static 'js/home.js' %}"></script>
-<script src="{% static 'js/detail.js' %}?v=7"></script>
+<script src="{% static 'js/detail.js' %}?v=8"></script>
 {% if is_staff %}
 <script src="{% static 'js/staff_menu.js' %}?v=3"></script>
 {% endif %}

@@ -64,6 +64,7 @@ def assisted_ordering_view(request):
             "is_staff": False,
             "can_manage_menu": False,
             "show_customer_ordering": True,
+            "is_assisted_ordering": True,
             "page_urls": {},
             "page_title": "代客點餐",
         },
