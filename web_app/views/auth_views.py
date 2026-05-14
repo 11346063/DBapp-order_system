@@ -19,7 +19,9 @@ def login_view(request):
             user = authenticate(request, username=account, password=password)
             if user is not None:
                 login(request, user)
-                messages.success(request, _("歡迎回來，{name}！").format(name=user.name))
+                messages.success(
+                    request, _("歡迎回來，{name}！").format(name=user.name)
+                )
                 if user.identity == "A" or user.identity == "E":
                     return redirect("web_app:staff_orders")
                 next_url = request.GET.get("next", "web_app:home")
