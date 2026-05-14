@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from web_app.models import Menu, Order, Type
+from web_app.models import Identity, Menu, Order, Type, User
 
 
 class RequestResponseDemoTest(TestCase):
@@ -50,6 +50,12 @@ class ApiExceptionHandlingTest(TestCase):
 class MenuSearchPaginationTest(TestCase):
     def setUp(self):
         self.type = Type.objects.create(type_name="主餐")
+        self.employee = User.objects.create_user(
+            account="employee1",
+            password="pass",
+            name="員工",
+            identity=Identity.EMPLOYEE,
+        )
         for index in range(13):
             Menu.objects.create(
                 type=self.type,
@@ -75,6 +81,24 @@ class MenuSearchPaginationTest(TestCase):
 
     def test_home_paginates_menu_items(self):
         response = self.client.get(reverse("web_app:home"))
+
+        self.assertEqual(response.context["paginator"].per_page, 12)
+        self.assertTrue(response.context["page_obj"].has_next())
+        self.assertContains(response, "下一頁")
+
+    def test_assisted_ordering_search_filters_menu_items(self):
+        self.client.login(username="employee1", password="pass")
+
+        response = self.client.get(reverse("web_app:assisted_ordering"), {"q": "鬆餅"})
+
+        self.assertContains(response, "蜂蜜鬆餅")
+        self.assertNotContains(response, "招牌炸雞 00")
+        self.assertEqual(response.context["search_query"], "鬆餅")
+
+    def test_assisted_ordering_paginates_menu_items(self):
+        self.client.login(username="employee1", password="pass")
+
+        response = self.client.get(reverse("web_app:assisted_ordering"))
 
         self.assertEqual(response.context["paginator"].per_page, 12)
         self.assertTrue(response.context["page_obj"].has_next())

@@ -1,14 +1,15 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}絕佳食雞 — {{ page_title|default:'菜單' }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/home.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=8">
 <link rel="stylesheet" href="{% static 'css/detail.css' %}?v=11">
 {% endblock %}
 
 {% block content %}
+{% include 'includes/components/menu_search.html' with search_query=search_query %}
 {% include 'includes/components/category_tabs.html' with types=types %}
 
 {% if can_manage_menu %}
@@ -26,8 +27,10 @@
 </div>
 
 {% if not menus %}
-{% include 'includes/components/empty_state.html' with icon='bi-inbox' message='目前沒有餐點' %}
+{% trans "目前沒有餐點" as empty_menu_message %}
+{% include 'includes/components/empty_state.html' with icon='bi-inbox' message=empty_menu_message %}
 {% endif %}
+{% include 'includes/components/pagination.html' with page_obj=page_obj search_query=search_query %}
 {% endblock %}
 
 {% block modals %}

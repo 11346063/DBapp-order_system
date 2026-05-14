@@ -1,0 +1,23 @@
+{% load i18n %}
+{% if page_obj.has_other_pages %}
+<nav class="menu-pagination mt-4" aria-label="{% trans '菜單分頁' %}">
+    <ul class="pagination justify-content-center mb-0">
+        <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
+            <a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}page={% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
+                {% trans "上一頁" %}
+            </a>
+        </li>
+        {% for page_number in page_obj.paginator.page_range %}
+        <li class="page-item{% if page_obj.number == page_number %} active{% endif %}">
+            <a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
+        </li>
+        {% endfor %}
+        <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
+            <a class="page-link" href="?{% if search_query %}q={{ search_query|urlencode }}&{% endif %}page={% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
+                {% trans "下一頁" %}
+            </a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+

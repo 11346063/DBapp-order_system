@@ -13,7 +13,9 @@ def handle_api_exceptions(view_func):
         try:
             return view_func(request, *args, **kwargs)
         except json.JSONDecodeError:
-            return JsonResponse({"success": False, "error": "JSON 格式錯誤"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "JSON 格式錯誤"}, status=400
+            )
         except KeyError as exc:
             return JsonResponse(
                 {"success": False, "error": f"缺少必要欄位：{exc.args[0]}"},
@@ -30,4 +32,3 @@ def handle_api_exceptions(view_func):
             )
 
     return wrapper
-
