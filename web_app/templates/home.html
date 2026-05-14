@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
-{% block title %}絕佳食雞 — {{ page_title|default:'菜單' }}{% endblock %}
+{% block title %}絕佳食雞 — {% if page_title %}{{ page_title }}{% else %}{% trans "菜單" %}{% endif %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/home.css' %}?v=8">
@@ -13,7 +13,8 @@
 {% include 'includes/components/category_tabs.html' with types=types %}
 
 {% if can_manage_menu %}
-{% include 'includes/components/action_button.html' with icon='bi-plus-lg' label='新增品項' onclick='openCreateForm()' wrapper_class='d-flex justify-content-end mb-3' %}
+{% trans "新增品項" as add_item_label %}
+{% include 'includes/components/action_button.html' with icon='bi-plus-lg' label=add_item_label onclick='openCreateForm()' wrapper_class='d-flex justify-content-end mb-3' %}
 {% endif %}
 
 <div class="row g-3" id="menuGrid">

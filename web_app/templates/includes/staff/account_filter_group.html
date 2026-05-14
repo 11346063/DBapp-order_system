@@ -4,17 +4,18 @@ Props:
   - identity_filter (required): current filter
   - identity_counts (required): dict with all/A/E/C counts
 {% endcomment %}
+{% load i18n %}
 <div class="account-filter-group">
     <a class="account-filter {% if not identity_filter %}active{% endif %}" href="{% url 'web_app:account_management' %}">
-        全部 <span>{{ identity_counts.all }}</span>
+        {% trans "全部" %} <span>{{ identity_counts.all }}</span>
     </a>
     <a class="account-filter {% if identity_filter == 'A' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=A">
-        管理者 <span>{{ identity_counts.A }}</span>
+        {% trans "管理者" %} <span>{{ identity_counts.A }}</span>
     </a>
     <a class="account-filter {% if identity_filter == 'E' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=E">
-        員工 <span>{{ identity_counts.E }}</span>
+        {% trans "員工" %} <span>{{ identity_counts.E }}</span>
     </a>
     <a class="account-filter {% if identity_filter == 'C' %}active{% endif %}" href="{% url 'web_app:account_management' %}?identity=C">
-        顧客 <span>{{ identity_counts.C }}</span>
+        {% trans "顧客" %} <span>{{ identity_counts.C }}</span>
     </a>
 </div>

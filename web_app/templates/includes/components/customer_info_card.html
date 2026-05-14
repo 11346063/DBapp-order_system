@@ -5,39 +5,40 @@ Props:
   - is_guest (required): bool
   - is_staff_order (optional): bool
 {% endcomment %}
+{% load i18n %}
 <div class="card card-dark">
     <div class="card-header border-bottom border-secondary">
-        <h6 class="text-white mb-0">顧客資訊</h6>
+        <h6 class="text-white mb-0">{% trans "顧客資訊" %}</h6>
     </div>
     <div class="card-body">
         {% if is_staff_order %}
         <div class="mb-2">
-            <span class="text-secondary">身分：</span>
-            <span class="text-white">電話代客點餐</span>
+            <span class="text-secondary">{% trans "身分：" %}</span>
+            <span class="text-white">{% trans "電話代客點餐" %}</span>
         </div>
         <div class="mb-2">
-            <span class="text-secondary">建單員工：</span>
+            <span class="text-secondary">{% trans "建單員工：" %}</span>
             <span class="text-white">{{ user.name|default:user.account }}</span>
         </div>
         {% elif is_guest %}
         <div class="mb-2">
-            <span class="text-secondary">身分：</span>
-            <span class="text-white">訪客</span>
+            <span class="text-secondary">{% trans "身分：" %}</span>
+            <span class="text-white">{% trans "訪客" %}</span>
         </div>
         {% else %}
         <div class="mb-2">
-            <span class="text-secondary">姓名：</span>
+            <span class="text-secondary">{% trans "姓名：" %}</span>
             <span class="text-white">{{ user.name }}</span>
         </div>
         {% if user.phone_number %}
         <div class="mb-2">
-            <span class="text-secondary">電話：</span>
+            <span class="text-secondary">{% trans "電話：" %}</span>
             <span class="text-white">{{ user.phone_number }}</span>
         </div>
         {% endif %}
         {% if user.address %}
         <div class="mb-2">
-            <span class="text-secondary">地址：</span>
+            <span class="text-secondary">{% trans "地址：" %}</span>
             <span class="text-white">{{ user.address }}</span>
         </div>
         {% endif %}

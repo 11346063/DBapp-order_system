@@ -4,6 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from django.contrib import messages
@@ -63,7 +64,11 @@ def staff_update_status(request, pk):
         order.save()
         return JsonResponse({"success": True, "status_counts": _order_status_counts()})
 
-    return JsonResponse({"error": "無效的狀態"}, status=400)
+    return JsonResponse(
+        {"error": _("無效的狀態")},
+        status=400,
+        json_dumps_params={"ensure_ascii": False},
+    )
 
 
 @admin_required
@@ -132,7 +137,7 @@ def account_management(request):
             user.identity = form.cleaned_data["identity"]
             user.set_password(form.cleaned_data["password"])
             user.save()
-            messages.success(request, "帳號建立成功")
+            messages.success(request, _("帳號建立成功"))
             return redirect("web_app:account_management")
 
     status_counts = _order_status_counts()

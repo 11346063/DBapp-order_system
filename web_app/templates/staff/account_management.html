@@ -1,12 +1,13 @@
 {% extends 'staff/base_staff.html' %}
+{% load i18n %}
 
-{% block title %}管理者帳號管理 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "管理者帳號管理" %} — 絕佳食雞{% endblock %}
 
 {% block staff_content %}
 <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
     <div>
-        <h4 class="text-white mb-1"><i class="bi bi-people"></i> 管理者帳號管理</h4>
-        <p class="text-secondary mb-0">管理所有帳號，並建立顧客、員工或管理者帳號。</p>
+        <h4 class="text-white mb-1"><i class="bi bi-people"></i> {% trans "管理者帳號管理" %}</h4>
+        <p class="text-secondary mb-0">{% trans "管理所有帳號，並建立顧客、員工或管理者帳號。" %}</p>
     </div>
 </div>
 
@@ -14,7 +15,7 @@
     <div class="col-lg-5">
         <div class="card card-dark account-panel">
             <div class="card-header border-bottom border-secondary">
-                <h6 class="text-white mb-0">建立帳號</h6>
+                <h6 class="text-white mb-0">{% trans "建立帳號" %}</h6>
             </div>
             <div class="card-body">
                 <form method="post" novalidate>
@@ -26,7 +27,7 @@
                     <div class="alert alert-danger py-2">{{ form.non_field_errors|striptags }}</div>
                     {% endif %}
                     <button type="submit" class="btn btn-yellow w-100 fw-bold">
-                        <i class="bi bi-person-plus"></i> 建立帳號
+                        <i class="bi bi-person-plus"></i> {% trans "建立帳號" %}
                     </button>
                 </form>
             </div>
@@ -37,7 +38,7 @@
         <div class="card card-dark account-panel">
             <div class="card-header border-bottom border-secondary">
                 <div class="d-flex flex-column gap-3">
-                    <h6 class="text-white mb-0">所有帳號</h6>
+                    <h6 class="text-white mb-0">{% trans "所有帳號" %}</h6>
                     {% include 'includes/staff/account_filter_group.html' with identity_filter=identity_filter identity_counts=identity_counts %}
                 </div>
             </div>
@@ -45,11 +46,11 @@
                 <table class="table table-dark table-hover align-middle account-table mb-0">
                     <thead>
                         <tr>
-                            <th>帳號</th>
-                            <th>姓名</th>
-                            <th>權限</th>
+                            <th>{% trans "帳號" %}</th>
+                            <th>{% trans "姓名" %}</th>
+                            <th>{% trans "權限" %}</th>
                             <th>Email</th>
-                            <th>建立時間</th>
+                            <th>{% trans "建立時間" %}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -57,7 +58,7 @@
                         {% include 'includes/staff/account_table_row.html' with account=account %}
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-secondary py-4">目前沒有符合條件的帳號</td>
+                            <td colspan="5" class="text-center text-secondary py-4">{% trans "目前沒有符合條件的帳號" %}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

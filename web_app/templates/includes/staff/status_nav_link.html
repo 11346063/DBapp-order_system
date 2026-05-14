@@ -7,15 +7,16 @@ Props:
   - link_class (required): sidebar-link or staff-tab
   - wrapper (optional): 'li' wraps link in nav-item for mobile tabs
 {% endcomment %}
+{% load i18n %}
 {% if wrapper == 'li' %}<li class="nav-item">{% endif %}
 <a class="nav-link {{ link_class }} {% if current_status == status %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status={{ status }}">
     <span class="staff-nav-label">
         {% if status == 0 %}
-        <i class="bi bi-clock"></i> 等待中
+        <i class="bi bi-clock"></i> {% trans "等待中" %}
         {% elif status == 1 %}
-        <i class="bi bi-check-circle"></i> 已完成
+        <i class="bi bi-check-circle"></i> {% trans "已完成" %}
         {% else %}
-        <i class="bi bi-x-circle"></i> 已取消
+        <i class="bi bi-x-circle"></i> {% trans "已取消" %}
         {% endif %}
     </span>
     <span class="badge {% if status == 0 %}badge-yellow{% elif status == 1 %}bg-success{% else %}bg-danger{% endif %} staff-status-badge" data-status-count="{{ status }}">{{ count }}</span>

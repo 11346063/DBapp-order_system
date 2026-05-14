@@ -1,9 +1,10 @@
+{% load i18n %}
 <!-- Mobile Bottom Navigation - only visible on small screens -->
 {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'order_history' or request.resolver_match.url_name == 'assisted_ordering' %}
 {% with mobile_cart_count=cart_count|default:0 %}
-<a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="前往購物車">
+<a href="{% url 'web_app:cart' %}" class="mobile-cart-summary d-md-none {% if not mobile_cart_count %}d-none{% endif %}" id="mobileCartSummary" aria-label="{% trans '前往購物車' %}">
     <span class="mobile-cart-summary-label">
-        <i class="bi bi-cart3"></i> 購物車
+        <i class="bi bi-cart3"></i> {% trans "購物車" %}
     </span>
     <span class="mobile-cart-summary-count" id="mobileCartSummaryCount">{{ mobile_cart_count }}</span>
 </a>
@@ -12,47 +13,47 @@
 <nav class="bottom-nav">
     <a href="{% url 'web_app:home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
         <i class="bi bi-house-door-fill"></i>
-        <span>{% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}菜單{% else %}首頁{% endif %}</span>
+        <span>{% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}{% trans "菜單" %}{% else %}{% trans "首頁" %}{% endif %}</span>
     </a>
     {% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}
     <a href="{% url 'web_app:assisted_ordering' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'assisted_ordering' %}active{% endif %}">
         <i class="bi bi-cart-plus"></i>
-        <span>點餐</span>
+        <span>{% trans "點餐" %}</span>
     </a>
     <a href="{% url 'web_app:staff_orders' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'staff_orders' %}active{% endif %}">
         <i class="bi bi-clipboard-data"></i>
-        <span>後台</span>
+        <span>{% trans "後台" %}</span>
     </a>
     {% elif user.is_authenticated %}
     <a href="{% url 'web_app:order_history' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'order_history' %}active{% endif %}">
         <i class="bi bi-clock-history"></i>
-        <span>歷史訂單</span>
+        <span>{% trans "歷史訂單" %}</span>
     </a>
     {% else %}
     <a href="{% url 'web_app:login' %}" class="bottom-nav-item">
         <i class="bi bi-clock-history"></i>
-        <span>歷史訂單</span>
+        <span>{% trans "歷史訂單" %}</span>
     </a>
     {% endif %}
     <a href="{% url 'web_app:cart' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
         <i class="bi bi-receipt"></i>
-        <span>訂單</span>
+        <span>{% trans "訂單" %}</span>
     </a>
     {% if user.is_authenticated and user.identity == 'A' or user.is_authenticated and user.identity == 'E' %}
     <a href="{% url 'web_app:logout' %}" class="bottom-nav-item">
         <i class="bi bi-box-arrow-right"></i>
-        <span>登出</span>
+        <span>{% trans "登出" %}</span>
     </a>
     {% endif %}
     {% if user.is_authenticated and user.identity != 'A' and user.identity != 'E' %}
     <a href="#" class="bottom-nav-item" data-bs-toggle="offcanvas" data-bs-target="#profileOffcanvas">
         <i class="bi bi-person-fill"></i>
-        <span>個人</span>
+        <span>{% trans "個人" %}</span>
     </a>
     {% elif not user.is_authenticated %}
     <a href="{% url 'web_app:login' %}" class="bottom-nav-item">
         <i class="bi bi-person-fill"></i>
-        <span>個人</span>
+        <span>{% trans "個人" %}</span>
     </a>
     {% endif %}
 </nav>
@@ -67,28 +68,28 @@
     <div class="offcanvas-body">
         {% if user.identity != 'A' and user.identity != 'E' %}
         <a href="{% url 'web_app:order_history' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-clock-history me-2"></i>歷史訂單
+            <i class="bi bi-clock-history me-2"></i>{% trans "歷史訂單" %}
         </a>
         {% endif %}
         {% if user.identity == 'A' or user.identity == 'E' %}
         <a href="{% url 'web_app:assisted_ordering' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-cart-plus me-2"></i>代客點餐
+            <i class="bi bi-cart-plus me-2"></i>{% trans "代客點餐" %}
         </a>
         <a href="{% url 'web_app:home' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-shop me-2"></i>菜單管理
+            <i class="bi bi-shop me-2"></i>{% trans "菜單管理" %}
         </a>
         <a href="{% url 'web_app:staff_orders' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-clipboard-data me-2"></i>訂單管理
+            <i class="bi bi-clipboard-data me-2"></i>{% trans "訂單管理" %}
         </a>
         {% if user.identity == 'A' %}
         <a href="{% url 'web_app:account_management' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
-            <i class="bi bi-people me-2"></i>管理者帳號管理
+            <i class="bi bi-people me-2"></i>{% trans "管理者帳號管理" %}
         </a>
         {% endif %}
         {% endif %}
         <hr class="border-secondary">
         <a href="{% url 'web_app:logout' %}" class="d-block py-2 text-decoration-none text-danger">
-            <i class="bi bi-box-arrow-right me-2"></i>登出
+            <i class="bi bi-box-arrow-right me-2"></i>{% trans "登出" %}
         </a>
     </div>
 </div>

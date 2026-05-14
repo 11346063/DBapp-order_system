@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
 from web_app.models import Menu, Type, OptGroup, Identity
 
@@ -100,7 +101,7 @@ def assisted_ordering_view(request):
             "show_customer_ordering": True,
             "is_assisted_ordering": True,
             "page_urls": {},
-            "page_title": "代客點餐",
+            "page_title": _("代客點餐"),
         },
     )
 
@@ -115,7 +116,11 @@ def menu_detail_api(request, pk):
     try:
         menu = Menu.objects.select_related("type").get(pk=pk)
     except Menu.DoesNotExist:
-        return JsonResponse({"error": "找不到此餐點"}, status=404)
+        return JsonResponse(
+            {"error": _("找不到此餐點")},
+            status=404,
+            json_dumps_params={"ensure_ascii": False},
+        )
 
     opt_groups = OptGroup.objects.filter(menu=menu).select_related("opt")
     options = [

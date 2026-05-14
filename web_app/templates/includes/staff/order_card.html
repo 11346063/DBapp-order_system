@@ -4,22 +4,23 @@ Props:
   - order (required): order with items
   - current_status (required): current status filter
 {% endcomment %}
+{% load i18n %}
 <div class="col-12 col-md-6" id="order-{{ order.pk }}">
     <div class="card card-dark h-100">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
-            <span class="text-white fw-bold">訂單 #{{ order.pk }}</span>
+            <span class="text-white fw-bold">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
             <small class="text-secondary">{{ order.create_time|date:"m/d H:i" }}</small>
         </div>
         <div class="card-body">
             <div class="mb-2">
-                <small class="text-secondary">顧客：</small>
+                <small class="text-secondary">{% trans "顧客：" %}</small>
                 <span class="text-white">
-                    {% if order.customer_phone %}電話客人{% elif order.user %}{{ order.user.name }}{% else %}訪客{% endif %}
+                    {% if order.customer_phone %}{% trans "電話客人" %}{% elif order.user %}{{ order.user.name }}{% else %}{% trans "訪客" %}{% endif %}
                 </span>
             </div>
             {% if order.customer_phone %}
             <div class="mb-2">
-                <small class="text-secondary"><i class="bi bi-telephone"></i> 電話：</small>
+                <small class="text-secondary"><i class="bi bi-telephone"></i> {% trans "電話：" %}</small>
                 <span class="text-white">{{ order.customer_phone }}</span>
             </div>
             {% endif %}
@@ -45,14 +46,14 @@ Props:
                 <div class="d-flex gap-2">
                     {% if current_status == 0 %}
                     <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 1)">
-                        <i class="bi bi-check-lg"></i> 完成
+                        <i class="bi bi-check-lg"></i> {% trans "完成" %}
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 2)">
-                        <i class="bi bi-x-lg"></i> 取消
+                        <i class="bi bi-x-lg"></i> {% trans "取消" %}
                     </button>
                     {% elif current_status == 2 %}
                     <button class="btn btn-sm btn-outline-light" onclick="updateOrderStatus({{ order.pk }}, 0)">
-                        <i class="bi bi-arrow-counterclockwise"></i> 恢復
+                        <i class="bi bi-arrow-counterclockwise"></i> {% trans "恢復" %}
                     </button>
                     {% endif %}
                 </div>

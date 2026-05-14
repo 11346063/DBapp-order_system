@@ -5,10 +5,11 @@ Props:
 Usage:
   {% include 'includes/components/category_tabs.html' with types=types %}
 {% endcomment %}
+{% load i18n %}
 <div class="category-tabs-wrapper mb-4">
     <ul class="nav nav-pills flex-nowrap overflow-auto" id="categoryTabs">
         <li class="nav-item">
-            <button class="nav-link active category-pill" data-type-id="all">全部</button>
+            <button class="nav-link active category-pill" data-type-id="all">{% trans "全部" %}</button>
         </li>
         {% for type in types %}
         <li class="nav-item">

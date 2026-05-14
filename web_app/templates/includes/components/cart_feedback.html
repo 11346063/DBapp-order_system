@@ -3,18 +3,19 @@ Component: CartFeedback
 Props:
   - cart_count (optional): current cart item count
 {% endcomment %}
+{% load i18n %}
 {% with current_cart_count=cart_count|default:0 %}
 <div id="cartFeedback" class="cart-feedback {% if not current_cart_count %}d-none{% endif %}" role="status" aria-live="polite">
     <div>
-        <strong>購物車</strong>
-        <span id="cartFeedbackText">購物車目前有 {{ current_cart_count }} 件商品。</span>
+        <strong>{% trans "購物車" %}</strong>
+        <span id="cartFeedbackText">{% blocktrans with count=current_cart_count %}購物車目前有 {{ count }} 件商品。{% endblocktrans %}</span>
     </div>
     <div class="cart-feedback-actions">
         <button type="button" class="btn btn-outline-light btn-sm" data-cart-action="dismiss-feedback">
-            繼續點餐
+            {% trans "繼續點餐" %}
         </button>
         <a href="{% url 'web_app:cart' %}" class="btn btn-yellow btn-sm fw-bold">
-            查看購物車
+            {% trans "查看購物車" %}
         </a>
     </div>
 </div>

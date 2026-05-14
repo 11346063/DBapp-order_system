@@ -1,13 +1,15 @@
 {% extends 'staff/base_staff.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}報表 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "報表" %} — 絕佳食雞{% endblock %}
 
 {% block staff_content %}
-<h4 class="text-yellow mb-4"><i class="bi bi-bar-chart-line"></i> 營運報表</h4>
+<h4 class="text-yellow mb-4"><i class="bi bi-bar-chart-line"></i> {% trans "營運報表" %}</h4>
 
-{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-day' title='日報表（近 30 天）' canvas_id='dailyChart' %}
-{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-month' title='月報表（近 12 個月）' canvas_id='monthlyChart' %}
+{% trans "日報表（近 30 天）" as daily_title %}
+{% trans "月報表（近 12 個月）" as monthly_title %}
+{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-day' title=daily_title canvas_id='dailyChart' %}
+{% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-month' title=monthly_title canvas_id='monthlyChart' %}
 {% endblock %}
 
 {% block extra_css %}

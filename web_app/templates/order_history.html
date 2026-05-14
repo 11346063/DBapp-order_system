@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}歷史訂單 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "歷史訂單" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/order_history.css' %}?v=3">
@@ -12,7 +12,7 @@
     <a href="{% url 'web_app:home' %}" class="me-3" style="color: var(--text-primary); text-decoration: none;">
         <i class="bi bi-arrow-left fs-5"></i>
     </a>
-    <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">歷史訂單</h5>
+    <h5 class="mb-0 fw-bold" style="color: var(--text-primary);">{% trans "歷史訂單" %}</h5>
 </div>
 
 {% if orders %}
@@ -23,7 +23,9 @@
 </div>
 {% else %}
 {% url 'web_app:home' as home_url %}
-{% include 'includes/components/empty_state.html' with icon='bi-receipt-cutoff' message='還沒有任何訂單紀錄' action_label='去點餐' action_href=home_url %}
+{% trans "還沒有任何訂單紀錄" as no_orders_msg %}
+{% trans "去點餐" as order_now_label %}
+{% include 'includes/components/empty_state.html' with icon='bi-receipt-cutoff' message=no_orders_msg action_label=order_now_label action_href=home_url %}
 {% endif %}
 
 <!-- Toast notification -->
@@ -33,7 +35,7 @@
         <div class="d-flex">
             <div class="toast-body" style="color: var(--text-primary);">
                 <i class="bi bi-check-circle-fill text-success me-1"></i>
-                <span id="reorderToastMsg">已加入購物車</span>
+                <span id="reorderToastMsg">{% trans "已加入購物車" %}</span>
             </div>
             <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"
                     style="filter: var(--bs-btn-close-white-filter, invert(1));"></button>

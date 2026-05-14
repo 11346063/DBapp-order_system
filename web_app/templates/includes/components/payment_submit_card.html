@@ -5,30 +5,31 @@ Props:
   - submit_url (required): form action URL
   - is_staff_order (optional): bool
 {% endcomment %}
+{% load i18n %}
 <div class="card card-dark mt-3 payment-submit-card">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-secondary fs-5">總金額</span>
+            <span class="text-secondary fs-5">{% trans "總金額" %}</span>
             <span class="text-yellow fs-4 fw-bold">${{ total }}</span>
         </div>
         <form method="POST" action="{{ submit_url }}">
             {% csrf_token %}
             {% if is_staff_order %}
             <div class="mb-3">
-                <label class="form-label text-secondary small" for="customerPhone">客人電話</label>
+                <label class="form-label text-secondary small" for="customerPhone">{% trans "客人電話" %}</label>
                 <input id="customerPhone" name="customer_phone" type="tel"
                        class="form-control" maxlength="20" required
-                       placeholder="請輸入電話">
+                       placeholder="{% trans '請輸入電話' %}">
             </div>
             {% endif %}
             <div class="mb-3">
-                <label class="form-label text-secondary small">備註（選填）</label>
+                <label class="form-label text-secondary small">{% trans "備註（選填）" %}</label>
                 <textarea name="remark" class="form-control remark-input"
                           rows="2" maxlength="200"
-                          placeholder="例如：少辣、不要蔥"></textarea>
+                          placeholder="{% trans '例如：少辣、不要蔥' %}"></textarea>
             </div>
             <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
-                <i class="bi bi-check-circle"></i> 確認送出訂單
+                <i class="bi bi-check-circle"></i> {% trans "確認送出訂單" %}
             </button>
         </form>
     </div>

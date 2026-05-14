@@ -3,16 +3,17 @@ Component: GuestLoginPrompt
 Props:
   - login_url (required): login URL with optional next query
 {% endcomment %}
+{% load i18n %}
 <div id="guest-login-prompt" class="card card-dark border-warning mt-3 guest-login-prompt">
     <div class="card-body">
-        <h6 class="text-yellow mb-2"><i class="bi bi-person-exclamation"></i> 您目前以訪客身分結帳</h6>
-        <p class="text-secondary small mb-3">登入後可查看歷史訂單紀錄，您要登入嗎？</p>
+        <h6 class="text-yellow mb-2"><i class="bi bi-person-exclamation"></i> {% trans "您目前以訪客身分結帳" %}</h6>
+        <p class="text-secondary small mb-3">{% trans "登入後可查看歷史訂單紀錄，您要登入嗎？" %}</p>
         <div class="d-flex gap-2">
             <a href="{{ login_url }}" class="btn btn-yellow btn-sm fw-bold flex-fill">
-                <i class="bi bi-box-arrow-in-right"></i> 前往登入
+                <i class="bi bi-box-arrow-in-right"></i> {% trans "前往登入" %}
             </a>
             <button type="button" class="btn btn-outline-secondary btn-sm flex-fill" onclick="document.getElementById('guest-login-prompt').style.display='none'">
-                繼續以訪客結帳
+                {% trans "繼續以訪客結帳" %}
             </button>
         </div>
     </div>

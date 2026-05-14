@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from web_app.models import Identity, Order, OrderItem, Menu
 
 
@@ -14,7 +15,7 @@ def _is_staff_order_user(user):
 def payment_view(request):
     cart = request.session.get("cart", [])
     if not cart:
-        messages.warning(request, "購物車是空的")
+        messages.warning(request, _("購物車是空的"))
         return redirect("web_app:home")
 
     total = sum(item["subtotal"] for item in cart)
@@ -36,7 +37,7 @@ def order_submit(request):
 
     cart = request.session.get("cart", [])
     if not cart:
-        messages.warning(request, "購物車是空的")
+        messages.warning(request, _("購物車是空的"))
         return redirect("web_app:home")
 
     total = sum(item["subtotal"] for item in cart)
@@ -45,7 +46,7 @@ def order_submit(request):
     is_staff_order = _is_staff_order_user(request.user)
     customer_phone = request.POST.get("customer_phone", "").strip()[:20]
     if is_staff_order and not customer_phone:
-        messages.error(request, "員工代客點餐需要填寫電話")
+        messages.error(request, _("員工代客點餐需要填寫電話"))
         return redirect("web_app:payment")
 
     order = Order.objects.create(
@@ -70,5 +71,5 @@ def order_submit(request):
             continue
 
     request.session["cart"] = []
-    messages.success(request, f"訂單 #{order.pk} 已成功送出！")
+    messages.success(request, _("訂單 #{pk} 已成功送出！").format(pk=order.pk))
     return redirect("web_app:home")

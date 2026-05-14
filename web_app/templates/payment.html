@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}付款 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "付款" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/payment.css' %}?v=7">
 {% endblock %}
 
 {% block content %}
-<h4 class="text-white mb-4"><i class="bi bi-credit-card"></i> 確認訂單</h4>
+<h4 class="text-white mb-4"><i class="bi bi-credit-card"></i> {% trans "確認訂單" %}</h4>
 
 <div class="row g-4 payment-layout">
     <div class="col-lg-7">

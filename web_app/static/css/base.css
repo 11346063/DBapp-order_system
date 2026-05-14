@@ -75,6 +75,23 @@ body {
     gap: 12px;
 }
 
+.language-switcher .form-select {
+    width: 124px;
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+}
+
+.language-switcher .form-select option {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.language-switcher .form-select option:checked {
+    background-color: var(--primary-yellow);
+    color: #000;
+}
+
 /* Unified icon button (theme, history, cart) */
 .nav-icon-btn {
     width: 36px;

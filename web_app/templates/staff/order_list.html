@@ -1,6 +1,7 @@
 {% extends 'staff/base_staff.html' %}
+{% load i18n %}
 
-{% block title %}訂單管理 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "訂單管理" %} — 絕佳食雞{% endblock %}
 
 {% block staff_content %}
 {% if orders %}
@@ -10,11 +11,12 @@
     {% endfor %}
 </div>
 {% else %}
-{% include 'includes/components/empty_state.html' with message='目前沒有訂單' %}
+{% trans "目前沒有訂單" as no_orders_msg %}
+{% include 'includes/components/empty_state.html' with message=no_orders_msg %}
 {% endif %}
 <div class="text-center py-5 text-secondary d-none" id="staffOrderEmptyTemplate">
     <i class="bi bi-inbox fs-1"></i>
-    <p class="mt-2">目前沒有訂單</p>
+    <p class="mt-2">{% trans "目前沒有訂單" %}</p>
 </div>
 
 {% include 'includes/staff/order_status_confirm_modal.html' %}

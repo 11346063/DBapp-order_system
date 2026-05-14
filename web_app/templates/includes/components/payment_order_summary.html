@@ -3,9 +3,10 @@ Component: PaymentOrderSummary
 Props:
   - cart_items (required): cart item list
 {% endcomment %}
+{% load i18n %}
 <div class="card card-dark">
     <div class="card-header border-bottom border-secondary">
-        <h6 class="text-white mb-0">訂單明細</h6>
+        <h6 class="text-white mb-0">{% trans "訂單明細" %}</h6>
     </div>
     <div class="card-body">
         {% for item in cart_items %}

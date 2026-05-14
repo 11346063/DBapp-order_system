@@ -126,3 +126,18 @@ class InternationalizationSettingsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
+
+    def test_language_switcher_is_rendered_in_navbar(self):
+        response = self.client.get(reverse("web_app:home"))
+
+        self.assertContains(response, reverse("set_language"))
+        self.assertContains(response, 'name="language"')
+        self.assertContains(response, "繁體中文")
+        self.assertContains(response, "English")
+
+    def test_home_translated_strings_render_in_english(self):
+        response = self.client.get(reverse("web_app:home"), HTTP_ACCEPT_LANGUAGE="en")
+
+        self.assertContains(response, "Search items, categories, or notes")
+        self.assertContains(response, ">Search<")
+        self.assertContains(response, ">All<")

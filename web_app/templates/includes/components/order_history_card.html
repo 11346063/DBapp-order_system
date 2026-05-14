@@ -3,13 +3,14 @@ Component: OrderHistoryCard
 Props:
   - order (required): order with items, status, totals
 {% endcomment %}
+{% load i18n %}
 <div class="col-12 col-md-6">
     <div class="order-card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
-                <span class="fw-bold" style="color: var(--text-primary);">訂單 #{{ order.pk }}</span>
+                <span class="fw-bold" style="color: var(--text-primary);">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
                 <span class="status-badge ms-2 {% if order.status == 0 %}status-pending{% elif order.status == 1 %}status-completed{% else %}status-cancelled{% endif %}">
-                    {% if order.status == 0 %}處理中{% elif order.status == 1 %}已完成{% else %}已取消{% endif %}
+                    {% if order.status == 0 %}{% trans "處理中" %}{% elif order.status == 1 %}{% trans "已完成" %}{% else %}{% trans "已取消" %}{% endif %}
                 </span>
             </div>
             <small style="color: var(--text-secondary);">{{ order.create_time|date:"Y/m/d H:i" }}</small>
@@ -33,7 +34,7 @@ Props:
             <div class="d-flex justify-content-between align-items-center pt-2" style="border-top: 1px solid var(--border-color);">
                 <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>
                 <button class="btn-reorder" onclick="reorder({{ order.pk }}, this)">
-                    <i class="bi bi-cart-plus me-1"></i>再來一份
+                    <i class="bi bi-cart-plus me-1"></i>{% trans "再來一份" %}
                 </button>
             </div>
         </div>

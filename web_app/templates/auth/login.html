@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}登入 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "登入" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
@@ -13,7 +13,7 @@
         <div class="card-body p-4">
             <div class="text-center mb-4">
                 <i class="bi bi-fire fs-1 text-yellow"></i>
-                <h4 class="text-white mt-2">登入</h4>
+                <h4 class="text-white mt-2">{% trans "登入" %}</h4>
             </div>
 
             <form method="POST">
@@ -24,7 +24,7 @@
                 {% include 'includes/components/form_field.html' with field=form.password wrapper_class='mb-2' error_mode='first' %}
 
                 <div class="text-end mb-4">
-                    <a href="{% url 'web_app:password_reset' %}" class="text-yellow text-decoration-none small">忘記密碼？</a>
+                    <a href="{% url 'web_app:password_reset' %}" class="text-yellow text-decoration-none small">{% trans "忘記密碼？" %}</a>
                 </div>
 
                 <div class="mb-4">
@@ -38,13 +38,13 @@
                 </div>
 
                 <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold mb-3">
-                    <i class="bi bi-box-arrow-in-right"></i> 登入
+                    <i class="bi bi-box-arrow-in-right"></i> {% trans "登入" %}
                 </button>
             </form>
 
             <div class="text-center">
-                <span class="text-secondary">還沒有帳號？</span>
-                <a href="{% url 'web_app:register' %}" class="text-yellow text-decoration-none">立即註冊</a>
+                <span class="text-secondary">{% trans "還沒有帳號？" %}</span>
+                <a href="{% url 'web_app:register' %}" class="text-yellow text-decoration-none">{% trans "立即註冊" %}</a>
             </div>
         </div>
     </div>
