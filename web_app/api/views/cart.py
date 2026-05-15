@@ -1,3 +1,10 @@
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    inline_serializer,
+)
+from rest_framework import serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -9,10 +16,98 @@ from web_app.api.serializers.cart import (
 )
 from web_app.api.utils import api_error, api_success
 
+# ---------- 共用 inline schema ----------
+
+_ErrorResponse = inline_serializer(
+    name="CartErrorResponse",
+    fields={
+        "status": serializers.CharField(default="error"),
+        "message": serializers.CharField(),
+    },
+)
+
+_CartCountResponse = inline_serializer(
+    name="CartCountResponse",
+    fields={
+        "status": serializers.CharField(default="success"),
+        "message": serializers.CharField(default="操作成功"),
+        "data": inline_serializer(
+            name="CartCountData",
+            fields={"cart_count": serializers.IntegerField(help_text="購物車目前總件數")},
+        ),
+    },
+)
+
+_CartAdjustResponse = inline_serializer(
+    name="CartAdjustResponse",
+    fields={
+        "status": serializers.CharField(default="success"),
+        "message": serializers.CharField(default="操作成功"),
+        "data": inline_serializer(
+            name="CartAdjustData",
+            fields={
+                "cart_count": serializers.IntegerField(help_text="購物車目前總件數"),
+                "item_quantity": serializers.IntegerField(
+                    help_text="調整後該品項的數量（已移除則為 0）"
+                ),
+            },
+        ),
+    },
+)
+
+_CartTotalResponse = inline_serializer(
+    name="CartTotalResponse",
+    fields={
+        "status": serializers.CharField(default="success"),
+        "message": serializers.CharField(default="操作成功"),
+        "data": inline_serializer(
+            name="CartTotalData",
+            fields={
+                "total": serializers.IntegerField(help_text="購物車所有品項小計加總（元）"),
+                "cart_count": serializers.IntegerField(help_text="購物車目前總件數"),
+            },
+        ),
+    },
+)
+
+_400_validation = OpenApiResponse(
+    response=_ErrorResponse,
+    description="欄位驗證失敗，回傳第一個錯誤訊息",
+    examples=[
+        OpenApiExample(
+            "驗證失敗範例",
+            value={"status": "error", "message": "price 不可為負數"},
+        )
+    ],
+)
+
 
 class CartAddAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="加入購物車",
+        description=(
+            "將指定餐點（含選項）加入 session 購物車。\n\n"
+            "購物車以 server-side session 儲存，不寫入資料庫。\n"
+            "無需登入即可使用。"
+        ),
+        tags=["購物車"],
+        request=CartAddSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=_CartCountResponse,
+                description="加入成功，回傳購物車目前總件數",
+                examples=[
+                    OpenApiExample(
+                        "成功範例",
+                        value={"status": "success", "message": "操作成功", "data": {"cart_count": 3}},
+                    )
+                ],
+            ),
+            400: _400_validation,
+        },
+    )
     def post(self, request):
         serializer = CartAddSerializer(data=request.data)
         if not serializer.is_valid():
@@ -47,6 +142,35 @@ class CartAddAPIView(APIView):
 class CartAdjustAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="快速調整購物車數量（無選項品項）",
+        description=(
+            "依 `menu_id` 搜尋購物車中**無選項**的同款品項，以 `delta` 調整數量。\n\n"
+            "- `delta` 為正數時加量；為負數時減量。\n"
+            "- 數量歸零時自動移除該品項。\n"
+            "- 找不到對應品項且調整後數量 > 0 時，自動建立新品項。\n\n"
+            "無需登入即可使用。"
+        ),
+        tags=["購物車"],
+        request=CartAdjustSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=_CartAdjustResponse,
+                description="調整成功，回傳購物車總件數與該品項最新數量",
+                examples=[
+                    OpenApiExample(
+                        "成功範例",
+                        value={
+                            "status": "success",
+                            "message": "操作成功",
+                            "data": {"cart_count": 4, "item_quantity": 2},
+                        },
+                    )
+                ],
+            ),
+            400: _400_validation,
+        },
+    )
     def post(self, request):
         serializer = CartAdjustSerializer(data=request.data)
         if not serializer.is_valid():
@@ -95,6 +219,34 @@ class CartAdjustAPIView(APIView):
 class CartUpdateAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="依索引更新購物車品項數量",
+        description=(
+            "以購物車陣列中的 `index`（從 0 開始）定位品項，直接設定新數量。\n\n"
+            "- `quantity <= 0` 時移除該品項。\n"
+            "- `index` 超出範圍時不做任何變更（靜默忽略）。\n\n"
+            "無需登入即可使用。"
+        ),
+        tags=["購物車"],
+        request=CartUpdateSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=_CartTotalResponse,
+                description="更新成功，回傳購物車總金額與總件數",
+                examples=[
+                    OpenApiExample(
+                        "成功範例",
+                        value={
+                            "status": "success",
+                            "message": "操作成功",
+                            "data": {"total": 320, "cart_count": 4},
+                        },
+                    )
+                ],
+            ),
+            400: _400_validation,
+        },
+    )
     def post(self, request):
         serializer = CartUpdateSerializer(data=request.data)
         if not serializer.is_valid():
@@ -122,6 +274,33 @@ class CartUpdateAPIView(APIView):
 class CartRemoveAPIView(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="依索引移除購物車品項",
+        description=(
+            "以購物車陣列中的 `index`（從 0 開始）移除對應品項。\n\n"
+            "`index` 超出範圍時不做任何變更（靜默忽略）。\n\n"
+            "無需登入即可使用。"
+        ),
+        tags=["購物車"],
+        request=CartRemoveSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=_CartTotalResponse,
+                description="移除成功，回傳購物車總金額與總件數",
+                examples=[
+                    OpenApiExample(
+                        "成功範例",
+                        value={
+                            "status": "success",
+                            "message": "操作成功",
+                            "data": {"total": 160, "cart_count": 2},
+                        },
+                    )
+                ],
+            ),
+            400: _400_validation,
+        },
+    )
     def post(self, request):
         serializer = CartRemoveSerializer(data=request.data)
         if not serializer.is_valid():

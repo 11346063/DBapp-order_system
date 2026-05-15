@@ -1,0 +1,200 @@
+{% extends "drf_spectacular/swagger_ui.html" %}
+
+{% block head %}
+{{ block.super }}
+<style>
+  /* ══════════════════════════════════════════════
+     深色模式
+  ══════════════════════════════════════════════ */
+
+  /* ── 基底背景與文字 ─────────────────────────── */
+  body { background: #1a1b1e !important; }
+
+  .swagger-ui { color: #d4d4d8 !important; }
+
+  .swagger-ui .wrapper,
+  .swagger-ui .scheme-container,
+  .swagger-ui section.models,
+  .swagger-ui section.models .model-container {
+    background: #1a1b1e !important;
+  }
+
+  /* ── 頂部橫幅 ───────────────────────────────── */
+  .swagger-ui .topbar { background: #111113 !important; }
+  .swagger-ui .topbar a { color: #e4e4e7 !important; }
+  .swagger-ui .topbar .topbar-wrapper svg { display: none; }
+
+  /* ── info 區塊 ───────────────────────────────── */
+  .swagger-ui .info h1,
+  .swagger-ui .info h2,
+  .swagger-ui .info h3,
+  .swagger-ui .info p,
+  .swagger-ui .info li,
+  .swagger-ui .info a,
+  .swagger-ui .info table,
+  .swagger-ui .info .title { color: #e4e4e7 !important; }
+  .swagger-ui .info pre,
+  .swagger-ui .info code { background: #2d2d30 !important; color: #ce9178 !important; }
+
+  /* ── Tag 分組標題 ────────────────────────────── */
+  .swagger-ui .opblock-tag,
+  .swagger-ui .opblock-tag small { color: #e4e4e7 !important; }
+  .swagger-ui .opblock-tag:hover { background: #2d2d30 !important; }
+  .swagger-ui .opblock-tag { border-bottom: 1px solid #3f3f46 !important; }
+
+  /* ── 操作區塊（GET / POST / PATCH） ─────────── */
+  .swagger-ui .opblock { border-color: #3f3f46 !important; background: #232326 !important; }
+  .swagger-ui .opblock .opblock-summary { border-color: #3f3f46 !important; }
+  .swagger-ui .opblock .opblock-body { background: #232326 !important; }
+
+  .swagger-ui .opblock.opblock-get    { border-color: #3b5b8c !important; background: #1e2a3a !important; }
+  .swagger-ui .opblock.opblock-get    .opblock-summary { background: #1e2a3a !important; }
+  .swagger-ui .opblock.opblock-post   { border-color: #2d5a3d !important; background: #1a2e23 !important; }
+  .swagger-ui .opblock.opblock-post   .opblock-summary { background: #1a2e23 !important; }
+  .swagger-ui .opblock.opblock-patch  { border-color: #5c4a1e !important; background: #2d2415 !important; }
+  .swagger-ui .opblock.opblock-patch  .opblock-summary { background: #2d2415 !important; }
+  .swagger-ui .opblock.opblock-delete { border-color: #5a2020 !important; background: #2e1515 !important; }
+  .swagger-ui .opblock.opblock-delete .opblock-summary { background: #2e1515 !important; }
+
+  /* ── opblock 內文字 ──────────────────────────── */
+  .swagger-ui .opblock-summary-description,
+  .swagger-ui .opblock-summary-path,
+  .swagger-ui .opblock-description-wrapper p,
+  .swagger-ui .opblock-external-docs-wrapper p,
+  .swagger-ui .opblock-title_normal p { color: #d4d4d8 !important; }
+
+  .swagger-ui .opblock-section-header { background: #2d2d30 !important; }
+  .swagger-ui .opblock-section-header h4 { color: #e4e4e7 !important; }
+
+  /* ── 參數表格 ────────────────────────────────── */
+  .swagger-ui table thead tr th,
+  .swagger-ui table thead tr td { border-color: #3f3f46 !important; color: #a1a1aa !important; }
+  .swagger-ui .parameters-col_description p,
+  .swagger-ui .parameter__name,
+  .swagger-ui .parameter__type,
+  .swagger-ui .parameter__in { color: #d4d4d8 !important; }
+  .swagger-ui .parameter__deprecated { color: #f87171 !important; }
+  .swagger-ui table tbody tr td { border-color: #3f3f46 !important; color: #d4d4d8 !important; }
+  .swagger-ui .markdown p,
+  .swagger-ui .markdown li { color: #d4d4d8 !important; }
+
+  /* ── 輸入欄位 ────────────────────────────────── */
+  .swagger-ui input,
+  .swagger-ui textarea,
+  .swagger-ui select {
+    background: #2d2d30 !important;
+    color: #e4e4e7 !important;
+    border: 1px solid #52525b !important;
+  }
+  .swagger-ui input::placeholder,
+  .swagger-ui textarea::placeholder { color: #71717a !important; }
+
+  /* ── 按鈕 ────────────────────────────────────── */
+  .swagger-ui .btn { color: #e4e4e7 !important; border-color: #52525b !important; }
+  .swagger-ui .btn.execute { background: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+  .swagger-ui .btn.btn-clear { background: #3f3f46 !important; }
+  .swagger-ui .btn.cancel   { background: #7f1d1d !important; border-color: #991b1b !important; color: #fca5a5 !important; }
+  .swagger-ui .btn.authorize { background: #14532d !important; border-color: #166534 !important; color: #86efac !important; }
+  .swagger-ui .btn.authorize svg { fill: #86efac !important; }
+
+  /* ── 回應區塊 ────────────────────────────────── */
+  .swagger-ui .responses-wrapper,
+  .swagger-ui .response-col_description,
+  .swagger-ui .live-responses-table { color: #d4d4d8 !important; }
+  .swagger-ui .response { background: #232326 !important; }
+  .swagger-ui table.responses-table tbody tr:hover { background: #2d2d30 !important; }
+  .swagger-ui .response-col_status { color: #86efac !important; }
+
+  /* ── Code / JSON 預覽 ────────────────────────── */
+  .swagger-ui .microlight,
+  .swagger-ui .highlight-code,
+  .swagger-ui .model-example pre,
+  .swagger-ui .body-param__text,
+  .swagger-ui .curl {
+    background: #1e1e1e !important;
+    color: #ce9178 !important;
+  }
+  .swagger-ui .response-control-media-type__accept-message { color: #a1a1aa !important; }
+
+  /* ── Schema / Model 區塊 ─────────────────────── */
+  .swagger-ui section.models h4 { color: #e4e4e7 !important; border-color: #3f3f46 !important; }
+  .swagger-ui .model-box { background: #232326 !important; }
+  .swagger-ui .model,
+  .swagger-ui .model .property,
+  .swagger-ui .model-title,
+  .swagger-ui .model-title__text,
+  .swagger-ui span.model-title { color: #d4d4d8 !important; }
+  .swagger-ui .prop-format { color: #a78bfa !important; }
+  .swagger-ui .prop-type   { color: #60a5fa !important; }
+  .swagger-ui .model .description { color: #a1a1aa !important; }
+  .swagger-ui .model-toggle { filter: invert(0.8); }
+
+  /* ── 展開箭頭 ────────────────────────────────── */
+  .swagger-ui .expand-methods svg,
+  .swagger-ui .expand-operation svg,
+  .swagger-ui section.models svg { fill: #a1a1aa !important; }
+  .swagger-ui .arrow { filter: invert(0.7); }
+
+  /* ── 搜尋欄 ──────────────────────────────────── */
+  .swagger-ui .filter .operation-filter-input {
+    background: #2d2d30 !important;
+    color: #e4e4e7 !important;
+    border-color: #52525b !important;
+  }
+
+  /* ── 授權 modal ──────────────────────────────── */
+  .swagger-ui .dialog-ux .modal-ux {
+    background: #232326 !important;
+    border-color: #3f3f46 !important;
+    color: #d4d4d8 !important;
+  }
+  .swagger-ui .dialog-ux .modal-ux-header { border-color: #3f3f46 !important; }
+  .swagger-ui .dialog-ux .modal-ux-header h3 { color: #e4e4e7 !important; }
+  .swagger-ui .dialog-ux .modal-ux-content p,
+  .swagger-ui .dialog-ux .modal-ux-content label { color: #d4d4d8 !important; }
+  .swagger-ui .auth-container .errors { color: #f87171 !important; }
+
+  /* ── scrollbar ───────────────────────────────── */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #1a1b1e; }
+  ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+  /* ══════════════════════════════════════════════
+     字體放大
+  ══════════════════════════════════════════════ */
+  .swagger-ui,
+  .swagger-ui .info,
+  .swagger-ui .opblock-tag,
+  .swagger-ui .opblock-summary-description,
+  .swagger-ui table thead tr th,
+  .swagger-ui table tbody tr td,
+  .swagger-ui .response-col_status,
+  .swagger-ui .response-col_description { font-size: 15px !important; }
+
+  .swagger-ui .model,
+  .swagger-ui .model-box,
+  .swagger-ui .model .property,
+  .swagger-ui section.models .model-container,
+  .swagger-ui .prop-format,
+  .swagger-ui .prop-type,
+  .swagger-ui span.model-title,
+  .swagger-ui .model-title__text,
+  .swagger-ui .model .description,
+  .swagger-ui .prop .markdown p,
+  .swagger-ui .parameter__name,
+  .swagger-ui .parameter__type,
+  .swagger-ui .parameter__deprecated,
+  .swagger-ui .parameter__in,
+  .swagger-ui .responses-inner h4,
+  .swagger-ui .responses-inner h5 { font-size: 14px !important; }
+
+  .swagger-ui .opblock .opblock-summary-path,
+  .swagger-ui .opblock .opblock-summary-path__deprecated { font-size: 16px !important; }
+
+  .swagger-ui .info hgroup.main h2.title { font-size: 2rem !important; }
+  .swagger-ui .info p,
+  .swagger-ui .info li,
+  .swagger-ui .info table { font-size: 15px !important; }
+</style>
+{% endblock head %}

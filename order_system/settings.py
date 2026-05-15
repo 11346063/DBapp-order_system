@@ -193,6 +193,40 @@ SIMPLE_JWT = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "絕佳食雞 API",
-    "DESCRIPTION": "台式炸物店線上點餐系統 RESTful API",
+    "DESCRIPTION": (
+        "台式炸物店「絕佳食雞」線上點餐系統 RESTful API。\n\n"
+        "## 認證方式\n"
+        "大多數寫入 API 需要 JWT Bearer Token。\n"
+        "1. 呼叫 `POST /api/token/` 取得 `access` token（有效期 30 分鐘）與 `refresh` token（有效期 7 天）。\n"
+        "2. 在後續請求的 Header 加上 `Authorization: Bearer <access_token>`。\n"
+        "3. access token 過期後，呼叫 `POST /api/token/refresh/` 換發新 token。\n\n"
+        "## 身份等級\n"
+        "| identity | 說明 | 可用 API |\n"
+        "|----------|------|----------|\n"
+        "| `A` 管理員 | 最高權限 | 全部 |\n"
+        "| `E` 員工 | 操作訂單、切換餐點 | 菜單切換、訂單狀態 |\n"
+        "| `C` 顧客 | 一般使用者 | 購物車、再次訂購 |\n"
+        "| `G` 訪客 | 未登入 | 僅讀取菜單、購物車 |\n\n"
+        "## 統一回應格式\n"
+        "```json\n"
+        "// 成功\n"
+        "{ \"status\": \"success\", \"message\": \"操作成功\", \"data\": { ... } }\n"
+        "// 失敗\n"
+        "{ \"status\": \"error\", \"message\": \"錯誤原因\" }\n"
+        "```"
+    ),
     "VERSION": "1.0.0",
+    "COMPONENT_SPLIT_REQUEST": True,
+    "TAGS": [
+        {"name": "菜單", "description": "菜單查詢與管理（建立、更新、上下架切換）"},
+        {"name": "購物車", "description": "以 server-side session 管理的購物車操作"},
+        {"name": "訂單", "description": "訂單狀態管理與再次訂購"},
+    ],
+    "SWAGGER_UI_SETTINGS": {
+        "defaultModelsExpandDepth": 5,
+        "defaultModelExpandDepth": 5,
+        "displayRequestDuration": True,
+        "filter": True,
+    },
+    "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
 }
