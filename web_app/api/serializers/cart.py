@@ -7,7 +7,6 @@ class CartAddSerializer(serializers.Serializer):
     price = serializers.IntegerField(
         min_value=0,
         help_text="餐點基本價格（元，不得為負）",
-        default=80,
     )
     quantity = serializers.IntegerField(
         default=1,

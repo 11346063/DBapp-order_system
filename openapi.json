@@ -1,0 +1,2312 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "絕佳食雞 API",
+        "version": "1.0.0",
+        "description": "台式炸物店「絕佳食雞」線上點餐系統 RESTful API。\n\n## 認證方式\n大多數寫入 API 需要 JWT Bearer Token。\n1. 呼叫 `POST /api/token/` 取得 `access` token（有效期 30 分鐘）與 `refresh` token（有效期 7 天）。\n2. 在後續請求的 Header 加上 `Authorization: Bearer <access_token>`。\n3. access token 過期後，呼叫 `POST /api/token/refresh/` 換發新 token。\n\n## 身份等級\n| identity | 說明 | 可用 API |\n|----------|------|----------|\n| `A` 管理員 | 最高權限 | 全部 |\n| `E` 員工 | 操作訂單、切換餐點 | 菜單切換、訂單狀態 |\n| `C` 顧客 | 一般使用者 | 購物車、再次訂購 |\n| `G` 訪客 | 未登入 | 僅讀取菜單、購物車 |\n\n## 統一回應格式\n```json\n// 成功\n{ \"status\": \"success\", \"message\": \"操作成功\", \"data\": { ... } }\n// 失敗\n{ \"status\": \"error\", \"message\": \"錯誤原因\" }\n```"
+    },
+    "paths": {
+        "/api/cart/add/": {
+            "post": {
+                "operationId": "api_cart_add_create",
+                "description": "將指定餐點（含選項）加入 session 購物車。\n\n購物車以 server-side session 儲存，不寫入資料庫。\n無需登入即可使用。",
+                "summary": "加入購物車",
+                "tags": [
+                    "購物車"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAddRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAddRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAddRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartCountResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "cart_count": 3
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "加入成功，回傳購物車目前總件數"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartErrorResponse"
+                                },
+                                "examples": {
+                                    "驗證失敗範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "price 不可為負數"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "欄位驗證失敗，回傳第一個錯誤訊息"
+                    }
+                }
+            }
+        },
+        "/api/cart/adjust/": {
+            "post": {
+                "operationId": "api_cart_adjust_create",
+                "description": "依 `menu_id` 搜尋購物車中**無選項**的同款品項，以 `delta` 調整數量。\n\n- `delta` 為正數時加量；為負數時減量。\n- 數量歸零時自動移除該品項。\n- 找不到對應品項且調整後數量 > 0 時，自動建立新品項。\n\n無需登入即可使用。",
+                "summary": "快速調整購物車數量（無選項品項）",
+                "tags": [
+                    "購物車"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAdjustRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAdjustRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartAdjustRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartAdjustResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "cart_count": 4,
+                                                "item_quantity": 2
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "調整成功，回傳購物車總件數與該品項最新數量"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartErrorResponse"
+                                },
+                                "examples": {
+                                    "驗證失敗範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "price 不可為負數"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "欄位驗證失敗，回傳第一個錯誤訊息"
+                    }
+                }
+            }
+        },
+        "/api/cart/remove/": {
+            "post": {
+                "operationId": "api_cart_remove_create",
+                "description": "以購物車陣列中的 `index`（從 0 開始）移除對應品項。\n\n`index` 超出範圍時不做任何變更（靜默忽略）。\n\n無需登入即可使用。",
+                "summary": "依索引移除購物車品項",
+                "tags": [
+                    "購物車"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartRemoveRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartRemoveRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartRemoveRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartTotalResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "total": 160,
+                                                "cart_count": 2
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "移除成功，回傳購物車總金額與總件數"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartErrorResponse"
+                                },
+                                "examples": {
+                                    "驗證失敗範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "price 不可為負數"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "欄位驗證失敗，回傳第一個錯誤訊息"
+                    }
+                }
+            }
+        },
+        "/api/cart/update/": {
+            "post": {
+                "operationId": "api_cart_update_create",
+                "description": "以購物車陣列中的 `index`（從 0 開始）定位品項，直接設定新數量。\n\n- `quantity <= 0` 時移除該品項。\n- `index` 超出範圍時不做任何變更（靜默忽略）。\n\n無需登入即可使用。",
+                "summary": "依索引更新購物車品項數量",
+                "tags": [
+                    "購物車"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartUpdateRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartUpdateRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CartUpdateRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartTotalResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "total": 320,
+                                                "cart_count": 4
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "更新成功，回傳購物車總金額與總件數"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CartErrorResponse"
+                                },
+                                "examples": {
+                                    "驗證失敗範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "price 不可為負數"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "欄位驗證失敗，回傳第一個錯誤訊息"
+                    }
+                }
+            }
+        },
+        "/api/menu/{id}/": {
+            "get": {
+                "operationId": "api_menu_retrieve",
+                "description": "依餐點 ID 取得完整資料，包含所有可加購選項。無需登入即可呼叫。",
+                "summary": "取得餐點詳細資訊（含選項）",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "菜單"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MenuDetailSuccessResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "id": 1,
+                                                "name": "雞排",
+                                                "price": 80,
+                                                "info": "外皮酥脆、內嫩多汁",
+                                                "remark": "可加辣、可去骨",
+                                                "type_id": 1,
+                                                "type_name": "炸雞類",
+                                                "status": true,
+                                                "image_url": "/media/image/chicken.jpg",
+                                                "options": [
+                                                    {
+                                                        "id": 1,
+                                                        "name": "小辣",
+                                                        "price": 0
+                                                    },
+                                                    {
+                                                        "id": 2,
+                                                        "name": "大辣",
+                                                        "price": 0
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "成功取得餐點詳情"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此餐點"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的餐點"
+                    }
+                }
+            }
+        },
+        "/api/menu/{id}/edit/": {
+            "post": {
+                "operationId": "api_menu_edit_create",
+                "description": "與 PATCH 行為相同，保留供舊版前端相容。\n\n**權限**：需管理員身份（`identity=A`）。\n**Content-Type**：支援 `multipart/form-data`（含圖片上傳）及 `application/json`。",
+                "summary": "更新餐點資料（POST 別名）",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "菜單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuEditRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuEditRequestRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuEditRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MenuSuccessResponse"
+                                }
+                            }
+                        },
+                        "description": "更新成功，回傳更新後的餐點資料"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "名稱或價格未填": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "名稱與價格為必填"
+                                        }
+                                    },
+                                    "價格非整數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格必須為整數"
+                                        }
+                                    },
+                                    "價格為負數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格不能為負數"
+                                        }
+                                    },
+                                    "分類不存在": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此分類"
+                                        }
+                                    },
+                                    "圖片格式錯誤": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "圖片格式不正確"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "請求資料有誤（名稱/價格未填、價格非整數、分類不存在、圖片格式錯誤）"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（需管理員身份）"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此商品"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的餐點"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "api_menu_edit_partial_update",
+                "description": "更新指定餐點的名稱、價格、分類、描述、備註或圖片。\n\n**權限**：需管理員身份（`identity=A`）。\n**Content-Type**：支援 `multipart/form-data`（含圖片上傳）及 `application/json`（不含圖片）。\n\n圖片選填；若不傳則保留原圖片。",
+                "summary": "更新餐點資料",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "菜單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMenuEditRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMenuEditRequestRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedMenuEditRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MenuSuccessResponse"
+                                }
+                            }
+                        },
+                        "description": "更新成功，回傳更新後的餐點資料"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "名稱或價格未填": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "名稱與價格為必填"
+                                        }
+                                    },
+                                    "價格非整數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格必須為整數"
+                                        }
+                                    },
+                                    "價格為負數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格不能為負數"
+                                        }
+                                    },
+                                    "分類不存在": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此分類"
+                                        }
+                                    },
+                                    "圖片格式錯誤": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "圖片格式不正確"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "請求資料有誤（名稱/價格未填、價格非整數、分類不存在、圖片格式錯誤）"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（需管理員身份）"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此商品"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的餐點"
+                    }
+                }
+            }
+        },
+        "/api/menu/{id}/toggle/": {
+            "post": {
+                "operationId": "api_menu_toggle_create",
+                "description": "每次呼叫會反轉目前的上下架狀態（true/false 互換）。\n\n**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份，透過 JWT Bearer Token 驗證。",
+                "summary": "切換餐點上下架狀態",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "菜單"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MenuToggleSuccessResponse"
+                                },
+                                "examples": {
+                                    "成功範例（已下架）": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "status": false,
+                                                "name": "雞排"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "切換成功，回傳切換後狀態與餐點名稱"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token，或 Token 已過期"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（非員工或管理員，如一般顧客）"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此商品"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的餐點"
+                    }
+                }
+            }
+        },
+        "/api/menu/create/": {
+            "post": {
+                "operationId": "api_menu_create_create",
+                "description": "建立一筆新餐點。\n\n**權限**：需管理員身份（`identity=A`）。\n**Content-Type**：支援 `multipart/form-data`（含圖片）及 `application/json`（不含圖片）。\n\n- `name` 在全系統必須唯一。\n- `type_id` 必須對應到已存在的分類。",
+                "summary": "新增餐點",
+                "tags": [
+                    "菜單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuCreateRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuCreateRequestRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MenuCreateRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MenuSuccessResponse"
+                                },
+                                "examples": {
+                                    "建立成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "id": 10,
+                                                "name": "雞排",
+                                                "price": 80,
+                                                "info": "外皮酥脆",
+                                                "remark": "可加辣",
+                                                "type_id": 1,
+                                                "type_name": "炸雞類",
+                                                "status": true,
+                                                "image_url": "/media/image/chicken.jpg"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "建立成功，回傳新餐點資料"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "examples": {
+                                    "必填未填": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "名稱、價格、分類為必填"
+                                        }
+                                    },
+                                    "價格非整數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格必須為整數"
+                                        }
+                                    },
+                                    "價格為負數": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "價格不能為負數"
+                                        }
+                                    },
+                                    "分類不存在": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此分類"
+                                        }
+                                    },
+                                    "名稱重複": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "品項名稱已存在"
+                                        }
+                                    },
+                                    "圖片格式錯誤": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "圖片格式不正確"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "請求資料有誤"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（需管理員身份）"
+                    }
+                }
+            }
+        },
+        "/api/openapi.json": {
+            "get": {
+                "operationId": "api_openapi.json_retrieve",
+                "description": "OpenApi3 schema for this API. Format can be selected via content negotiation.\n\n- YAML: application/vnd.oai.openapi\n- JSON: application/vnd.oai.openapi+json",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "lang",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "en",
+                                "zh-hant"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "api"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/vnd.oai.openapi+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/orders/{id}/status/": {
+            "post": {
+                "operationId": "api_orders_status_create",
+                "description": "與 PATCH 行為相同，保留供前端相容。\n\n**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份。\n\n訂單狀態對照：\n- `0` — 待處理\n- `1` — 備餐中\n- `2` — 完成",
+                "summary": "更新訂單狀態（POST 別名）",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "訂單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderStatusRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderStatusRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderStatusRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderStatusSuccessResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "status_counts": {
+                                                    "0": 3,
+                                                    "1": 2,
+                                                    "2": 10
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "狀態更新成功，回傳各狀態的訂單數量統計"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "無效狀態值": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "\"5\" is not a valid choice."
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "`status` 值不在允許範圍（0、1、2）"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token 或 Token 已過期"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（需員工或管理員身份，`identity=E` 或 `identity=A`）"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此訂單"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的訂單"
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "api_orders_status_partial_update",
+                "description": "將指定訂單的狀態更新為新值，並回傳目前全部狀態的訂單數量統計（供前端即時刷新）。\n\n**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份。\n\n訂單狀態對照：\n- `0` — 待處理\n- `1` — 備餐中\n- `2` — 完成",
+                "summary": "更新訂單狀態",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "訂單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedOrderStatusRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedOrderStatusRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedOrderStatusRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderStatusSuccessResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "status_counts": {
+                                                    "0": 3,
+                                                    "1": 2,
+                                                    "2": 10
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "狀態更新成功，回傳各狀態的訂單數量統計"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "無效狀態值": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "\"5\" is not a valid choice."
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "`status` 值不在允許範圍（0、1、2）"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "未提供有效的 JWT Token 或 Token 已過期"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "身份不符（需員工或管理員身份，`identity=E` 或 `identity=A`）"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "404範例": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "找不到此訂單"
+                                        },
+                                        "summary": "404 範例"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "找不到指定 ID 的訂單"
+                    }
+                }
+            }
+        },
+        "/api/orders/reorder/": {
+            "post": {
+                "operationId": "api_orders_reorder_create",
+                "description": "將指定歷史訂單的所有品項（**不含原選項**）加入目前 session 的購物車。\n\n**權限**：僅限已登入的**顧客**（`identity=C`）使用。\n- 未登入 => `401`\n- 員工或管理員登入 => `403`\n- 訂單不存在或不屬於目前使用者 => `404`\n\n若訂單中某品項對應的菜單已被刪除，該品項會被跳過（不會中斷整個流程）。",
+                "summary": "再次訂購（複製歷史訂單至購物車）",
+                "tags": [
+                    "訂單"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReorderRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReorderRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReorderRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReorderSuccessResponse"
+                                },
+                                "examples": {
+                                    "成功範例": {
+                                        "value": {
+                                            "status": "success",
+                                            "message": "操作成功",
+                                            "data": {
+                                                "added": 3,
+                                                "cart_count": 5
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "再次訂購成功，回傳加入的件數與購物車總件數"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "格式錯誤": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "A valid integer is required."
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "`order_id` 格式錯誤（非整數）"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "未登入": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "請先登入"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "未登入或 session 已過期"
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                },
+                                "examples": {
+                                    "員工禁用": {
+                                        "value": {
+                                            "status": "error",
+                                            "message": "員工不能使用再次訂購"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "description": "員工或管理員帳號不允許使用此功能"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderErrorResponse"
+                                }
+                            }
+                        },
+                        "description": "訂單不存在，或該訂單不屬於目前登入的使用者"
+                    }
+                }
+            }
+        },
+        "/api/schema/": {
+            "get": {
+                "operationId": "api_schema_retrieve",
+                "description": "OpenApi3 schema for this API. Format can be selected via content negotiation.\n\n- YAML: application/vnd.oai.openapi\n- JSON: application/vnd.oai.openapi+json",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "format",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "json",
+                                "yaml"
+                            ]
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "lang",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "en",
+                                "zh-hant"
+                            ]
+                        }
+                    }
+                ],
+                "tags": [
+                    "api"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {
+                        "cookieAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/vnd.oai.openapi": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            },
+                            "application/yaml": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            },
+                            "application/vnd.oai.openapi+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/token/": {
+            "post": {
+                "operationId": "api_token_create",
+                "description": "Takes a set of user credentials and returns an access and refresh JSON web\ntoken pair to prove the authentication of those credentials.",
+                "tags": [
+                    "api"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenObtainPairRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenObtainPairRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenObtainPairRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenObtainPair"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/token/refresh/": {
+            "post": {
+                "operationId": "api_token_refresh_create",
+                "description": "Takes a refresh type JSON web token and returns an access type JSON web\ntoken if the refresh token is valid.",
+                "tags": [
+                    "api"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenRefreshRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenRefreshRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenRefreshRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TokenRefresh"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CartAddRequest": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "菜單餐點 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "雞排",
+                        "description": "餐點名稱（用於顯示購物車）"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 80,
+                        "description": "餐點基本價格（元，不得為負）"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1,
+                        "description": "加入數量（至少 1，預設 1）"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {}
+                        },
+                        "description": "選項列表，每項格式為 {\"id\": 1, \"name\": \"小辣\", \"price\": 0}"
+                    }
+                }
+            },
+            "CartAdjustData": {
+                "type": "object",
+                "properties": {
+                    "cart_count": {
+                        "type": "integer",
+                        "description": "購物車目前總件數"
+                    },
+                    "item_quantity": {
+                        "type": "integer",
+                        "description": "調整後該品項的數量（已移除則為 0）"
+                    }
+                },
+                "required": [
+                    "cart_count",
+                    "item_quantity"
+                ]
+            },
+            "CartAdjustRequest": {
+                "type": "object",
+                "properties": {
+                    "menu_id": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "菜單餐點 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "雞排",
+                        "description": "餐點名稱"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 80,
+                        "description": "餐點基本價格（元，不得為負）"
+                    },
+                    "delta": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "數量增減值：正數加量、負數減量（歸零時自動移除品項）"
+                    }
+                }
+            },
+            "CartAdjustResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/CartAdjustData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CartCountData": {
+                "type": "object",
+                "properties": {
+                    "cart_count": {
+                        "type": "integer",
+                        "description": "購物車目前總件數"
+                    }
+                },
+                "required": [
+                    "cart_count"
+                ]
+            },
+            "CartCountResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/CartCountData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CartErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "error"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            },
+            "CartRemoveRequest": {
+                "type": "object",
+                "properties": {
+                    "index": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0,
+                        "description": "要移除的購物車品項索引（從 0 開始）"
+                    }
+                }
+            },
+            "CartTotalData": {
+                "type": "object",
+                "properties": {
+                    "total": {
+                        "type": "integer",
+                        "description": "購物車所有品項小計加總（元）"
+                    },
+                    "cart_count": {
+                        "type": "integer",
+                        "description": "購物車目前總件數"
+                    }
+                },
+                "required": [
+                    "cart_count",
+                    "total"
+                ]
+            },
+            "CartTotalResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/CartTotalData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "CartUpdateRequest": {
+                "type": "object",
+                "properties": {
+                    "index": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "default": 0,
+                        "description": "購物車品項索引（從 0 開始）"
+                    },
+                    "quantity": {
+                        "type": "integer",
+                        "default": 2,
+                        "description": "新的數量；設為 0 或負數時移除該品項"
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "error"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            },
+            "Menu": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "description": "餐點唯一 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "餐點名稱（全系統唯一，最長 50 字）。範例：雞排",
+                        "maxLength": 50
+                    },
+                    "price": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": -2147483648,
+                        "description": "基本售價（整數，元，不得為負）。範例：80"
+                    },
+                    "info": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "餐點描述（最長 100 字，可為空）。範例：外皮酥脆、內嫩多汁",
+                        "maxLength": 100
+                    },
+                    "remark": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "備註（最長 100 字，可為空）。範例：可加辣、可去骨",
+                        "maxLength": 100
+                    },
+                    "type_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "description": "分類 ID，對應 Type 資料表。範例：1"
+                    },
+                    "type_name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "分類名稱（唯讀，由 type_id 自動帶出）"
+                    },
+                    "status": {
+                        "type": "boolean",
+                        "description": "上下架狀態：true=上架、false=下架"
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "圖片完整 URL，無圖片時為空字串"
+                    }
+                },
+                "required": [
+                    "id",
+                    "image_url",
+                    "name",
+                    "price",
+                    "type_id",
+                    "type_name"
+                ]
+            },
+            "MenuCreateRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "雞排",
+                        "description": "餐點名稱（必填，全系統唯一）"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "default": 80,
+                        "description": "基本售價（必填，整數，>= 0）"
+                    },
+                    "type_id": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "分類 ID（必填）"
+                    },
+                    "info": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "外皮酥脆",
+                        "description": "餐點描述（選填）"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "可加辣",
+                        "description": "備註（選填）"
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "餐點圖片（選填，僅限圖片格式）"
+                    }
+                }
+            },
+            "MenuDetail": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "description": "餐點唯一 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "餐點名稱（全系統唯一，最長 50 字）。範例：雞排",
+                        "maxLength": 50
+                    },
+                    "price": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": -2147483648,
+                        "description": "基本售價（整數，元，不得為負）。範例：80"
+                    },
+                    "info": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "餐點描述（最長 100 字，可為空）。範例：外皮酥脆、內嫩多汁",
+                        "maxLength": 100
+                    },
+                    "remark": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "備註（最長 100 字，可為空）。範例：可加辣、可去骨",
+                        "maxLength": 100
+                    },
+                    "type_id": {
+                        "type": "integer",
+                        "readOnly": true,
+                        "description": "分類 ID，對應 Type 資料表。範例：1"
+                    },
+                    "type_name": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "分類名稱（唯讀，由 type_id 自動帶出）"
+                    },
+                    "status": {
+                        "type": "boolean",
+                        "description": "上下架狀態：true=上架、false=下架"
+                    },
+                    "image_url": {
+                        "type": "string",
+                        "readOnly": true,
+                        "description": "圖片完整 URL，無圖片時為空字串"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OptionItem"
+                        },
+                        "readOnly": true,
+                        "description": "此餐點可選的加購選項列表（唯讀）"
+                    }
+                },
+                "required": [
+                    "id",
+                    "image_url",
+                    "name",
+                    "options",
+                    "price",
+                    "type_id",
+                    "type_name"
+                ]
+            },
+            "MenuDetailSuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MenuDetail"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "MenuEditRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "雞排",
+                        "description": "餐點名稱（必填，全系統唯一）"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "default": 80,
+                        "description": "基本售價（必填，整數，>= 0）"
+                    },
+                    "type_id": {
+                        "type": "integer",
+                        "description": "分類 ID（選填，不填則維持原分類）"
+                    },
+                    "info": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "外皮酥脆",
+                        "description": "餐點描述（選填）"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "可加辣",
+                        "description": "備註（選填）"
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "餐點圖片（選填，僅限圖片格式）"
+                    }
+                }
+            },
+            "MenuSuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/Menu"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "MenuToggleData": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "boolean",
+                        "description": "切換後的上下架狀態"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "餐點名稱"
+                    }
+                },
+                "required": [
+                    "name",
+                    "status"
+                ]
+            },
+            "MenuToggleSuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/MenuToggleData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "OptionItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "選項 ID"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "選項名稱，例如：小辣"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "description": "選項加價（元）"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name",
+                    "price"
+                ]
+            },
+            "OrderErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "error"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            },
+            "OrderStatusData": {
+                "type": "object",
+                "properties": {
+                    "status_counts": {
+                        "$ref": "#/components/schemas/StatusCounts"
+                    }
+                },
+                "required": [
+                    "status_counts"
+                ]
+            },
+            "OrderStatusRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StatusEnum"
+                            }
+                        ],
+                        "default": 1,
+                        "description": "訂單狀態：0=待處理、1=備餐中、2=完成"
+                    }
+                }
+            },
+            "OrderStatusSuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/OrderStatusData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "PatchedMenuEditRequestRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "雞排",
+                        "description": "餐點名稱（必填，全系統唯一）"
+                    },
+                    "price": {
+                        "type": "integer",
+                        "default": 80,
+                        "description": "基本售價（必填，整數，>= 0）"
+                    },
+                    "type_id": {
+                        "type": "integer",
+                        "description": "分類 ID（選填，不填則維持原分類）"
+                    },
+                    "info": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "外皮酥脆",
+                        "description": "餐點描述（選填）"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "可加辣",
+                        "description": "備註（選填）"
+                    },
+                    "file_path": {
+                        "type": "string",
+                        "format": "binary",
+                        "description": "餐點圖片（選填，僅限圖片格式）"
+                    }
+                }
+            },
+            "PatchedOrderStatusRequest": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/StatusEnum"
+                            }
+                        ],
+                        "default": 1,
+                        "description": "訂單狀態：0=待處理、1=備餐中、2=完成"
+                    }
+                }
+            },
+            "ReorderData": {
+                "type": "object",
+                "properties": {
+                    "added": {
+                        "type": "integer",
+                        "description": "本次加入購物車的總件數"
+                    },
+                    "cart_count": {
+                        "type": "integer",
+                        "description": "購物車目前總件數"
+                    }
+                },
+                "required": [
+                    "added",
+                    "cart_count"
+                ]
+            },
+            "ReorderRequest": {
+                "type": "object",
+                "properties": {
+                    "order_id": {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "要再次訂購的歷史訂單 ID"
+                    }
+                }
+            },
+            "ReorderSuccessResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "default": "success"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "操作成功"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/ReorderData"
+                    }
+                },
+                "required": [
+                    "data"
+                ]
+            },
+            "StatusCounts": {
+                "type": "object",
+                "properties": {
+                    "0": {
+                        "type": "integer",
+                        "description": "待處理訂單數量"
+                    },
+                    "1": {
+                        "type": "integer",
+                        "description": "備餐中訂單數量"
+                    },
+                    "2": {
+                        "type": "integer",
+                        "description": "已完成訂單數量"
+                    }
+                },
+                "required": [
+                    "0",
+                    "1",
+                    "2"
+                ]
+            },
+            "StatusEnum": {
+                "enum": [
+                    0,
+                    1,
+                    2
+                ],
+                "type": "integer"
+            },
+            "TokenObtainPair": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "refresh": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "access",
+                    "refresh"
+                ]
+            },
+            "TokenObtainPairRequest": {
+                "type": "object",
+                "properties": {
+                    "account": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "password": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "account",
+                    "password"
+                ]
+            },
+            "TokenRefresh": {
+                "type": "object",
+                "properties": {
+                    "access": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "refresh": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "access",
+                    "refresh"
+                ]
+            },
+            "TokenRefreshRequest": {
+                "type": "object",
+                "properties": {
+                    "refresh": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "refresh"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "cookieAuth": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": "sessionid"
+            },
+            "jwtAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "菜單",
+            "description": "菜單查詢與管理（建立、更新、上下架切換）"
+        },
+        {
+            "name": "購物車",
+            "description": "以 server-side session 管理的購物車操作"
+        },
+        {
+            "name": "訂單",
+            "description": "訂單狀態管理與再次訂購"
+        }
+    ]
+}
