@@ -80,7 +80,7 @@ _status_update_responses = {
         examples=[
             OpenApiExample(
                 "無效狀態值",
-                value={"status": "error", "message": "\"5\" is not a valid choice."},
+                value={"status": "error", "message": '"5" is not a valid choice.'},
             )
         ],
     ),
@@ -160,7 +160,6 @@ class OrderStatusAPIView(APIView):
 
 
 class ReorderAPIView(APIView):
-
     @extend_schema(
         summary="再次訂購（複製歷史訂單至購物車）",
         description=(
@@ -194,7 +193,10 @@ class ReorderAPIView(APIView):
                 examples=[
                     OpenApiExample(
                         "格式錯誤",
-                        value={"status": "error", "message": "A valid integer is required."},
+                        value={
+                            "status": "error",
+                            "message": "A valid integer is required.",
+                        },
                     )
                 ],
             ),

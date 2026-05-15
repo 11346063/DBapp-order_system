@@ -210,9 +210,9 @@ SPECTACULAR_SETTINGS = {
         "## 統一回應格式\n"
         "```json\n"
         "// 成功\n"
-        "{ \"status\": \"success\", \"message\": \"操作成功\", \"data\": { ... } }\n"
+        '{ "status": "success", "message": "操作成功", "data": { ... } }\n'
         "// 失敗\n"
-        "{ \"status\": \"error\", \"message\": \"錯誤原因\" }\n"
+        '{ "status": "error", "message": "錯誤原因" }\n'
         "```"
     ),
     "VERSION": "1.0.0",

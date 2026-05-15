@@ -31,8 +31,12 @@ class MenuSerializer(serializers.ModelSerializer):
             "id": {"read_only": True, "help_text": "餐點唯一 ID"},
             "name": {"help_text": "餐點名稱（全系統唯一，最長 50 字）。範例：雞排"},
             "price": {"help_text": "基本售價（整數，元，不得為負）。範例：80"},
-            "info": {"help_text": "餐點描述（最長 100 字，可為空）。範例：外皮酥脆、內嫩多汁"},
-            "remark": {"help_text": "備註（最長 100 字，可為空）。範例：可加辣、可去骨"},
+            "info": {
+                "help_text": "餐點描述（最長 100 字，可為空）。範例：外皮酥脆、內嫩多汁"
+            },
+            "remark": {
+                "help_text": "備註（最長 100 字，可為空）。範例：可加辣、可去骨"
+            },
             "type_id": {"help_text": "分類 ID，對應 Type 資料表。範例：1"},
             "status": {"help_text": "上下架狀態：true=上架、false=下架"},
         }

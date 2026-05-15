@@ -33,7 +33,9 @@ _CartCountResponse = inline_serializer(
         "message": serializers.CharField(default="操作成功"),
         "data": inline_serializer(
             name="CartCountData",
-            fields={"cart_count": serializers.IntegerField(help_text="購物車目前總件數")},
+            fields={
+                "cart_count": serializers.IntegerField(help_text="購物車目前總件數")
+            },
         ),
     },
 )
@@ -63,7 +65,9 @@ _CartTotalResponse = inline_serializer(
         "data": inline_serializer(
             name="CartTotalData",
             fields={
-                "total": serializers.IntegerField(help_text="購物車所有品項小計加總（元）"),
+                "total": serializers.IntegerField(
+                    help_text="購物車所有品項小計加總（元）"
+                ),
                 "cart_count": serializers.IntegerField(help_text="購物車目前總件數"),
             },
         ),
@@ -101,7 +105,11 @@ class CartAddAPIView(APIView):
                 examples=[
                     OpenApiExample(
                         "成功範例",
-                        value={"status": "success", "message": "操作成功", "data": {"cart_count": 3}},
+                        value={
+                            "status": "success",
+                            "message": "操作成功",
+                            "data": {"cart_count": 3},
+                        },
                     )
                 ],
             ),

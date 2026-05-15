@@ -184,33 +184,63 @@ class MenuToggleAPIView(APIView):
 _MenuEditRequest = inline_serializer(
     name="MenuEditRequest",
     fields={
-        "name": serializers.CharField(help_text="餐點名稱（必填，全系統唯一）", default="雞排"),
-        "price": serializers.IntegerField(help_text="基本售價（必填，整數，>= 0）", default=80),
-        "type_id": serializers.IntegerField(help_text="分類 ID（選填，不填則維持原分類）", required=False),
-        "info": serializers.CharField(help_text="餐點描述（選填）", required=False, default="外皮酥脆"),
-        "remark": serializers.CharField(help_text="備註（選填）", required=False, default="可加辣"),
-        "file_path": serializers.ImageField(help_text="餐點圖片（選填，僅限圖片格式）", required=False),
+        "name": serializers.CharField(
+            help_text="餐點名稱（必填，全系統唯一）", default="雞排"
+        ),
+        "price": serializers.IntegerField(
+            help_text="基本售價（必填，整數，>= 0）", default=80
+        ),
+        "type_id": serializers.IntegerField(
+            help_text="分類 ID（選填，不填則維持原分類）", required=False
+        ),
+        "info": serializers.CharField(
+            help_text="餐點描述（選填）", required=False, default="外皮酥脆"
+        ),
+        "remark": serializers.CharField(
+            help_text="備註（選填）", required=False, default="可加辣"
+        ),
+        "file_path": serializers.ImageField(
+            help_text="餐點圖片（選填，僅限圖片格式）", required=False
+        ),
     },
 )
 
 _MenuCreateRequest = inline_serializer(
     name="MenuCreateRequest",
     fields={
-        "name": serializers.CharField(help_text="餐點名稱（必填，全系統唯一）", default="雞排"),
-        "price": serializers.IntegerField(help_text="基本售價（必填，整數，>= 0）", default=80),
+        "name": serializers.CharField(
+            help_text="餐點名稱（必填，全系統唯一）", default="雞排"
+        ),
+        "price": serializers.IntegerField(
+            help_text="基本售價（必填，整數，>= 0）", default=80
+        ),
         "type_id": serializers.IntegerField(help_text="分類 ID（必填）", default=1),
-        "info": serializers.CharField(help_text="餐點描述（選填）", required=False, default="外皮酥脆"),
-        "remark": serializers.CharField(help_text="備註（選填）", required=False, default="可加辣"),
-        "file_path": serializers.ImageField(help_text="餐點圖片（選填，僅限圖片格式）", required=False),
+        "info": serializers.CharField(
+            help_text="餐點描述（選填）", required=False, default="外皮酥脆"
+        ),
+        "remark": serializers.CharField(
+            help_text="備註（選填）", required=False, default="可加辣"
+        ),
+        "file_path": serializers.ImageField(
+            help_text="餐點圖片（選填，僅限圖片格式）", required=False
+        ),
     },
 )
 
 _edit_error_examples = [
-    OpenApiExample("名稱或價格未填", value={"status": "error", "message": "名稱與價格為必填"}),
-    OpenApiExample("價格非整數", value={"status": "error", "message": "價格必須為整數"}),
-    OpenApiExample("價格為負數", value={"status": "error", "message": "價格不能為負數"}),
+    OpenApiExample(
+        "名稱或價格未填", value={"status": "error", "message": "名稱與價格為必填"}
+    ),
+    OpenApiExample(
+        "價格非整數", value={"status": "error", "message": "價格必須為整數"}
+    ),
+    OpenApiExample(
+        "價格為負數", value={"status": "error", "message": "價格不能為負數"}
+    ),
     OpenApiExample("分類不存在", value={"status": "error", "message": "找不到此分類"}),
-    OpenApiExample("圖片格式錯誤", value={"status": "error", "message": "圖片格式不正確"}),
+    OpenApiExample(
+        "圖片格式錯誤", value={"status": "error", "message": "圖片格式不正確"}
+    ),
 ]
 
 _edit_responses = {
@@ -224,12 +254,16 @@ _edit_responses = {
         examples=_edit_error_examples,
     ),
     401: OpenApiResponse(response=_ErrorResponse, description="未提供有效的 JWT Token"),
-    403: OpenApiResponse(response=_ErrorResponse, description="身份不符（需管理員身份）"),
+    403: OpenApiResponse(
+        response=_ErrorResponse, description="身份不符（需管理員身份）"
+    ),
     404: OpenApiResponse(
         response=_ErrorResponse,
         description="找不到指定 ID 的餐點",
         examples=[
-            OpenApiExample("404 範例", value={"status": "error", "message": "找不到此商品"})
+            OpenApiExample(
+                "404 範例", value={"status": "error", "message": "找不到此商品"}
+            )
         ],
     ),
 }
@@ -353,16 +387,38 @@ class MenuCreateAPIView(APIView):
                 response=_ErrorResponse,
                 description="請求資料有誤",
                 examples=[
-                    OpenApiExample("必填未填", value={"status": "error", "message": "名稱、價格、分類為必填"}),
-                    OpenApiExample("價格非整數", value={"status": "error", "message": "價格必須為整數"}),
-                    OpenApiExample("價格為負數", value={"status": "error", "message": "價格不能為負數"}),
-                    OpenApiExample("分類不存在", value={"status": "error", "message": "找不到此分類"}),
-                    OpenApiExample("名稱重複", value={"status": "error", "message": "品項名稱已存在"}),
-                    OpenApiExample("圖片格式錯誤", value={"status": "error", "message": "圖片格式不正確"}),
+                    OpenApiExample(
+                        "必填未填",
+                        value={"status": "error", "message": "名稱、價格、分類為必填"},
+                    ),
+                    OpenApiExample(
+                        "價格非整數",
+                        value={"status": "error", "message": "價格必須為整數"},
+                    ),
+                    OpenApiExample(
+                        "價格為負數",
+                        value={"status": "error", "message": "價格不能為負數"},
+                    ),
+                    OpenApiExample(
+                        "分類不存在",
+                        value={"status": "error", "message": "找不到此分類"},
+                    ),
+                    OpenApiExample(
+                        "名稱重複",
+                        value={"status": "error", "message": "品項名稱已存在"},
+                    ),
+                    OpenApiExample(
+                        "圖片格式錯誤",
+                        value={"status": "error", "message": "圖片格式不正確"},
+                    ),
                 ],
             ),
-            401: OpenApiResponse(response=_ErrorResponse, description="未提供有效的 JWT Token"),
-            403: OpenApiResponse(response=_ErrorResponse, description="身份不符（需管理員身份）"),
+            401: OpenApiResponse(
+                response=_ErrorResponse, description="未提供有效的 JWT Token"
+            ),
+            403: OpenApiResponse(
+                response=_ErrorResponse, description="身份不符（需管理員身份）"
+            ),
         },
     )
     def post(self, request):
