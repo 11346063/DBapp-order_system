@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "captcha",
     "web_app",
     "channels",
+    "rest_framework",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -164,4 +166,33 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 MESSAGE_TAGS = {
     messages_constants.ERROR: "danger",
+}
+
+# Django REST Framework
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": __import__("datetime").timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": __import__("datetime").timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "USER_ID_FIELD": "pk",
+    "USER_ID_CLAIM": "user_id",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "絕佳食雞 API",
+    "DESCRIPTION": "台式炸物店線上點餐系統 RESTful API",
+    "VERSION": "1.0.0",
 }

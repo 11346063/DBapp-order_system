@@ -16,9 +16,9 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
-function postJSON(url, data) {
+function postJSON(url, data, method = 'POST') {
     return fetch(url, {
-        method: 'POST',
+        method: method,
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken,
@@ -26,22 +26,22 @@ function postJSON(url, data) {
         body: JSON.stringify(data),
     }).then(res =>
         res.json().then(body => {
-            if (!res.ok) return Promise.reject(body.error || '伺服器發生錯誤');
+            if (!res.ok) return Promise.reject(body.message || '伺服器發生錯誤');
             return body;
         })
     );
 }
 
-function postFormData(url, formData) {
+function postFormData(url, formData, method = 'POST') {
     return fetch(url, {
-        method: 'POST',
+        method: method,
         headers: {
             'X-CSRFToken': csrftoken,
         },
         body: formData,
     }).then(res =>
         res.json().then(body => {
-            if (!res.ok) return Promise.reject(body.error || '伺服器發生錯誤');
+            if (!res.ok) return Promise.reject(body.message || '伺服器發生錯誤');
             return body;
         })
     );

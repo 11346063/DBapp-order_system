@@ -48,8 +48,8 @@
 {# 將 Django URL 注入為全域 JS 變數，供 order_history.js 讀取 #}
 <script>
     window.URLS = {
-        reorder: "{% url 'web_app:reorder' %}"
+        reorder: "{% url 'web_app:api_reorder' %}"
     };
 </script>
-<script src="{% static 'js/order_history.js' %}?v=2"></script>
+<script src="{% static 'js/order_history.js' %}?v=3"></script>
 {% endblock %}

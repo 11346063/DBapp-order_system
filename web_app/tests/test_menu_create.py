@@ -72,10 +72,10 @@ class MenuCreateTest(TestCase):
             content_type="application/json",
         )
         data = json.loads(response.content)
-        self.assertIn("id", data)
-        self.assertEqual(data["name"], "新品炸雞腿")
-        self.assertEqual(data["price"], 120)
-        self.assertEqual(data["image_url"], "")
+        self.assertIn("id", data["data"])
+        self.assertEqual(data["data"]["name"], "新品炸雞腿")
+        self.assertEqual(data["data"]["price"], 120)
+        self.assertEqual(data["data"]["image_url"], "")
 
     def test_create_with_image_upload_saves_file(self):
         """新增品項可透過 multipart 上傳圖片"""
@@ -93,7 +93,7 @@ class MenuCreateTest(TestCase):
         item = Menu.objects.get(name="新品炸雞腿")
         self.assertTrue(item.file_path.name.startswith("image/chicken"))
         data = json.loads(response.content)
-        self.assertIn("/media/image/chicken", data["image_url"])
+        self.assertIn("/media/image/chicken", data["data"]["image_url"])
 
     def test_create_with_non_image_file_returns_400(self):
         """非圖片檔案不可作為品項照片"""
@@ -120,13 +120,13 @@ class MenuCreateTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_cannot_create_item(self):
-        """未登入無法新增品項（302）"""
+        """未登入無法新增品項（401）"""
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
 
     def test_create_with_missing_name_returns_400(self):
         """缺少 name 回傳 400"""
@@ -212,6 +212,6 @@ class MenuCreateTest(TestCase):
 
     def test_only_post_method_allowed(self):
         """只允許 POST 方法"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 405)

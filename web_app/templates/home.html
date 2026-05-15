@@ -48,8 +48,8 @@
 {% block extra_js %}
 {% include 'includes/components/page_data_script.html' with is_staff=is_staff can_manage_menu=can_manage_menu urls=page_urls types=types %}
 <script src="{% static 'js/home.js' %}"></script>
-<script src="{% static 'js/detail.js' %}?v=8"></script>
+<script src="{% static 'js/detail.js' %}?v=9"></script>
 {% if is_staff %}
-<script src="{% static 'js/staff_menu.js' %}?v=3"></script>
+<script src="{% static 'js/staff_menu.js' %}?v=4"></script>
 {% endif %}
 {% endblock %}

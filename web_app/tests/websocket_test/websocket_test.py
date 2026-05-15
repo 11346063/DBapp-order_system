@@ -9,7 +9,7 @@ class websocket_test(AsyncWebsocketConsumer):
         await self.accept()
 
     async def receive(self, text_data=None):  # 回傳處理
-        data = text_data
+        pass
 
     async def sendLogs(self, data, userId=None):  # 發送
         if not userId:

@@ -70,7 +70,7 @@ class MenuToggleStatusTest(TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertIn("status", data)
-        self.assertFalse(data["status"])
+        self.assertFalse(data["data"]["status"])
 
     def test_customer_cannot_toggle_status(self):
         """顧客無法切換商品上下架（403）"""
@@ -79,9 +79,9 @@ class MenuToggleStatusTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_cannot_toggle_status(self):
-        """未登入使用者無法切換商品上下架（重導向登入頁）"""
+        """未登入使用者無法切換商品上下架（401）"""
         response = self.client.post(self._toggle_url(self.active_item.pk))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
 
     def test_toggle_nonexistent_item_returns_404(self):
         """切換不存在的商品回傳 404"""

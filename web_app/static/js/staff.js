@@ -30,14 +30,14 @@ function submitOrderStatusUpdate(orderId, newStatus) {
         confirmBtn.disabled = true;
     }
 
-    postJSON(`/staff/orders/${orderId}/status/`, { status: newStatus })
+    postJSON(`/api/orders/${orderId}/status/`, { status: newStatus }, 'PATCH')
         .then(data => {
-            if (data.success) {
+            if (data.status === 'success') {
                 const modalEl = document.getElementById('orderStatusConfirmModal');
                 if (modalEl) {
                     bootstrap.Modal.getInstance(modalEl)?.hide();
                 }
-                updateStatusBadges(data.status_counts);
+                updateStatusBadges(data.data.status_counts);
                 const card = document.getElementById(`order-${orderId}`);
                 if (card) {
                     card.style.transition = 'opacity 0.3s';

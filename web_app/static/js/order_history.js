@@ -4,27 +4,24 @@ function reorder(orderId, btn) {
 
     postJSON(window.URLS.reorder, { order_id: orderId })
         .then(data => {
-            if (data.success) {
-                // Update cart badge in navbar
+            if (data.status === 'success') {
                 const badge = document.querySelector('.navbar .badge');
                 if (badge) {
-                    badge.textContent = data.cart_count;
+                    badge.textContent = data.data.cart_count;
                     badge.style.display = '';
                 } else {
-                    // Create badge if not exists
                     const cartLink = document.querySelector('.nav-icon-link');
                     if (cartLink) {
                         const newBadge = document.createElement('span');
                         newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill';
                         newBadge.style.cssText = 'background-color: var(--primary-yellow); color: #000;';
-                        newBadge.textContent = data.cart_count;
+                        newBadge.textContent = data.data.cart_count;
                         cartLink.appendChild(newBadge);
                     }
                 }
 
-                // Show toast
                 const toastMsg = document.getElementById('reorderToastMsg');
-                toastMsg.textContent = `已將 ${data.added} 項商品加入購物車`;
+                toastMsg.textContent = `已將 ${data.data.added} 項商品加入購物車`;
                 const toast = new bootstrap.Toast(document.getElementById('reorderToast'));
                 toast.show();
 

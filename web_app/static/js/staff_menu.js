@@ -8,11 +8,11 @@ function toggleItemStatus() {
 
     const url = window.URLS.menuToggle.replace('{id}', currentItem.id);
     postJSON(url, {}).then(data => {
-        currentItem.status = data.status;
+        currentItem.status = data.data.status;
         ['offcanvas', 'modal'].forEach(prefix => {
             const badge = document.getElementById(`${prefix}StatusBadge`);
             if (!badge) return;
-            if (data.status) {
+            if (data.data.status) {
                 badge.textContent = '上架中';
                 badge.className = 'badge fs-6 px-3 py-2 bg-success';
             } else {
@@ -20,7 +20,7 @@ function toggleItemStatus() {
                 badge.className = 'badge fs-6 px-3 py-2 bg-danger';
             }
         });
-        _refreshCardBadge(currentItem.id, data.status);
+        _refreshCardBadge(currentItem.id, data.data.status);
     }).catch(errMsg => {
         _showDetailError(errMsg);
     });
@@ -148,31 +148,30 @@ function submitStaffMenuForm() {
         payload.append('file_path', imageInput.files[0]);
     }
 
-    let url, successHandler;
+    let url, method, successHandler;
     if (staffMenuMode === 'edit' && currentItem) {
         url = window.URLS.menuEdit.replace('{id}', currentItem.id);
-        successHandler = (data) => {
-            // 更新 currentItem
-            Object.assign(currentItem, data);
-            // 更新卡片上的品名與金額
-            _refreshCardInfo(data.id, data.name, data.price, data.image_url);
+        method = 'PATCH';
+        successHandler = (item) => {
+            Object.assign(currentItem, item);
+            _refreshCardInfo(item.id, item.name, item.price, item.image_url);
             bootstrap.Modal.getInstance(document.getElementById('staffMenuModal'))?.hide();
         };
     } else {
         url = window.URLS.menuCreate;
-        successHandler = (data) => {
-            // 新增卡片到 DOM
-            _appendNewCard(data);
+        method = 'POST';
+        successHandler = (item) => {
+            _appendNewCard(item);
             bootstrap.Modal.getInstance(document.getElementById('staffMenuModal'))?.hide();
         };
     }
 
-    postFormData(url, payload).then(data => {
-        if (data.error) {
-            errorEl.textContent = data.error;
+    postFormData(url, payload, method).then(data => {
+        if (data.status === 'error') {
+            errorEl.textContent = data.message;
             errorEl.classList.remove('d-none');
         } else {
-            successHandler(data);
+            successHandler(data.data);
         }
     }).catch(errMsg => {
         errorEl.textContent = errMsg || '發生錯誤，請再試一次';

@@ -1,11 +1,10 @@
 from django.shortcuts import redirect, render
-from django.http import JsonResponse
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
-from web_app.models import Menu, Type, OptGroup, Identity
+from web_app.models import Menu, Type, Identity
 
 
 MENU_PAGE_SIZE = 12
@@ -104,45 +103,3 @@ def assisted_ordering_view(request):
             "page_title": _("代客點餐"),
         },
     )
-
-
-def _menu_image_url(menu):
-    if not menu.file_path:
-        return ""
-    return menu.file_path.url
-
-
-def menu_detail_api(request, pk):
-    try:
-        menu = Menu.objects.select_related("type").get(pk=pk)
-    except Menu.DoesNotExist:
-        return JsonResponse(
-            {"error": _("找不到此餐點")},
-            status=404,
-            json_dumps_params={"ensure_ascii": False},
-        )
-
-    opt_groups = OptGroup.objects.filter(menu=menu).select_related("opt")
-    options = [
-        {
-            "id": og.opt.id,
-            "name": og.opt.name,
-            "price": og.opt.price,
-        }
-        for og in opt_groups
-    ]
-
-    data = {
-        "id": menu.id,
-        "name": menu.name,
-        "price": menu.price,
-        "info": menu.info or "",
-        "remark": menu.remark or "",
-        "type_id": menu.type_id,
-        "type_name": menu.type.type_name,
-        "status": menu.status,
-        "image_url": _menu_image_url(menu),
-        "options": options,
-    }
-
-    return JsonResponse(data, json_dumps_params={"ensure_ascii": False})

@@ -49,7 +49,7 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "css/staff.css")
         self.assertContains(response, "?v=2")
         self.assertContains(response, "js/staff.js")
-        self.assertContains(response, "?v=4")
+        self.assertContains(response, "?v=5")
         self.assertContains(response, 'id="orderStatusConfirmModal"')
         self.assertContains(response, "確認更新訂單")
         self.assertContains(response, "電話客人")
@@ -70,14 +70,14 @@ class StaffNavigationBadgeTest(TestCase):
         order = Order.objects.filter(status=0).first()
 
         response = self.client.post(
-            reverse("web_app:staff_order_status", kwargs={"pk": order.pk}),
+            reverse("web_app:api_order_status", kwargs={"pk": order.pk}),
             data=json.dumps({"status": 1}),
             content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertTrue(data["success"])
-        self.assertEqual(data["status_counts"]["0"], 1)
-        self.assertEqual(data["status_counts"]["1"], 2)
-        self.assertEqual(data["status_counts"]["2"], 1)
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["data"]["status_counts"]["0"], 1)
+        self.assertEqual(data["data"]["status_counts"]["1"], 2)
+        self.assertEqual(data["data"]["status_counts"]["2"], 1)

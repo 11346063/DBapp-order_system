@@ -3,11 +3,11 @@ function updateCartQty(index, delta) {
     let qty = parseInt(qtyEl.textContent) + delta;
     if (qty < 1) qty = 1;
 
-    postJSON('/cart/update/', { index: index, quantity: qty })
+    postJSON('/api/cart/update/', { index: index, quantity: qty })
         .then(data => {
-            if (data.success) {
+            if (data.status === 'success') {
                 qtyEl.textContent = qty;
-                document.getElementById('cartTotal').textContent = `$${data.total}`;
+                document.getElementById('cartTotal').textContent = `$${data.data.total}`;
                 location.reload();
             }
         })
@@ -15,9 +15,9 @@ function updateCartQty(index, delta) {
 }
 
 function removeCartItem(index) {
-    postJSON('/cart/remove/', { index: index })
+    postJSON('/api/cart/remove/', { index: index })
         .then(data => {
-            if (data.success) {
+            if (data.status === 'success') {
                 location.reload();
             }
         })

@@ -5,9 +5,9 @@ function openItemDetail(menuId) {
     fetch(`/api/menu/${menuId}/`)
         .then(res => res.json())
         .then(data => {
-            currentItem = data;
+            currentItem = data.data;
             currentQty = 1;
-            fillDetail(data);
+            fillDetail(data.data);
 
             if (window.innerWidth < 768) {
                 const offcanvas = new bootstrap.Offcanvas(document.getElementById('itemOffcanvas'));
@@ -187,17 +187,17 @@ function addToCart() {
 
     const selectedOptions = getSelectedOptions();
 
-    postJSON('/cart/add/', {
+    postJSON('/api/cart/add/', {
         menu_id: currentItem.id,
         name: currentItem.name,
         price: currentItem.price,
         quantity: currentQty,
         options: selectedOptions,
     }).then(data => {
-        if (data.success) {
-            updateCartBadge(data.cart_count);
+        if (data.status === 'success') {
+            updateCartBadge(data.data.cart_count);
             closeItemDetail();
-            showCartFeedback(data);
+            showCartFeedback(data.data);
         }
     }).catch(() => {});
 }
@@ -207,16 +207,16 @@ function adjustAssistedCart(control, delta) {
     const menuId = parseInt(control.dataset.menuId, 10);
     const price = parseInt(control.dataset.menuPrice, 10);
 
-    postJSON('/cart/adjust/', {
+    postJSON('/api/cart/adjust/', {
         menu_id: menuId,
         name: control.dataset.menuName,
         price: price,
         delta: delta,
     }).then(data => {
-        if (data.success) {
-            if (qtyEl) qtyEl.textContent = data.item_quantity;
-            updateCartBadge(data.cart_count);
-            showCartFeedback(data);
+        if (data.status === 'success') {
+            if (qtyEl) qtyEl.textContent = data.data.item_quantity;
+            updateCartBadge(data.data.cart_count);
+            showCartFeedback(data.data);
         }
     }).catch(() => {});
 }

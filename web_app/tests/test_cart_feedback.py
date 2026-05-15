@@ -150,7 +150,7 @@ class CartPageNavigationTest(TestCase):
         self.client.login(username=employee.account, password="pass")
 
         response = self.client.post(
-            reverse("web_app:cart_add"),
+            reverse("web_app:cart_add_api"),
             data=json.dumps(
                 {
                     "menu_id": self.menu.pk,
@@ -164,7 +164,7 @@ class CartPageNavigationTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json()["success"])
+        self.assertEqual(response.json()["status"], "success")
 
     def test_employee_can_adjust_assisted_cart_quantity(self):
         employee = User.objects.create_user(
@@ -176,7 +176,7 @@ class CartPageNavigationTest(TestCase):
         self.client.login(username=employee.account, password="pass")
 
         add_response = self.client.post(
-            reverse("web_app:cart_adjust"),
+            reverse("web_app:cart_adjust_api"),
             data=json.dumps(
                 {
                     "menu_id": self.menu.pk,
@@ -188,7 +188,7 @@ class CartPageNavigationTest(TestCase):
             content_type="application/json",
         )
         remove_response = self.client.post(
-            reverse("web_app:cart_adjust"),
+            reverse("web_app:cart_adjust_api"),
             data=json.dumps(
                 {
                     "menu_id": self.menu.pk,
@@ -201,8 +201,8 @@ class CartPageNavigationTest(TestCase):
         )
 
         self.assertEqual(add_response.status_code, 200)
-        self.assertEqual(add_response.json()["item_quantity"], 1)
-        self.assertEqual(add_response.json()["cart_count"], 1)
+        self.assertEqual(add_response.json()["data"]["item_quantity"], 1)
+        self.assertEqual(add_response.json()["data"]["cart_count"], 1)
         self.assertEqual(remove_response.status_code, 200)
-        self.assertEqual(remove_response.json()["item_quantity"], 0)
-        self.assertEqual(remove_response.json()["cart_count"], 0)
+        self.assertEqual(remove_response.json()["data"]["item_quantity"], 0)
+        self.assertEqual(remove_response.json()["data"]["cart_count"], 0)

@@ -1,8 +1,6 @@
 import json
 from datetime import timedelta
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db.models import Count, Sum
@@ -49,25 +47,6 @@ def staff_order_list(request):
             "current_status": status_val,
             "status_counts": status_counts,
         },
-    )
-
-
-@employee_required
-@require_POST
-def staff_update_status(request, pk):
-    order = get_object_or_404(Order, pk=pk)
-    data = json.loads(request.body)
-    new_status = data.get("status")
-
-    if new_status in [0, 1, 2]:
-        order.status = new_status
-        order.save()
-        return JsonResponse({"success": True, "status_counts": _order_status_counts()})
-
-    return JsonResponse(
-        {"error": _("無效的狀態")},
-        status=400,
-        json_dumps_params={"ensure_ascii": False},
     )
 
 

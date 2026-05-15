@@ -83,9 +83,9 @@ class MenuEditTest(TestCase):
             content_type="application/json",
         )
         data = json.loads(response.content)
-        self.assertEqual(data["name"], "超脆炸雞")
-        self.assertEqual(data["price"], 90)
-        self.assertEqual(data["image_url"], "")
+        self.assertEqual(data["data"]["name"], "超脆炸雞")
+        self.assertEqual(data["data"]["price"], 90)
+        self.assertEqual(data["data"]["image_url"], "")
 
     def test_edit_with_image_upload_updates_file(self):
         """編輯品項可更新照片"""
@@ -103,7 +103,7 @@ class MenuEditTest(TestCase):
         self.item.refresh_from_db()
         self.assertTrue(self.item.file_path.name.startswith("image/crispy"))
         data = json.loads(response.content)
-        self.assertIn("/media/image/crispy", data["image_url"])
+        self.assertIn("/media/image/crispy", data["data"]["image_url"])
 
     def test_edit_without_image_keeps_existing_file(self):
         """未選新照片時保留原本照片"""
@@ -130,13 +130,13 @@ class MenuEditTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_anonymous_cannot_edit_item(self):
-        """未登入無法編輯品項（302）"""
+        """未登入無法編輯品項（401）"""
         response = self.client.post(
             self.url,
             data=json.dumps(self.valid_payload),
             content_type="application/json",
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
 
     def test_edit_with_missing_name_returns_400(self):
         """缺少必填欄位 name 回傳 400"""
@@ -213,6 +213,6 @@ class MenuEditTest(TestCase):
 
     def test_only_post_method_allowed(self):
         """只允許 POST 方法"""
-        self.client.login(username="employee1", password="pass")
+        self.client.login(username="admin1", password="pass")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 405)
