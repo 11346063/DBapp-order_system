@@ -5,25 +5,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0014_order_status_choices'),
+        ("web_app", "0014_order_status_choices"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='menu',
-            name='options',
-            field=models.ManyToManyField(through='web_app.OptGroup', to='web_app.options'),
+            model_name="menu",
+            name="options",
+            field=models.ManyToManyField(
+                through="web_app.OptGroup", to="web_app.options"
+            ),
         ),
         migrations.AlterField(
-            model_name='optgroup',
-            name='menu',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='opt_groups', to='web_app.menu'),
+            model_name="optgroup",
+            name="menu",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="opt_groups",
+                to="web_app.menu",
+            ),
         ),
         migrations.AlterField(
-            model_name='optgroup',
-            name='opt',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='opt_groups', to='web_app.options'),
+            model_name="optgroup",
+            name="opt",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="opt_groups",
+                to="web_app.options",
+            ),
         ),
     ]

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils.translation import gettext as _
 from web_app.forms.login_form import LoginForm
 from web_app.forms.register_form import RegisterForm
+from web_app.models import Identity
 
 
 def login_view(request):
@@ -22,7 +23,7 @@ def login_view(request):
                 messages.success(
                     request, _("歡迎回來，{name}！").format(name=user.name)
                 )
-                if user.identity == "A" or user.identity == "E":
+                if user.identity in (Identity.ADMIN, Identity.EMPLOYEE):
                     return redirect("web_app:staff_orders")
                 next_url = request.GET.get("next", "web_app:home")
                 return redirect(next_url)
@@ -41,7 +42,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.identity = "C"
+            user.identity = Identity.CUSTOMER
             user.set_password(form.cleaned_data["password"])
             user.save()
             messages.success(request, _("註冊成功！請登入"))
