@@ -28,9 +28,10 @@ Props:
             <div class="mb-2 px-2 py-1 rounded" style="background:rgba(243,200,0,.08); border-left:3px solid var(--primary-yellow);">
                 <small class="text-yellow"><i class="bi bi-sliders"></i> {{ order.order_opts }}</small>
             </div>
-            {% elif order.remark %}
-            <div class="mb-2 px-2 py-1 rounded" style="background:rgba(243,200,0,.08); border-left:3px solid var(--primary-yellow);">
-                <small class="text-yellow"><i class="bi bi-sliders"></i> {{ order.remark }}</small>
+            {% endif %}
+            {% if order.remark %}
+            <div class="mb-2 px-2 py-1 rounded" style="background:rgba(255,255,255,.04); border-left:3px solid var(--text-secondary);">
+                <small class="text-secondary"><i class="bi bi-chat-left-text"></i> {{ order.remark }}</small>
             </div>
             {% endif %}
             <div class="mb-3">
