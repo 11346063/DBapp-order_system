@@ -52,3 +52,7 @@ class CartRemoveSerializer(serializers.Serializer):
         help_text="要移除的購物車品項索引（從 0 開始）",
         default=0,
     )
+
+
+class CartRemoveByMenuSerializer(serializers.Serializer):
+    menu_id = serializers.IntegerField(help_text="要移除的餐點 ID")

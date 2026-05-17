@@ -16,6 +16,90 @@
     box-shadow: 0 0 0 0.2rem rgba(243, 232, 0, 0.2);
 }
 
+/* ── 總金額列 ── */
+.payment-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* ── 辣度選擇 ── */
+.spicy-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.spicy-opt {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    user-select: none;
+}
+
+.spicy-opt input[type="radio"] {
+    accent-color: var(--primary-yellow);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* ── 加料步進器 ── */
+.extra-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.extra-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.extra-qty-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: background 0.15s;
+    flex-shrink: 0;
+}
+
+.extra-qty-btn:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.extra-price {
+    color: var(--primary-yellow);
+    font-size: 0.85rem;
+    min-width: 2.8rem;
+    text-align: right;
+}
+
+/* ── Mobile ── */
 @media (max-width: 575.98px) {
     .payment-layout {
         --bs-gutter-y: 1rem;
@@ -29,58 +113,12 @@
     }
 
     .payment-submit-card {
-        position: static;
-        left: 12px;
-        right: 12px;
-        bottom: calc(76px + env(safe-area-inset-bottom, 0));
-        z-index: 10;
         margin-top: 0 !important;
         margin-bottom: 0;
     }
 
     .payment-submit-card .card-body {
         padding: 16px;
-    }
-
-    .payment-submit-card .card-body {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 14px;
-    }
-
-    .payment-submit-card .d-flex {
-        display: block !important;
-        margin-bottom: 0 !important;
-    }
-
-    .payment-submit-card .text-secondary.fs-5 {
-        display: block;
-        font-size: 0.9rem !important;
-        margin-bottom: 4px;
-    }
-
-    .payment-submit-card #cartTotal {
-        font-size: 1.55rem;
-    }
-
-    .payment-submit-card form {
-        display: contents;
-    }
-
-    .payment-submit-card form .mb-3 {
-        grid-column: 1 / -1;
-        margin-bottom: 0 !important;
-    }
-
-    .payment-submit-card .remark-input {
-        min-height: 52px;
-    }
-
-    .payment-submit-card .btn {
-        min-width: 148px;
-        padding-top: 10px !important;
-        padding-bottom: 10px !important;
     }
 
     .guest-login-prompt .d-flex {

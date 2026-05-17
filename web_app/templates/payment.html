@@ -4,7 +4,7 @@
 {% block title %}{% trans "付款" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=7">
+<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=10">
 {% endblock %}
 
 {% block content %}
@@ -31,5 +31,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/payment.js' %}"></script>
+<script>window.BASE_TOTAL = {{ total }};</script>
+<script src="{% static 'js/payment.js' %}?v=2"></script>
 {% endblock %}

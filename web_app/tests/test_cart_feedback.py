@@ -69,7 +69,7 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertNotContains(response, 'id="cartFeedback"')
 
     def test_employee_assisted_ordering_includes_customer_ordering_actions(self):
-        """員工代客點餐頁使用精簡數量控制，不顯示圖片與詳情彈窗操作"""
+        """員工代客點餐頁使用精簡數量控制；含切法品項的 modal 一併渲染（隱藏），卡片不顯示圖片或編輯入口"""
         self.client.login(username="cart_emp", password="pass")
 
         response = self.client.get(reverse("web_app:assisted_ordering"))
@@ -83,7 +83,8 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertContains(response, 'id="cartFeedback"')
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
         self.assertNotContains(response, "card-img-top-placeholder")
-        self.assertNotContains(response, "加入購物車")
+        # 加入購物車 按鈕存在於隱藏 modal（供切法品項使用）
+        self.assertContains(response, "加入購物車")
         self.assertNotContains(response, "編輯品項")
 
 

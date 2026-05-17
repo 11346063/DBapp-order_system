@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from web_app.api.serializers.cart import (
     CartAddSerializer,
     CartAdjustSerializer,
+    CartRemoveByMenuSerializer,
     CartRemoveSerializer,
     CartUpdateSerializer,
 )
@@ -325,3 +326,51 @@ class CartRemoveAPIView(APIView):
         total = sum(item["subtotal"] for item in cart)
         cart_count = sum(item["quantity"] for item in cart)
         return api_success({"total": total, "cart_count": cart_count})
+
+
+class CartRemoveByMenuAPIView(APIView):
+    """依 menu_id 移除購物車中最後一筆該品項（不限選項），用於代客點餐減量。"""
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="依 menu_id 移除最後一筆購物車品項",
+        description=(
+            "在購物車中找最後一筆 `menu_id` 相符的品項並移除（無論有無選項）。\n\n"
+            "主要供代客點餐頁的 − 按鈕使用。"
+        ),
+        tags=["購物車"],
+        request=CartRemoveByMenuSerializer,
+        responses={
+            200: OpenApiResponse(
+                response=_CartAdjustResponse,
+                description="移除成功，回傳購物車總件數與該品項剩餘總數量",
+            ),
+            400: _400_validation,
+        },
+    )
+    def post(self, request):
+        serializer = CartRemoveByMenuSerializer(data=request.data)
+        if not serializer.is_valid():
+            first_error = next(iter(serializer.errors.values()))[0]
+            return api_error(str(first_error))
+
+        menu_id = serializer.validated_data["menu_id"]
+        cart = request.session.get("cart", [])
+
+        # 找最後一筆相符品項的 index
+        last_index = None
+        for i in range(len(cart) - 1, -1, -1):
+            if cart[i].get("menu_id") == menu_id:
+                last_index = i
+                break
+
+        if last_index is not None:
+            cart.pop(last_index)
+
+        request.session["cart"] = cart
+        cart_count = sum(item["quantity"] for item in cart)
+        item_quantity = sum(
+            item["quantity"] for item in cart if item.get("menu_id") == menu_id
+        )
+        return api_success({"cart_count": cart_count, "item_quantity": item_quantity})

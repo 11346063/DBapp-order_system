@@ -4,6 +4,7 @@ from web_app.api.views.cart import (
     CartAddAPIView,
     CartAdjustAPIView,
     CartRemoveAPIView,
+    CartRemoveByMenuAPIView,
     CartUpdateAPIView,
 )
 from web_app.api.views.menu import (
@@ -25,6 +26,11 @@ urlpatterns = [
     path("cart/adjust/", CartAdjustAPIView.as_view(), name="cart_adjust_api"),
     path("cart/update/", CartUpdateAPIView.as_view(), name="cart_update_api"),
     path("cart/remove/", CartRemoveAPIView.as_view(), name="cart_remove_api"),
+    path(
+        "cart/remove-by-menu/",
+        CartRemoveByMenuAPIView.as_view(),
+        name="cart_remove_by_menu_api",
+    ),
     # Orders
     path(
         "orders/<int:pk>/status/", OrderStatusAPIView.as_view(), name="api_order_status"
