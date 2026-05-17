@@ -14,10 +14,11 @@ SPICY_LABEL = {0: "不辣", 1: "小辣", 2: "中辣", 3: "大辣"}
 
 
 def _order_status_counts():
+    S = Order.OrderStatus
     return {
-        0: Order.objects.filter(status=0).count(),
-        1: Order.objects.filter(status=1).count(),
-        2: Order.objects.filter(status=2).count(),
+        S.PENDING: Order.objects.filter(status=S.PENDING).count(),
+        S.COMPLETED: Order.objects.filter(status=S.COMPLETED).count(),
+        S.CANCELLED: Order.objects.filter(status=S.CANCELLED).count(),
     }
 
 

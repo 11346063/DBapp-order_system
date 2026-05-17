@@ -69,7 +69,7 @@ def order_submit(request):
     order = Order.objects.create(
         user=request.user if request.user.is_authenticated else None,
         create_time=timezone.now(),
-        status=0,
+        status=Order.OrderStatus.PENDING,
         price_total=price_total,
         remark=remark,
         customer_phone=customer_phone if is_staff_order else "",

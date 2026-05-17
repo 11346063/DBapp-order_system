@@ -5,19 +5,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0012_seed_options_and_optgroup'),
+        ("web_app", "0012_seed_options_and_optgroup"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='orderitem',
-            name='menu',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='web_app.menu'),
+            model_name="orderitem",
+            name="menu",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT, to="web_app.menu"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='orderitemoptions',
-            constraint=models.CheckConstraint(condition=models.Q(models.Q(('order__isnull', False), ('order_item__isnull', True)), models.Q(('order__isnull', True), ('order_item__isnull', False)), _connector='OR'), name='orderitemoptions_exactly_one_fk'),
+            model_name="orderitemoptions",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    models.Q(("order__isnull", False), ("order_item__isnull", True)),
+                    models.Q(("order__isnull", True), ("order_item__isnull", False)),
+                    _connector="OR",
+                ),
+                name="orderitemoptions_exactly_one_fk",
+            ),
         ),
     ]

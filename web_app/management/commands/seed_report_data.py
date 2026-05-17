@@ -58,7 +58,7 @@ class Command(BaseCommand):
         for day_offset in range(days):
             order_date = now - timedelta(days=day_offset)
             for index in range(orders_per_day):
-                status = 1
+                status = Order.OrderStatus.COMPLETED
                 created_orders, created_items = self._create_order(
                     customer,
                     menus,
@@ -73,7 +73,7 @@ class Command(BaseCommand):
                     customer,
                     menus,
                     order_date + timedelta(hours=2),
-                    0,
+                    Order.OrderStatus.PENDING,
                     created_orders,
                     created_items,
                 )
@@ -83,7 +83,7 @@ class Command(BaseCommand):
                     customer,
                     menus,
                     order_date + timedelta(hours=3),
-                    2,
+                    Order.OrderStatus.CANCELLED,
                     created_orders,
                     created_items,
                 )
@@ -95,7 +95,7 @@ class Command(BaseCommand):
                     customer,
                     menus,
                     order_date + timedelta(days=index, minutes=index * 23),
-                    1,
+                    Order.OrderStatus.COMPLETED,
                     created_orders,
                     created_items,
                 )

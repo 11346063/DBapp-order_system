@@ -106,10 +106,11 @@ _status_update_responses = {
 
 
 def _order_status_counts():
+    S = Order.OrderStatus
     return {
-        0: Order.objects.filter(status=0).count(),
-        1: Order.objects.filter(status=1).count(),
-        2: Order.objects.filter(status=2).count(),
+        S.PENDING: Order.objects.filter(status=S.PENDING).count(),
+        S.COMPLETED: Order.objects.filter(status=S.COMPLETED).count(),
+        S.CANCELLED: Order.objects.filter(status=S.CANCELLED).count(),
     }
 
 

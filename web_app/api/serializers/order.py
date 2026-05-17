@@ -1,11 +1,12 @@
 from rest_framework import serializers
+from web_app.models import Order
 
 
 class OrderStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
-        choices=[0, 1, 2],
-        help_text="訂單狀態：0=待處理、1=備餐中、2=完成",
-        default=1,
+        choices=Order.OrderStatus.choices,
+        help_text="訂單狀態：0=等待中、1=已完成、2=已取消",
+        default=Order.OrderStatus.COMPLETED,
     )
 
 
