@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("web_app", "0015_menu_options_m2m"),
     ]
@@ -12,10 +11,14 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name="menu",
-            constraint=models.CheckConstraint(condition=models.Q(("price__gte", 0)), name="menu_price_non_negative"),
+            constraint=models.CheckConstraint(
+                condition=models.Q(("price__gte", 0)), name="menu_price_non_negative"
+            ),
         ),
         migrations.AddConstraint(
             model_name="options",
-            constraint=models.CheckConstraint(condition=models.Q(("price__gte", 0)), name="options_price_non_negative"),
+            constraint=models.CheckConstraint(
+                condition=models.Q(("price__gte", 0)), name="options_price_non_negative"
+            ),
         ),
     ]
