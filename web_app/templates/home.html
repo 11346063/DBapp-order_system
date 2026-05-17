@@ -31,7 +31,6 @@
 {% trans "目前沒有餐點" as empty_menu_message %}
 {% include 'includes/components/empty_state.html' with icon='bi-inbox' message=empty_menu_message %}
 {% endif %}
-{% include 'includes/components/pagination.html' with page_obj=page_obj search_query=search_query %}
 {% endblock %}
 
 {% block modals %}

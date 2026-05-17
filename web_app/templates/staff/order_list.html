@@ -20,4 +20,5 @@
 </div>
 
 {% include 'includes/staff/order_status_confirm_modal.html' %}
+{% include 'includes/staff/order_pagination.html' with page_obj=page_obj current_status=current_status %}
 {% endblock %}

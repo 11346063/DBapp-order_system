@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db.models import Count, Sum
@@ -11,6 +12,7 @@ from web_app.models import Identity, Order, OrderItem, OrderItemOptions, User
 from web_app.decorators import employee_required, admin_required
 
 SPICY_LABEL = {0: "不辣", 1: "小辣", 2: "中辣", 3: "大辣"}
+ORDER_PAGE_SIZE = 10
 
 
 def _order_status_counts():
@@ -36,8 +38,12 @@ def staff_order_list(request):
         .order_by("-create_time")
     )
 
+    paginator = Paginator(orders, ORDER_PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    paged_orders = list(page_obj.object_list)
+
     # 附加品項（含 item-level 選項）與 order-level 選項
-    for order in orders:
+    for order in paged_orders:
         order.items = (
             OrderItem.objects.filter(order=order)
             .select_related("menu")
@@ -54,7 +60,8 @@ def staff_order_list(request):
         request,
         "staff/order_list.html",
         {
-            "orders": orders,
+            "orders": paged_orders,
+            "page_obj": page_obj,
             "current_status": status_val,
             "status_counts": status_counts,
         },

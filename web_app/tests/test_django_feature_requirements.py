@@ -79,12 +79,14 @@ class MenuSearchPaginationTest(TestCase):
         self.assertNotContains(response, "招牌炸雞 00")
         self.assertEqual(response.context["search_query"], "鬆餅")
 
-    def test_home_paginates_menu_items(self):
+    def test_home_shows_all_menu_items_without_pagination(self):
         response = self.client.get(reverse("web_app:home"))
 
-        self.assertEqual(response.context["paginator"].per_page, 12)
-        self.assertTrue(response.context["page_obj"].has_next())
-        self.assertContains(response, "下一頁")
+        self.assertNotIn("paginator", response.context)
+        self.assertNotIn("page_obj", response.context)
+        self.assertContains(response, "招牌炸雞 00")
+        self.assertContains(response, "蜂蜜鬆餅")
+        self.assertNotContains(response, "下一頁")
 
     def test_assisted_ordering_search_filters_menu_items(self):
         self.client.login(username="employee1", password="pass")
@@ -95,14 +97,61 @@ class MenuSearchPaginationTest(TestCase):
         self.assertNotContains(response, "招牌炸雞 00")
         self.assertEqual(response.context["search_query"], "鬆餅")
 
-    def test_assisted_ordering_paginates_menu_items(self):
+    def test_assisted_ordering_shows_all_menu_items_without_pagination(self):
         self.client.login(username="employee1", password="pass")
 
         response = self.client.get(reverse("web_app:assisted_ordering"))
 
-        self.assertEqual(response.context["paginator"].per_page, 12)
+        self.assertNotIn("paginator", response.context)
+        self.assertNotIn("page_obj", response.context)
+        self.assertContains(response, "招牌炸雞 00")
+        self.assertContains(response, "蜂蜜鬆餅")
+        self.assertNotContains(response, "下一頁")
+
+
+class StaffOrderListPaginationTest(TestCase):
+    def setUp(self):
+        self.employee = User.objects.create_user(
+            account="order_page_employee",
+            password="pass",
+            name="分頁員工",
+            identity=Identity.EMPLOYEE,
+        )
+        for i in range(11):
+            Order.objects.create(
+                create_time=timezone.now(),
+                status=0,
+                price_total=100 + i,
+            )
+
+    def test_staff_order_list_paginates(self):
+        self.client.login(username="order_page_employee", password="pass")
+
+        response = self.client.get(reverse("web_app:staff_orders"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("page_obj", response.context)
+        self.assertEqual(len(response.context["orders"]), 10)
         self.assertTrue(response.context["page_obj"].has_next())
         self.assertContains(response, "下一頁")
+
+    def test_staff_order_list_second_page_has_remaining_order(self):
+        self.client.login(username="order_page_employee", password="pass")
+
+        response = self.client.get(
+            reverse("web_app:staff_orders"), {"status": "0", "page": "2"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["orders"]), 1)
+        self.assertFalse(response.context["page_obj"].has_next())
+
+    def test_staff_order_list_pagination_preserves_status_filter(self):
+        self.client.login(username="order_page_employee", password="pass")
+
+        response = self.client.get(reverse("web_app:staff_orders"))
+
+        self.assertContains(response, "status=0&amp;page=2")
 
 
 class OrderSignalTest(TestCase):
