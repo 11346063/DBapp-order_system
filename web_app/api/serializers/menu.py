@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 
-from web_app.models import Menu, OptGroup
+from web_app.models import Menu
 
 
 class MenuSerializer(serializers.ModelSerializer):
@@ -69,7 +69,7 @@ class MenuDetailSerializer(MenuSerializer):
         )
     )
     def get_options(self, obj):
-        opt_groups = OptGroup.objects.filter(menu=obj).select_related("opt")
+        opt_groups = obj.opt_groups.select_related("opt")
         return [
             {"id": og.opt.id, "name": og.opt.name, "price": og.opt.price}
             for og in opt_groups
