@@ -83,6 +83,16 @@
 - [ ] 購物車 DB model 化（Cart model）：目前購物車存 Django session，JWT 客戶端（React/App）需同時帶 session cookie；若未來接純 JWT 前端，需將 cart 改為 DB model（Phase 10 預留）
 
 ### Next Session Goals / Handoff Notes
+- **本 session (2026-05-17) 完成並入庫**：
+  - Commit `bc57eac`：Phase 9 結帳辣度/加料/代客切法 + migration 0010（首次入庫）
+  - Commit `79eb3cf`：Phase 10 OrderItemOptions 結構化重構（切法/辣度/加蒜改存 DB）
+  - Commit `2a9d37f`：formatter 重排 migrations 0011/0012 與 views
+- **目前靜態檔版本**：`detail.js?v=11`、`payment.js?v=2`、`payment.css?v=10`、`detail.css?v=11`、`staff.js?v=4`、`cart.css?v=2`
+- **OrderItemOptions 架構**：切法 per-item（`order_item_id → OrderItem`），辣度/加蒜/九層塔 per-order（`order_id → Order`）；舊訂單 fallback 讀 `order.remark`
+- **下次接續注意**：瀏覽器需清快取才能生效最新 detail.js；`media/`、個人截圖（S__*.jpg）未入庫，不需 commit
+- **未 commit 的設定檔**：`.claude/`、`.codex/`、`CLAUDE.md`、`docs/` 規劃文件尚未入庫，視需求自行決定是否提交
+
+
 - Phase 6 已完成：註冊流程的 email 仍維持選填以相容既有資料；忘記密碼只會寄給已綁定 email 且 `status=True`、可用密碼的帳號，未知 email 仍導向同一完成頁避免洩漏帳號存在與否。
 - Phase 6 SMTP 注意：若使用 Gmail，`EMAIL_HOST_PASSWORD` 必須填 Google 帳號的 App Password；未填時 Django 會嘗試 SMTP 發信但會被 Gmail 拒絕。
 - Google 登入後續若恢復：需先確認是否接受新增 `django-allauth` 或其他 OAuth dependency，並準備 Google OAuth Client ID / Secret 與 callback URL。
@@ -92,7 +102,7 @@
 - Phase 5 本輪新增/修改包含：`web_app/management/__init__.py`、`web_app/management/commands/__init__.py`、`web_app/management/commands/seed_report_data.py`、`web_app/tests/test_seed_report_data.py`、`README.md`、`docs/progress.md`。
 - Phase 5 follow-up 本輪新增/修改包含：`web_app/forms/register_form.py`、`web_app/views/home.py`、`web_app/views/menu_manage.py`、`web_app/views/staff.py`、`web_app/urls.py`、`web_app/templates/home.html`、`web_app/templates/item_detail_modal.html`、`web_app/templates/includes/navbar.html`、`web_app/templates/includes/bottom_nav.html`、`web_app/templates/staff/base_staff.html`、`web_app/templates/staff/account_management.html`、`web_app/static/css/staff.css`、`web_app/tests/test_account_management.py`、`web_app/tests/test_home_view.py`、`web_app/tests/test_menu_create.py`、`web_app/tests/test_menu_edit.py`、`web_app/tests/test_navigation_messages.py`。
 - 本 session 後續 UI 修正包含：`web_app/static/js/staff.js`、`web_app/templates/staff/order_list.html`、`web_app/templates/staff/base_staff.html`、`web_app/static/css/staff.css`、`web_app/static/css/cart.css`、`web_app/templates/cart.html`、`web_app/static/css/payment.css`、`web_app/templates/payment.html`、`web_app/tests/test_staff_navigation.py`、`web_app/tests/test_cart_feedback.py`、`web_app/tests/test_payment_guest.py`、`web_app/tests/test_navigation_messages.py`。
-- 下次接續注意：前端靜態檔多次因瀏覽器快取未即時反映而需要升版 query string；目前 `staff.js` 為 `?v=4`、`cart.css` 為 `?v=2`、`payment.css` 為 `?v=8`。
+- ~~下次接續注意：前端靜態檔多次因瀏覽器快取未即時反映而需要升版 query string；目前 `staff.js` 為 `?v=4`、`cart.css` 為 `?v=2`、`payment.css` 為 `?v=8`。~~（已過時，見上方最新版本）
 - 本 session HTML 元件化新增/修改包含：`web_app/templates/includes/components/form_field.html`、`cart_item.html`、`cart_total_footer.html`、`payment_order_summary.html`、`customer_info_card.html`、`guest_login_prompt.html`、`payment_submit_card.html`、`order_history_card.html`、`item_detail_media.html`、`quantity_controls.html`、`item_customer_actions.html`、`item_staff_actions.html`、`web_app/templates/includes/staff/status_nav_link.html`、`admin_nav_link.html`、`order_card.html`、`account_filter_group.html`、`account_table_row.html`、`order_status_confirm_modal.html`、`report_chart_card.html`，並更新對應頁面引用。
 - Staff-assisted phone ordering 本輪新增/修改包含：`web_app/models/order.py`、`web_app/migrations/0009_order_customer_phone.py`、`web_app/views/cart.py`、`web_app/views/payment.py`、`web_app/templates/includes/navbar.html`、`web_app/templates/includes/bottom_nav.html`、`web_app/templates/item_detail_modal.html`、`web_app/templates/payment.html`、`web_app/templates/includes/components/customer_info_card.html`、`web_app/templates/includes/components/payment_submit_card.html`、`web_app/templates/includes/staff/order_card.html`、`web_app/static/js/detail.js`、`web_app/tests/test_cart_feedback.py`、`web_app/tests/test_payment_guest.py`、`web_app/tests/test_staff_navigation.py`、`web_app/tests/test_navigation_messages.py`。
 - Staff-assisted ordering separation 本輪新增/修改包含：`web_app/views/home.py`、`web_app/urls.py`、`web_app/views/cart.py`、`web_app/templates/cart.html`、`web_app/templates/home.html`、`web_app/templates/item_detail_modal.html`、`web_app/templates/includes/navbar.html`、`web_app/templates/includes/bottom_nav.html`、`web_app/tests/test_home_view.py`、`web_app/tests/test_cart_feedback.py`、`web_app/tests/test_navigation_messages.py`。
