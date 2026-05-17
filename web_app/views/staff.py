@@ -37,9 +37,11 @@ def staff_order_list(request):
 
     # 附加品項（含 item-level 選項）與 order-level 選項
     for order in orders:
-        order.items = OrderItem.objects.filter(order=order).select_related(
-            "menu"
-        ).prefetch_related("orderitemoptions_set__opt")
+        order.items = (
+            OrderItem.objects.filter(order=order)
+            .select_related("menu")
+            .prefetch_related("orderitemoptions_set__opt")
+        )
         raw_opts = OrderItemOptions.objects.filter(
             order=order, order_item=None
         ).select_related("opt")

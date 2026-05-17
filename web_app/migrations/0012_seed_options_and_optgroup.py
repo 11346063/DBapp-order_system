@@ -17,7 +17,9 @@ def seed_options_and_optgroup(apps, schema_editor):
     Menu = apps.get_model("web_app", "Menu")
 
     for opt_data in SEED_OPTIONS:
-        Options.objects.get_or_create(name=opt_data["name"], defaults={"price": opt_data["price"]})
+        Options.objects.get_or_create(
+            name=opt_data["name"], defaults={"price": opt_data["price"]}
+        )
 
     cut_opt = Options.objects.filter(name="切").first()
     if cut_opt:
@@ -39,7 +41,6 @@ def remove_seeded_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("web_app", "0011_orderitemoptions_refactor_orderitem_notes_remove"),
     ]

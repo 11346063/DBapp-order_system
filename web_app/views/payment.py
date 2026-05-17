@@ -109,11 +109,17 @@ def order_submit(request):
 
     # 寫入 order-level 選項（辣度、加蒜、九層塔）
     if "辣度" in opts:
-        OrderItemOptions.objects.create(order=order, opt=opts["辣度"], level=spicy_level)
+        OrderItemOptions.objects.create(
+            order=order, opt=opts["辣度"], level=spicy_level
+        )
     if extra_garlic_qty > 0 and "加蒜" in opts:
-        OrderItemOptions.objects.create(order=order, opt=opts["加蒜"], level=extra_garlic_qty)
+        OrderItemOptions.objects.create(
+            order=order, opt=opts["加蒜"], level=extra_garlic_qty
+        )
     if extra_basil_qty > 0 and "九層塔" in opts:
-        OrderItemOptions.objects.create(order=order, opt=opts["九層塔"], level=extra_basil_qty)
+        OrderItemOptions.objects.create(
+            order=order, opt=opts["九層塔"], level=extra_basil_qty
+        )
 
     request.session["cart"] = []
     messages.success(request, _("訂單 #{pk} 已成功送出！").format(pk=order.pk))

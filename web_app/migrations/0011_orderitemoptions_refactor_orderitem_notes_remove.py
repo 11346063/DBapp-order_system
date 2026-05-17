@@ -5,28 +5,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0010_orderitem_notes'),
+        ("web_app", "0010_orderitem_notes"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='orderitemoptions',
+            name="orderitemoptions",
             unique_together=set(),
         ),
         migrations.RemoveField(
-            model_name='orderitem',
-            name='notes',
+            model_name="orderitem",
+            name="notes",
         ),
         migrations.AddField(
-            model_name='orderitemoptions',
-            name='order_item',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='web_app.orderitem'),
+            model_name="orderitemoptions",
+            name="order_item",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="web_app.orderitem",
+            ),
         ),
         migrations.AlterField(
-            model_name='orderitemoptions',
-            name='order',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='web_app.order'),
+            model_name="orderitemoptions",
+            name="order",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="web_app.order",
+            ),
         ),
     ]

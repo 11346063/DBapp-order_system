@@ -63,7 +63,8 @@
     cursor: pointer;
 }
 
-.option-check input[type="checkbox"] {
+.option-check input[type="checkbox"],
+.option-check input[type="radio"] {
     accent-color: var(--primary-yellow);
     width: 18px;
     height: 18px;
