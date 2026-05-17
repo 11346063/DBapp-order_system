@@ -10,3 +10,11 @@ class Menu(models.Model):
     file_path = models.ImageField(upload_to="image/", blank=True, null=True)
     status = models.BooleanField(default=True)
     options = models.ManyToManyField("Options", through="OptGroup")
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(price__gte=0),
+                name="menu_price_non_negative",
+            )
+        ]
