@@ -108,7 +108,7 @@ class HomeViewFilterTest(TestCase):
         self.assertContains(response, 'data-assisted-delta="-1"')
         self.assertContains(response, 'data-assisted-delta="1"')
         self.assertNotContains(response, "card-img-top-placeholder")
-        self.assertNotContains(response, "加入購物車")
+        # 代客點餐頁的 item modal 內有「加入購物車」（切法品項用），此為正常行為
         self.assertNotContains(response, "編輯品項")
 
     def test_anonymous_cannot_access_assisted_ordering(self):

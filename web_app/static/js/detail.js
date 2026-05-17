@@ -54,19 +54,36 @@ function fillDetail(data) {
         if (qtyEl) qtyEl.textContent = '1';
 
         if (optEl) {
-            if (data.options && data.options.length > 0) {
-                optEl.innerHTML = data.options.map(opt => `
+            // 將「切」從一般 checkbox 選項中篩除，單獨作為切法 radio
+            const regularOpts = (data.options || []).filter(o => o.name !== '切');
+            const cutOpt = (data.options || []).find(o => o.name === '切');
+
+            let html = '';
+            if (regularOpts.length > 0) {
+                html += regularOpts.map(opt => `
                     <label class="option-check">
                         <input type="checkbox" value="${opt.id}" data-price="${opt.price}">
                         <span>${opt.name}</span>
                         <span class="option-price">+$${opt.price}</span>
                     </label>
                 `).join('');
-                optEl.style.display = '';
-            } else {
-                optEl.innerHTML = '';
-                optEl.style.display = 'none';
             }
+            if (cutOpt) {
+                html += `
+                    <div class="text-secondary small mt-2 mb-1">切法 <span class="text-danger">*</span></div>
+                    <label class="option-check">
+                        <input type="radio" name="${prefix}CutOption" value="0" data-price="0" data-opt-id="${cutOpt.id}">
+                        <span>不切</span>
+                    </label>
+                    <label class="option-check">
+                        <input type="radio" name="${prefix}CutOption" value="1" data-price="0" data-opt-id="${cutOpt.id}">
+                        <span>切</span>
+                    </label>
+                    <div class="text-danger small mt-1 d-none" id="${prefix}CutError">請選擇切法</div>
+                `;
+            }
+            optEl.innerHTML = html;
+            optEl.style.display = html.trim() ? '' : 'none';
         }
 
         if (statusBadge) {
@@ -175,15 +192,40 @@ function getSelectedOptions() {
     if (!container) return [];
 
     const checked = container.querySelectorAll('input[type="checkbox"]:checked');
-    return Array.from(checked).map(cb => ({
+    const options = Array.from(checked).map(cb => ({
         id: parseInt(cb.value),
         name: cb.parentElement.querySelector('span').textContent,
         price: parseInt(cb.dataset.price),
     }));
+
+    const cutRadio = container.querySelector('input[type="radio"][name$="CutOption"]:checked');
+    if (cutRadio) {
+        options.push({
+            id: parseInt(cutRadio.dataset.optId),
+            name: cutRadio.value === '1' ? '切' : '不切',
+            price: 0,
+            level: parseInt(cutRadio.value),
+        });
+    }
+
+    return options;
 }
 
 function addToCart() {
     if (!currentItem) return;
+
+    const hasCutOpt = (currentItem.options || []).some(o => o.name === '切');
+    if (hasCutOpt) {
+        const prefix = window.innerWidth < 768 ? 'offcanvas' : 'modal';
+        const container = document.getElementById(`${prefix}Options`);
+        const cutRadio = container ? container.querySelector('input[type="radio"][name$="CutOption"]:checked') : null;
+        const errorEl = document.getElementById(`${prefix}CutError`);
+        if (!cutRadio) {
+            if (errorEl) errorEl.classList.remove('d-none');
+            return;
+        }
+        if (errorEl) errorEl.classList.add('d-none');
+    }
 
     const selectedOptions = getSelectedOptions();
 
@@ -196,6 +238,14 @@ function addToCart() {
     }).then(data => {
         if (data.status === 'success') {
             updateCartBadge(data.data.cart_count);
+            // 代客點餐頁：同步卡片上的數量顯示
+            const assistedControl = document.querySelector(
+                `.assisted-qty-controls[data-menu-id="${currentItem.id}"]`
+            );
+            if (assistedControl) {
+                const qtyEl = assistedControl.querySelector('[data-assisted-qty]');
+                if (qtyEl) qtyEl.textContent = parseInt(qtyEl.textContent || '0') + currentQty;
+            }
             closeItemDetail();
             showCartFeedback(data.data);
         }
@@ -221,12 +271,38 @@ function adjustAssistedCart(control, delta) {
     }).catch(() => {});
 }
 
+function removeLastAssistedItem(control) {
+    const qtyEl = control.querySelector('[data-assisted-qty]');
+    const menuId = parseInt(control.dataset.menuId, 10);
+
+    postJSON('/api/cart/remove-by-menu/', { menu_id: menuId })
+        .then(data => {
+            if (data.status === 'success') {
+                if (qtyEl) qtyEl.textContent = data.data.item_quantity;
+                updateCartBadge(data.data.cart_count);
+                showCartFeedback(data.data);
+            }
+        }).catch(() => {});
+}
+
+const CUT_REQUIRED = ['炸雞排', '碳烤香雞排', '烤雞排'];
+
 document.addEventListener('click', function (event) {
     const assistedButton = event.target.closest('[data-assisted-delta]');
     if (assistedButton) {
         const control = assistedButton.closest('.assisted-qty-controls');
         if (control) {
-            adjustAssistedCart(control, parseInt(assistedButton.dataset.assistedDelta, 10));
+            const delta = parseInt(assistedButton.dataset.assistedDelta, 10);
+            const menuName = control.dataset.menuName;
+            if (CUT_REQUIRED.includes(menuName)) {
+                if (delta > 0) {
+                    openItemDetail(parseInt(control.dataset.menuId, 10));
+                } else {
+                    removeLastAssistedItem(control);
+                }
+            } else {
+                adjustAssistedCart(control, delta);
+            }
         }
         return;
     }

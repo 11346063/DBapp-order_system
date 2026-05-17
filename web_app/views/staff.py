@@ -7,8 +7,10 @@ from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
-from web_app.models import Identity, Order, OrderItem, User
+from web_app.models import Identity, Order, OrderItem, OrderItemOptions, User
 from web_app.decorators import employee_required, admin_required
+
+SPICY_LABEL = {0: "不辣", 1: "小辣", 2: "中辣", 3: "大辣"}
 
 
 def _order_status_counts():
@@ -33,9 +35,15 @@ def staff_order_list(request):
         .order_by("-create_time")
     )
 
-    # 附加每筆訂單的品項
+    # 附加品項（含 item-level 選項）與 order-level 選項
     for order in orders:
-        order.items = OrderItem.objects.filter(order=order).select_related("menu")
+        order.items = OrderItem.objects.filter(order=order).select_related(
+            "menu"
+        ).prefetch_related("orderitemoptions_set__opt")
+        raw_opts = OrderItemOptions.objects.filter(
+            order=order, order_item=None
+        ).select_related("opt")
+        order.order_opts = _format_order_opts(raw_opts)
 
     status_counts = _order_status_counts()
 
@@ -48,6 +56,20 @@ def staff_order_list(request):
             "status_counts": status_counts,
         },
     )
+
+
+def _format_order_opts(raw_opts):
+    parts = []
+    for o in raw_opts:
+        name = o.opt.name
+        level = o.level
+        if name == "辣度":
+            parts.append(SPICY_LABEL.get(level, f"辣度{level}"))
+        elif name == "加蒜":
+            parts.append(f"加蒜頭x{level}")
+        elif name == "九層塔":
+            parts.append(f"加九層塔x{level}")
+    return "｜".join(parts)
 
 
 @admin_required
