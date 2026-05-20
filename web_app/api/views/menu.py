@@ -1,4 +1,3 @@
-from django.core.exceptions import ValidationError
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -13,7 +12,8 @@ from rest_framework.views import APIView
 from web_app.api.permissions import IsAdmin, IsEmployee
 from web_app.api.serializers.menu import MenuDetailSerializer, MenuSerializer
 from web_app.api.utils import api_error, api_success
-from web_app.models import Menu, Type
+from web_app.services import menu as menu_service
+from web_app.services.exceptions import NotFoundError, ValidationServiceError
 
 # ---------- 共用 inline schema ----------
 
@@ -57,15 +57,6 @@ _MenuToggleSuccessResponse = inline_serializer(
         ),
     },
 )
-
-
-def _validate_uploaded_image(uploaded_file):
-    if not uploaded_file:
-        return None
-    content_type = getattr(uploaded_file, "content_type", "")
-    if not content_type.startswith("image/"):
-        raise ValidationError("圖片格式不正確")
-    return uploaded_file
 
 
 class MenuDetailAPIView(APIView):
@@ -118,9 +109,9 @@ class MenuDetailAPIView(APIView):
     )
     def get(self, request, pk):
         try:
-            menu = Menu.objects.select_related("type").get(pk=pk)
-        except Menu.DoesNotExist:
-            return api_error("找不到此餐點", status=404)
+            menu = menu_service.get_menu_detail(pk)
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
         return api_success(MenuDetailSerializer(menu).data)
 
 
@@ -173,12 +164,10 @@ class MenuToggleAPIView(APIView):
     )
     def post(self, request, pk):
         try:
-            menu = Menu.objects.get(pk=pk)
-        except Menu.DoesNotExist:
-            return api_error("找不到此商品", status=404)
-        menu.status = not menu.status
-        menu.save(update_fields=["status"])
-        return api_success({"status": menu.status, "name": menu.name})
+            result = menu_service.toggle_menu_status(pk)
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
+        return api_success(result)
 
 
 _MenuEditRequest = inline_serializer(
@@ -301,44 +290,15 @@ class MenuUpdateAPIView(APIView):
     )
     def patch(self, request, pk):
         try:
-            menu = Menu.objects.select_related("type").get(pk=pk)
-        except Menu.DoesNotExist:
-            return api_error("找不到此商品", status=404)
-
-        name = request.data.get("name", "").strip()
-        price = request.data.get("price")
-        if not name or price is None:
-            return api_error("名稱與價格為必填")
-
-        try:
-            price = int(price)
-        except (ValueError, TypeError):
-            return api_error("價格必須為整數")
-
-        if price < 0:
-            return api_error("價格不能為負數")
-
-        type_id = request.data.get("type_id")
-        if type_id:
-            try:
-                menu.type = Type.objects.get(pk=type_id)
-            except Type.DoesNotExist:
-                return api_error("找不到此分類")
-
-        try:
-            uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
-        except ValidationError as exc:
-            return api_error(exc.message)
-
-        menu.name = name
-        menu.price = price
-        menu.info = request.data.get("info", "") or ""
-        menu.remark = request.data.get("remark", "") or ""
-        update_fields = ["name", "price", "info", "remark", "type"]
-        if uploaded_image:
-            menu.file_path = uploaded_image
-            update_fields.append("file_path")
-        menu.save(update_fields=update_fields)
+            menu = menu_service.update_menu_item(
+                pk,
+                request.data,
+                request.FILES.get("file_path"),
+            )
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
+        except ValidationServiceError as exc:
+            return api_error(exc.message, status=exc.status_code)
 
         return api_success(MenuSerializer(menu).data)
 
@@ -422,42 +382,12 @@ class MenuCreateAPIView(APIView):
         },
     )
     def post(self, request):
-        name = request.data.get("name", "").strip()
-        price = request.data.get("price")
-        type_id = request.data.get("type_id")
-
-        if not name or price is None or not type_id:
-            return api_error("名稱、價格、分類為必填")
-
         try:
-            price = int(price)
-        except (ValueError, TypeError):
-            return api_error("價格必須為整數")
-
-        if price < 0:
-            return api_error("價格不能為負數")
-
-        try:
-            menu_type = Type.objects.get(pk=type_id)
-        except Type.DoesNotExist:
-            return api_error("找不到此分類")
-
-        if Menu.objects.filter(name=name).exists():
-            return api_error("品項名稱已存在")
-
-        try:
-            uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
-        except ValidationError as exc:
-            return api_error(exc.message)
-
-        menu = Menu.objects.create(
-            name=name,
-            price=price,
-            type=menu_type,
-            info=request.data.get("info", "") or "",
-            remark=request.data.get("remark", "") or "",
-            file_path=uploaded_image,
-            status=True,
-        )
+            menu = menu_service.create_menu_item(
+                request.data,
+                request.FILES.get("file_path"),
+            )
+        except ValidationServiceError as exc:
+            return api_error(exc.message, status=exc.status_code)
 
         return api_success(MenuSerializer(menu).data, status=201)

@@ -68,3 +68,94 @@ ViewReport --> ViewYearlyReport : <<extend>>
 
 
 @enduml
+
+@startuml use_case_v2
+
+title "<color #1A6><size 15>點餐系統 Ordering System</size></color>\n<color #16A><size 18>Use Case Diagram 用例圖</size></color>\n<color grey>v2.0.0 @2026-05-18</color>\n"
+
+left to right direction
+
+actor Customer as "  顧客\nCustomer" #BFB
+actor Staff as "  員工\nStaff" #9EF
+actor Admin as "  管理員\nAdmin" #FBD
+
+rectangle "顧客功能" {
+  usecase BrowseMenu as "瀏覽菜單\nBrowse Menu" #FEE
+  usecase SearchItem as "搜尋品項\nSearch Item" #FEE
+  usecase AddToCart as "加入購物車\nAdd to Cart" #CFE
+  usecase SelectItemOptions as "選擇品項選項\nSelect Item Options" #CFE
+  usecase EditCart as "修改購物車\nEdit Cart" #CFE
+  usecase PlaceOrder as "送出訂單\nPlace Order" #8FE
+  usecase AddRemark as "新增備註\nAdd Remark" #CFE
+  usecase SelectSpiceLevel as "選擇辣度\nSelect Spice Level" #CFE
+  usecase AddExtraToppings as "加料\nAdd Extra Toppings" #CFE
+  usecase CheckOrderStatus as "查詢訂單狀態\nCheck Order Status" #FEE
+  usecase CheckOrderHistory as "查看訂單歷史\nCheck Order History" #FEE
+  usecase ForgotPassword as "忘記密碼\nForgot Password" #FEE
+}
+
+rectangle "員工後台功能" {
+  usecase ViewNewOrder as "查看新訂單\nView New Order" #DFD
+  usecase UpdateOrderStatus as "更新訂單狀態\nUpdate Order Status" #DFD
+  usecase ViewAllOrders as "查看所有訂單\nView All Orders" #DFD
+  usecase ToggleItemStatus as "上下架品項\nToggle Item Status" #DFD
+  usecase AssistedOrdering as "代客點餐\nAssisted Ordering" #DFD
+  usecase EnterCustomerPhone as "填寫客人電話\nEnter Customer Phone" #DFD
+}
+
+rectangle "管理員功能" {
+  usecase ManageMenu as "菜單管理\nManage Menu" #EDF
+  usecase AddItem as "新增品項\nAdd Item" #FFB
+  usecase EditItem as "編輯品項\nEdit Item" #FFB
+  usecase DisableItem as "下架品項\nDisable Item" #FFB
+  usecase UploadItemImage as "上傳品項圖片\nUpload Item Image" #FFB
+  usecase ManageCategory as "管理分類\nManage Category" #FFB
+  usecase ManageAccounts as "帳號管理\nAccount Management" #EDF
+  usecase ViewReport as "查看銷售報表\nView Report" #EDF
+  usecase ViewDailyReport as "日報表\nDaily Report" #FFB
+  usecase ViewMonthlyReport as "月報表\nMonthly Report" #FFB
+  usecase ViewYearlyReport as "年報表\nYearly Report" #FFB
+}
+
+Customer --> BrowseMenu
+Customer --> SearchItem
+Customer --> AddToCart
+Customer --> EditCart
+Customer --> PlaceOrder
+Customer --> CheckOrderStatus
+Customer --> CheckOrderHistory
+Customer --> ForgotPassword
+
+Staff --> ViewNewOrder
+Staff --> UpdateOrderStatus
+Staff --> ViewAllOrders
+Staff --> ToggleItemStatus
+Staff --> AssistedOrdering
+
+Admin --> ManageMenu
+Admin --> ManageAccounts
+Admin --> ViewReport
+
+AddToCart --> SelectItemOptions : <<extend>>
+AddToCart --> EditCart : <<extend>>
+PlaceOrder --> AddRemark : <<extend>>
+PlaceOrder --> SelectSpiceLevel : <<include>>
+PlaceOrder --> AddExtraToppings : <<extend>>
+PlaceOrder --> AddToCart : <<include>>
+
+AssistedOrdering --> EnterCustomerPhone : <<include>>
+AssistedOrdering --> AddToCart : <<include>>
+AssistedOrdering --> PlaceOrder : <<include>>
+
+ManageMenu --> AddItem : <<extend>>
+ManageMenu --> EditItem : <<extend>>
+ManageMenu --> DisableItem : <<extend>>
+ManageMenu --> ManageCategory : <<extend>>
+AddItem --> UploadItemImage : <<extend>>
+EditItem --> UploadItemImage : <<extend>>
+
+ViewReport --> ViewDailyReport : <<extend>>
+ViewReport --> ViewMonthlyReport : <<extend>>
+ViewReport --> ViewYearlyReport : <<extend>>
+
+@enduml

@@ -10,18 +10,9 @@ from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
 from web_app.models import Identity, Order, OrderItem, OrderItemOptions, User
 from web_app.decorators import employee_required, admin_required
+from web_app.services import order as order_service
 
-SPICY_LABEL = {0: "不辣", 1: "小辣", 2: "中辣", 3: "大辣"}
 ORDER_PAGE_SIZE = 10
-
-
-def _order_status_counts():
-    S = Order.OrderStatus
-    return {
-        S.PENDING: Order.objects.filter(status=S.PENDING).count(),
-        S.COMPLETED: Order.objects.filter(status=S.COMPLETED).count(),
-        S.CANCELLED: Order.objects.filter(status=S.CANCELLED).count(),
-    }
 
 
 @employee_required
@@ -52,9 +43,9 @@ def staff_order_list(request):
         raw_opts = OrderItemOptions.objects.filter(
             order=order, order_item=None
         ).select_related("opt")
-        order.order_opts = _format_order_opts(raw_opts)
+        order.order_opts = order_service.format_order_options(raw_opts)
 
-    status_counts = _order_status_counts()
+    status_counts = order_service.order_status_counts()
 
     return render(
         request,
@@ -66,20 +57,6 @@ def staff_order_list(request):
             "status_counts": status_counts,
         },
     )
-
-
-def _format_order_opts(raw_opts):
-    parts = []
-    for o in raw_opts:
-        name = o.opt.name
-        level = o.level
-        if name == "辣度":
-            parts.append(SPICY_LABEL.get(level, f"辣度{level}"))
-        elif name == "加蒜":
-            parts.append(f"加蒜頭x{level}")
-        elif name == "九層塔":
-            parts.append(f"加九層塔x{level}")
-    return "｜".join(parts)
 
 
 @admin_required
@@ -118,7 +95,7 @@ def staff_report(request):
         "revenues": [m["revenue"] or 0 for m in monthly],
     }
 
-    status_counts = _order_status_counts()
+    status_counts = order_service.order_status_counts()
 
     return render(
         request,
@@ -151,7 +128,7 @@ def account_management(request):
             messages.success(request, _("帳號建立成功"))
             return redirect("web_app:account_management")
 
-    status_counts = _order_status_counts()
+    status_counts = order_service.order_status_counts()
     identity_counts = {
         "all": User.objects.count(),
         Identity.ADMIN: User.objects.filter(identity=Identity.ADMIN).count(),

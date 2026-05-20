@@ -24,3 +24,7 @@ class PermissionBusinessError(ServiceError):
 
 class EmptyCartError(ServiceError):
     pass
+
+
+class StaffCustomerPhoneRequired(ServiceError):
+    pass

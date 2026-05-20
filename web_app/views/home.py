@@ -1,20 +1,9 @@
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
-from web_app.models import Menu, Type, Identity
-
-
-def _search_menus(queryset, query):
-    if not query:
-        return queryset
-    return queryset.filter(
-        Q(name__icontains=query)
-        | Q(info__icontains=query)
-        | Q(remark__icontains=query)
-        | Q(type__type_name__icontains=query)
-    )
+from web_app.models import Type, Identity
+from web_app.services import menu as menu_service
 
 
 @ensure_csrf_cookie
@@ -27,11 +16,7 @@ def home_view(request):
         Identity.EMPLOYEE,
     )
     can_manage_menu = user.is_authenticated and user.identity == Identity.ADMIN
-    if is_staff:
-        menus = Menu.objects.select_related("type").all()
-    else:
-        menus = Menu.objects.select_related("type").filter(status=True)
-    menus = _search_menus(menus, search_query).order_by("type__type_name", "name")
+    menus = menu_service.visible_menus_for_user(user, search_query)
 
     page_urls = {
         "menuToggle": reverse("web_app:menu_toggle", kwargs={"pk": 0}).replace(
@@ -69,8 +54,7 @@ def assisted_ordering_view(request):
 
     types = Type.objects.all()
     search_query = request.GET.get("q", "").strip()
-    menus = Menu.objects.select_related("type").filter(status=True)
-    menus = _search_menus(menus, search_query).order_by("type__type_name", "name")
+    menus = menu_service.assisted_ordering_menus(search_query)
 
     return render(
         request,

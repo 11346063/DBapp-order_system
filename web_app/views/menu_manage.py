@@ -2,8 +2,9 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import redirect
-from django.core.exceptions import ValidationError
-from web_app.models import Menu, Type, Identity
+from web_app.models import Identity
+from web_app.services import menu as menu_service
+from web_app.services.exceptions import NotFoundError, ValidationServiceError
 
 _DUMPS = {"ensure_ascii": False}
 
@@ -11,26 +12,6 @@ _DUMPS = {"ensure_ascii": False}
 def _json(data, status=200):
     """統一回傳 UTF-8 JSON（中文不轉義）"""
     return JsonResponse(data, status=status, json_dumps_params=_DUMPS)
-
-
-def _menu_image_url(menu):
-    if not menu.file_path:
-        return ""
-    return menu.file_path.url
-
-
-def _menu_payload(menu):
-    return {
-        "id": menu.pk,
-        "name": menu.name,
-        "price": menu.price,
-        "info": menu.info,
-        "remark": menu.remark,
-        "type_id": menu.type_id,
-        "type_name": menu.type.type_name,
-        "status": menu.status,
-        "image_url": _menu_image_url(menu),
-    }
 
 
 def _parse_menu_request(request):
@@ -41,16 +22,6 @@ def _parse_menu_request(request):
         return json.loads(request.body)
     except json.JSONDecodeError:
         return None
-
-
-def _validate_uploaded_image(uploaded_file):
-    if not uploaded_file:
-        return None
-
-    content_type = getattr(uploaded_file, "content_type", "")
-    if not content_type.startswith("image/"):
-        raise ValidationError("圖片格式不正確")
-    return uploaded_file
 
 
 def _check_staff_permission(request):
@@ -82,14 +53,9 @@ def menu_toggle_status(request, pk):
         return denied
 
     try:
-        menu = Menu.objects.get(pk=pk)
-    except Menu.DoesNotExist:
-        return _json({"error": "找不到此商品"}, status=404)
-
-    menu.status = not menu.status
-    menu.save(update_fields=["status"])
-
-    return _json({"status": menu.status, "name": menu.name})
+        return _json(menu_service.toggle_menu_status(pk))
+    except NotFoundError as exc:
+        return _json({"error": exc.message}, status=exc.status_code)
 
 
 @require_POST
@@ -99,51 +65,22 @@ def menu_edit(request, pk):
     if denied:
         return denied
 
-    try:
-        menu = Menu.objects.get(pk=pk)
-    except Menu.DoesNotExist:
-        return _json({"error": "找不到此商品"}, status=404)
-
     data = _parse_menu_request(request)
     if data is None:
         return _json({"error": "無效的 JSON"}, status=400)
 
-    name = data.get("name", "").strip()
-    price = data.get("price")
-    if not name or price is None:
-        return _json({"error": "名稱與價格為必填"}, status=400)
-
     try:
-        price = int(price)
-    except (ValueError, TypeError):
-        return _json({"error": "價格必須為整數"}, status=400)
+        menu = menu_service.update_menu_item(
+            pk,
+            data,
+            request.FILES.get("file_path"),
+        )
+    except NotFoundError as exc:
+        return _json({"error": exc.message}, status=exc.status_code)
+    except ValidationServiceError as exc:
+        return _json({"error": exc.message}, status=exc.status_code)
 
-    if price < 0:
-        return _json({"error": "價格不能為負數"}, status=400)
-
-    type_id = data.get("type_id")
-    if type_id:
-        try:
-            menu.type = Type.objects.get(pk=type_id)
-        except Type.DoesNotExist:
-            return _json({"error": "找不到此分類"}, status=400)
-
-    try:
-        uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
-    except ValidationError as exc:
-        return _json({"error": exc.message}, status=400)
-
-    menu.name = name
-    menu.price = price
-    menu.info = data.get("info", "") or ""
-    menu.remark = data.get("remark", "") or ""
-    update_fields = ["name", "price", "info", "remark", "type"]
-    if uploaded_image:
-        menu.file_path = uploaded_image
-        update_fields.append("file_path")
-    menu.save(update_fields=update_fields)
-
-    return _json(_menu_payload(menu))
+    return _json(menu_service.menu_payload(menu))
 
 
 @require_POST
@@ -157,42 +94,9 @@ def menu_create(request):
     if data is None:
         return _json({"error": "無效的 JSON"}, status=400)
 
-    name = data.get("name", "").strip()
-    price = data.get("price")
-    type_id = data.get("type_id")
-
-    if not name or price is None or not type_id:
-        return _json({"error": "名稱、價格、分類為必填"}, status=400)
-
     try:
-        price = int(price)
-    except (ValueError, TypeError):
-        return _json({"error": "價格必須為整數"}, status=400)
+        menu = menu_service.create_menu_item(data, request.FILES.get("file_path"))
+    except ValidationServiceError as exc:
+        return _json({"error": exc.message}, status=exc.status_code)
 
-    if price < 0:
-        return _json({"error": "價格不能為負數"}, status=400)
-
-    try:
-        menu_type = Type.objects.get(pk=type_id)
-    except Type.DoesNotExist:
-        return _json({"error": "找不到此分類"}, status=400)
-
-    if Menu.objects.filter(name=name).exists():
-        return _json({"error": "品項名稱已存在"}, status=400)
-
-    try:
-        uploaded_image = _validate_uploaded_image(request.FILES.get("file_path"))
-    except ValidationError as exc:
-        return _json({"error": exc.message}, status=400)
-
-    menu = Menu.objects.create(
-        name=name,
-        price=price,
-        type=menu_type,
-        info=data.get("info", "") or "",
-        remark=data.get("remark", "") or "",
-        file_path=uploaded_image,
-        status=True,
-    )
-
-    return _json(_menu_payload(menu), status=201)
+    return _json(menu_service.menu_payload(menu), status=201)

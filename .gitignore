@@ -8,6 +8,9 @@ CLAUDE.local.md
 # Agentic Harness Engineering (Local AI Agent Files)
 # These files should NEVER be committed to the repository
 AGENTS.md
+CLAUDE.md
+.codex/
 docs/progress.md
-.opencode/
+.claude/
 scripts/harness/
+scripts/

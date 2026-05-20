@@ -1,4 +1,3 @@
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -11,7 +10,8 @@ from rest_framework.views import APIView
 from web_app.api.permissions import IsEmployee
 from web_app.api.serializers.order import OrderStatusSerializer, ReorderSerializer
 from web_app.api.utils import api_error, api_success
-from web_app.models import Menu, Order, OrderItem
+from web_app.services import order as order_service
+from web_app.services.exceptions import NotFoundError
 
 # ---------- 共用 inline schema ----------
 
@@ -105,15 +105,6 @@ _status_update_responses = {
 }
 
 
-def _order_status_counts():
-    S = Order.OrderStatus
-    return {
-        S.PENDING: Order.objects.filter(status=S.PENDING).count(),
-        S.COMPLETED: Order.objects.filter(status=S.COMPLETED).count(),
-        S.CANCELLED: Order.objects.filter(status=S.CANCELLED).count(),
-    }
-
-
 class OrderStatusAPIView(APIView):
     permission_classes = [IsEmployee]
 
@@ -149,15 +140,20 @@ class OrderStatusAPIView(APIView):
         responses=_status_update_responses,
     )
     def patch(self, request, pk):
-        order = get_object_or_404(Order, pk=pk)
         serializer = OrderStatusSerializer(data=request.data)
         if not serializer.is_valid():
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        order.status = serializer.validated_data["status"]
-        order.save(update_fields=["status"])
-        return api_success({"status_counts": _order_status_counts()})
+        try:
+            return api_success(
+                order_service.update_order_status(
+                    pk,
+                    serializer.validated_data["status"],
+                )
+            )
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
 
 
 class ReorderAPIView(APIView):
@@ -238,32 +234,13 @@ class ReorderAPIView(APIView):
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        order = get_object_or_404(
-            Order, pk=serializer.validated_data["order_id"], user=request.user
-        )
-        items = OrderItem.objects.filter(order=order).select_related("menu")
+        try:
+            result = order_service.reorder_to_cart(
+                request.user,
+                request.session,
+                serializer.validated_data["order_id"],
+            )
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
 
-        cart = request.session.get("cart", [])
-        added = 0
-        for item in items:
-            try:
-                menu = item.menu
-                cart.append(
-                    {
-                        "menu_id": menu.pk,
-                        "name": menu.name,
-                        "base_price": menu.price,
-                        "options": [],
-                        "options_price": 0,
-                        "unit_price": menu.price,
-                        "quantity": item.amount,
-                        "subtotal": menu.price * item.amount,
-                    }
-                )
-                added += item.amount
-            except Menu.DoesNotExist:
-                continue
-
-        request.session["cart"] = cart
-        cart_count = sum(i["quantity"] for i in cart)
-        return api_success({"added": added, "cart_count": cart_count})
+        return api_success(result)
