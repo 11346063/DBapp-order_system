@@ -14,7 +14,7 @@ class Menu(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=models.Q(price__gte=0),
+                condition=models.Q(price__gte=0),
                 name="menu_price_non_negative",
             )
         ]

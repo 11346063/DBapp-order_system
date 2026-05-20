@@ -12,7 +12,7 @@ class OrderItemOptions(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(order__isnull=False, order_item__isnull=True)
                     | models.Q(order__isnull=True, order_item__isnull=False)
                 ),
