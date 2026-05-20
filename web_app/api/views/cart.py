@@ -16,6 +16,7 @@ from web_app.api.serializers.cart import (
     CartUpdateSerializer,
 )
 from web_app.api.utils import api_error, api_success
+from web_app.services import cart as cart_service
 
 # ---------- 共用 inline schema ----------
 
@@ -123,29 +124,9 @@ class CartAddAPIView(APIView):
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        d = serializer.validated_data
-        cart = request.session.get("cart", [])
-
-        options_price = sum(opt.get("price", 0) for opt in d["options"])
-        unit_price = d["price"] + options_price
-        subtotal = unit_price * d["quantity"]
-
-        cart.append(
-            {
-                "menu_id": d["menu_id"],
-                "name": d["name"],
-                "base_price": d["price"],
-                "options": d["options"],
-                "options_price": options_price,
-                "unit_price": unit_price,
-                "quantity": d["quantity"],
-                "subtotal": subtotal,
-            }
+        return api_success(
+            cart_service.add_item(request.session, serializer.validated_data)
         )
-
-        request.session["cart"] = cart
-        cart_count = sum(item["quantity"] for item in cart)
-        return api_success({"cart_count": cart_count})
 
 
 class CartAdjustAPIView(APIView):
@@ -186,43 +167,9 @@ class CartAdjustAPIView(APIView):
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        d = serializer.validated_data
-        cart = request.session.get("cart", [])
-
-        target_index = None
-        item_quantity = 0
-        for index, item in enumerate(cart):
-            if item.get("menu_id") == d["menu_id"] and item.get("options", []) == []:
-                target_index = index
-                item_quantity = item["quantity"]
-                break
-
-        item_quantity = max(0, item_quantity + d["delta"])
-
-        if target_index is None and item_quantity > 0:
-            cart.append(
-                {
-                    "menu_id": d["menu_id"],
-                    "name": d["name"],
-                    "base_price": d["price"],
-                    "options": [],
-                    "options_price": 0,
-                    "unit_price": d["price"],
-                    "quantity": item_quantity,
-                    "subtotal": d["price"] * item_quantity,
-                }
-            )
-        elif target_index is not None and item_quantity <= 0:
-            cart.pop(target_index)
-        elif target_index is not None:
-            cart[target_index]["quantity"] = item_quantity
-            cart[target_index]["subtotal"] = (
-                cart[target_index]["unit_price"] * item_quantity
-            )
-
-        request.session["cart"] = cart
-        cart_count = sum(item["quantity"] for item in cart)
-        return api_success({"cart_count": cart_count, "item_quantity": item_quantity})
+        return api_success(
+            cart_service.adjust_item(request.session, serializer.validated_data)
+        )
 
 
 class CartUpdateAPIView(APIView):
@@ -263,21 +210,11 @@ class CartUpdateAPIView(APIView):
             return api_error(str(first_error))
 
         d = serializer.validated_data
-        cart = request.session.get("cart", [])
-
-        if 0 <= d["index"] < len(cart):
-            if d["quantity"] <= 0:
-                cart.pop(d["index"])
-            else:
-                cart[d["index"]]["quantity"] = d["quantity"]
-                cart[d["index"]]["subtotal"] = (
-                    cart[d["index"]]["unit_price"] * d["quantity"]
-                )
-
-        request.session["cart"] = cart
-        total = sum(item["subtotal"] for item in cart)
-        cart_count = sum(item["quantity"] for item in cart)
-        return api_success({"total": total, "cart_count": cart_count})
+        return api_success(
+            cart_service.update_item_quantity(
+                request.session, d["index"], d["quantity"]
+            )
+        )
 
 
 class CartRemoveAPIView(APIView):
@@ -316,16 +253,11 @@ class CartRemoveAPIView(APIView):
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        d = serializer.validated_data
-        cart = request.session.get("cart", [])
-
-        if 0 <= d["index"] < len(cart):
-            cart.pop(d["index"])
-
-        request.session["cart"] = cart
-        total = sum(item["subtotal"] for item in cart)
-        cart_count = sum(item["quantity"] for item in cart)
-        return api_success({"total": total, "cart_count": cart_count})
+        return api_success(
+            cart_service.remove_item(
+                request.session, serializer.validated_data["index"]
+            )
+        )
 
 
 class CartRemoveByMenuAPIView(APIView):
@@ -355,22 +287,8 @@ class CartRemoveByMenuAPIView(APIView):
             first_error = next(iter(serializer.errors.values()))[0]
             return api_error(str(first_error))
 
-        menu_id = serializer.validated_data["menu_id"]
-        cart = request.session.get("cart", [])
-
-        # 找最後一筆相符品項的 index
-        last_index = None
-        for i in range(len(cart) - 1, -1, -1):
-            if cart[i].get("menu_id") == menu_id:
-                last_index = i
-                break
-
-        if last_index is not None:
-            cart.pop(last_index)
-
-        request.session["cart"] = cart
-        cart_count = sum(item["quantity"] for item in cart)
-        item_quantity = sum(
-            item["quantity"] for item in cart if item.get("menu_id") == menu_id
+        return api_success(
+            cart_service.remove_last_item_by_menu(
+                request.session, serializer.validated_data["menu_id"]
+            )
         )
-        return api_success({"cart_count": cart_count, "item_quantity": item_quantity})
