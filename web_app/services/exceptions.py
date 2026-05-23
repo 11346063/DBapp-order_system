@@ -28,3 +28,7 @@ class EmptyCartError(ServiceError):
 
 class StaffCustomerPhoneRequired(ServiceError):
     pass
+
+
+class PriceChangedError(ServiceError):
+    pass

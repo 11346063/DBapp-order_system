@@ -3,6 +3,7 @@ from django.urls import reverse
 import json
 
 from web_app.models import Identity, Menu, Type, User
+from web_app.services import cart as cart_service
 
 
 class CartFeedbackTemplateTest(TestCase):
@@ -46,9 +47,17 @@ class CartFeedbackTemplateTest(TestCase):
 
     def test_home_keeps_cart_feedback_visible_when_cart_has_items(self):
         self.client.login(username="cart_feedback_user", password="pass")
-        session = self.client.session
-        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
-        session.save()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": Menu.objects.get(name="香脆炸雞").pk,
+                "name": "香脆炸雞",
+                "price": 80,
+                "quantity": 2,
+                "options": [],
+            },
+        )
 
         response = self.client.get(reverse("web_app:home"))
 

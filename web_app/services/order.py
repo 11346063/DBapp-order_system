@@ -92,7 +92,8 @@ def update_order_status(order_id, status):
 
 
 def create_order_from_cart(user, session, checkout_data):
-    cart = cart_service.get_cart(session)
+    cart_service.ensure_prices_current(user, session)
+    cart = cart_service.get_cart(user, session)
     if not cart:
         raise EmptyCartError("購物車是空的")
 
@@ -160,7 +161,7 @@ def create_order_from_cart(user, session, checkout_data):
                 order=order, opt=opts["九層塔"], level=data["extra_basil_qty"]
             )
 
-        cart_service.replace_cart(session, [])
+        cart_service.clear_cart(user, session)
 
     return order
 
@@ -172,14 +173,20 @@ def reorder_to_cart(user, session, order_id):
         raise NotFoundError("找不到此訂單") from exc
 
     items = OrderItem.objects.filter(order=order).select_related("menu")
-    cart = cart_service.get_cart(session)
     added = 0
 
     for item in items:
         try:
-            added += cart_service.append_menu_item(cart, item.menu, item.amount)
+            added += cart_service.append_menu_item_to_cart(
+                user,
+                session,
+                item.menu,
+                item.amount,
+            )
         except Menu.DoesNotExist:
             continue
 
-    cart_service.replace_cart(session, cart)
-    return {"added": added, "cart_count": cart_service.cart_count(cart)}
+    return {
+        "added": added,
+        "cart_count": cart_service.cart_count(cart_service.get_cart(user, session)),
+    }

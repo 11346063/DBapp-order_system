@@ -3,9 +3,12 @@ from django.urls import path
 from web_app.api.views.cart import (
     CartAddAPIView,
     CartAdjustAPIView,
+    CartDetailAPIView,
     CartRemoveAPIView,
     CartRemoveByMenuAPIView,
+    CartSyncPricesAPIView,
     CartUpdateAPIView,
+    CartValidatePricesAPIView,
 )
 from web_app.api.views.menu import (
     MenuCreateAPIView,
@@ -22,6 +25,7 @@ urlpatterns = [
     path("menu/<int:pk>/edit/", MenuUpdateAPIView.as_view(), name="menu_edit"),
     path("menu/create/", MenuCreateAPIView.as_view(), name="menu_create"),
     # Cart
+    path("cart/", CartDetailAPIView.as_view(), name="cart_detail_api"),
     path("cart/add/", CartAddAPIView.as_view(), name="cart_add_api"),
     path("cart/adjust/", CartAdjustAPIView.as_view(), name="cart_adjust_api"),
     path("cart/update/", CartUpdateAPIView.as_view(), name="cart_update_api"),
@@ -30,6 +34,28 @@ urlpatterns = [
         "cart/remove-by-menu/",
         CartRemoveByMenuAPIView.as_view(),
         name="cart_remove_by_menu_api",
+    ),
+    path(
+        "cart/validate-prices/",
+        CartValidatePricesAPIView.as_view(),
+        name="cart_validate_prices_api",
+    ),
+    path(
+        "cart/sync-prices/",
+        CartSyncPricesAPIView.as_view(),
+        name="cart_sync_prices_api",
+    ),
+    # Cart v1 aliases
+    path("v1/cart/", CartDetailAPIView.as_view(), name="v1_cart_detail_api"),
+    path(
+        "v1/cart/validate-prices/",
+        CartValidatePricesAPIView.as_view(),
+        name="v1_cart_validate_prices_api",
+    ),
+    path(
+        "v1/cart/sync-prices/",
+        CartSyncPricesAPIView.as_view(),
+        name="v1_cart_sync_prices_api",
     ),
     # Orders
     path(
