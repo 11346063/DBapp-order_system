@@ -8,6 +8,7 @@ class CartServiceTest(SimpleTestCase):
         session = {}
 
         result = cart_service.add_item(
+            None,
             session,
             {
                 "menu_id": 1,
@@ -39,14 +40,17 @@ class CartServiceTest(SimpleTestCase):
         session = {}
 
         added = cart_service.adjust_item(
+            None,
             session,
             {"menu_id": 1, "name": "雞排", "price": 80, "delta": 2},
         )
         reduced = cart_service.adjust_item(
+            None,
             session,
             {"menu_id": 1, "name": "雞排", "price": 80, "delta": -1},
         )
         removed = cart_service.adjust_item(
+            None,
             session,
             {"menu_id": 1, "name": "雞排", "price": 80, "delta": -1},
         )
@@ -70,6 +74,7 @@ class CartServiceTest(SimpleTestCase):
         }
 
         result = cart_service.adjust_item(
+            None,
             session,
             {"menu_id": 1, "name": "雞排", "price": 80, "delta": 1},
         )
@@ -82,7 +87,7 @@ class CartServiceTest(SimpleTestCase):
     def test_update_item_quantity_silently_ignores_out_of_range_index(self):
         session = {"cart": [cart_service.build_cart_item(1, "雞排", 80, 1)]}
 
-        result = cart_service.update_item_quantity(session, 99, 3)
+        result = cart_service.update_item_quantity(None, session, 99, 3)
 
         self.assertEqual(result, {"total": 80, "cart_count": 1})
         self.assertEqual(session["cart"][0]["quantity"], 1)
@@ -90,7 +95,7 @@ class CartServiceTest(SimpleTestCase):
     def test_update_item_quantity_removes_when_quantity_is_zero(self):
         session = {"cart": [cart_service.build_cart_item(1, "雞排", 80, 1)]}
 
-        result = cart_service.update_item_quantity(session, 0, 0)
+        result = cart_service.update_item_quantity(None, session, 0, 0)
 
         self.assertEqual(result, {"total": 0, "cart_count": 0})
         self.assertEqual(session["cart"], [])
@@ -104,7 +109,7 @@ class CartServiceTest(SimpleTestCase):
             ]
         }
 
-        result = cart_service.remove_last_item_by_menu(session, 1)
+        result = cart_service.remove_last_item_by_menu(None, session, 1)
 
         self.assertEqual(result, {"cart_count": 3, "item_quantity": 2})
         self.assertEqual(len(session["cart"]), 2)

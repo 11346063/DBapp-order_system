@@ -199,7 +199,7 @@ class CartCsrfApiTest(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(
-            cart_service.validate_prices(self.client.session)["has_changes"]
+            cart_service.validate_prices(None, self.client.session)["has_changes"]
         )
 
     def test_anonymous_sync_prices_accepts_valid_csrf_token(self):
@@ -215,5 +215,5 @@ class CartCsrfApiTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["data"]["total"], 90)
         self.assertFalse(
-            cart_service.validate_prices(self.client.session)["has_changes"]
+            cart_service.validate_prices(None, self.client.session)["has_changes"]
         )
