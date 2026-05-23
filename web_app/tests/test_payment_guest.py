@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from web_app.models import User, Identity, Type, Menu, Order
+from web_app.services import cart as cart_service
 
 
 class GuestCheckoutTest(TestCase):
@@ -57,11 +58,25 @@ class GuestCheckoutTest(TestCase):
         self.assertContains(response, "payment-summary-col")
         self.assertContains(response, "payment-submit-card")
         self.assertContains(response, "css/payment.css")
+        self.assertContains(response, 'id="cartPriceChangeModal"')
+        self.assertContains(response, 'id="acceptPaymentPriceChanges"')
+        self.assertContains(response, "js/payment.js")
+        self.assertContains(response, "?v=3")
 
     def test_payment_page_no_login_prompt_for_logged_in_user(self):
         """已登入顧客的付款頁不顯示登入詢問提示"""
         self.client.login(username="customer1", password="pass")
-        self._set_cart()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 1,
+                "options": [],
+            },
+        )
         response = self.client.get(reverse("web_app:payment"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "guest-login-prompt")
@@ -120,7 +135,17 @@ class GuestCheckoutTest(TestCase):
     def test_logged_in_customer_order_still_has_user(self):
         """已登入顧客送出訂單後，user 欄位正確儲存"""
         self.client.login(username="customer1", password="pass")
-        self._set_cart()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 1,
+                "options": [],
+            },
+        )
         self.client.post(reverse("web_app:order_submit"))
         order = Order.objects.first()
         self.assertIsNotNone(order)

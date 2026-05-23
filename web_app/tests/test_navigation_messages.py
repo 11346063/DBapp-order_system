@@ -2,13 +2,19 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from web_app.models import Identity, Menu, Type, User
+from web_app.services import cart as cart_service
 
 
 class NavigationVisibilityTest(TestCase):
     def setUp(self):
         self.client = Client()
         self.type = Type.objects.create(type_name="炸雞")
-        Menu.objects.create(type=self.type, name="香脆炸雞", price=80, status=True)
+        self.menu = Menu.objects.create(
+            type=self.type,
+            name="香脆炸雞",
+            price=80,
+            status=True,
+        )
         self.customer = User.objects.create_user(
             account="customer_nav",
             password="pass",
@@ -81,12 +87,17 @@ class NavigationVisibilityTest(TestCase):
 
     def test_mobile_cart_summary_shows_cart_count(self):
         self.client.login(username="customer_nav", password="pass")
-        session = self.client.session
-        session["cart"] = [
-            {"name": "香脆炸雞", "quantity": 2, "subtotal": 160},
-            {"name": "薯條", "quantity": 1, "subtotal": 50},
-        ]
-        session.save()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 3,
+                "options": [],
+            },
+        )
 
         response = self.client.get(reverse("web_app:home"))
 
@@ -96,9 +107,17 @@ class NavigationVisibilityTest(TestCase):
 
     def test_payment_page_hides_mobile_cart_summary(self):
         self.client.login(username="customer_nav", password="pass")
-        session = self.client.session
-        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
-        session.save()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 2,
+                "options": [],
+            },
+        )
 
         response = self.client.get(reverse("web_app:payment"))
 
@@ -115,9 +134,17 @@ class NavigationVisibilityTest(TestCase):
 
     def test_cart_page_hides_mobile_cart_summary(self):
         self.client.login(username="customer_nav", password="pass")
-        session = self.client.session
-        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
-        session.save()
+        cart_service.add_item(
+            self.customer,
+            self.client.session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 2,
+                "options": [],
+            },
+        )
 
         response = self.client.get(reverse("web_app:cart"))
 

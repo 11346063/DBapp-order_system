@@ -46,17 +46,21 @@ class OrderServiceCreateOrderTest(TestCase):
         )
 
     def _session_with_cart(self):
-        return {
-            "cart": [
-                cart_service.build_cart_item(
-                    self.menu.pk,
-                    self.menu.name,
-                    self.menu.price,
-                    2,
-                    [{"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}],
-                )
-            ]
-        }
+        session = {}
+        cart_service.add_item(
+            self.customer,
+            session,
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "price": self.menu.price,
+                "quantity": 2,
+                "options": [
+                    {"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}
+                ],
+            },
+        )
+        return session
 
     def test_create_order_from_cart_persists_items_options_and_clears_cart(self):
         session = self._session_with_cart()
@@ -75,7 +79,7 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(order.user, self.customer)
         self.assertEqual(order.price_total, 190)
         self.assertEqual(order.remark, "少鹽")
-        self.assertEqual(session["cart"], [])
+        self.assertEqual(cart_service.get_cart(self.customer, session), [])
 
         item = OrderItem.objects.get(order=order)
         self.assertEqual(item.menu, self.menu)
@@ -99,7 +103,17 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(Order.objects.count(), 0)
 
     def test_staff_order_requires_customer_phone_and_keeps_cart(self):
-        session = self._session_with_cart()
+        session = {
+            "cart": [
+                cart_service.build_cart_item(
+                    self.menu.pk,
+                    self.menu.name,
+                    self.menu.price,
+                    2,
+                    [{"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}],
+                )
+            ]
+        }
 
         with self.assertRaises(StaffCustomerPhoneRequired):
             order_service.create_order_from_cart(self.employee, session, {})
@@ -108,7 +122,11 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(len(session["cart"]), 1)
 
     def test_staff_order_saves_customer_phone(self):
-        session = self._session_with_cart()
+        session = {
+            "cart": [
+                cart_service.build_cart_item(self.menu.pk, self.menu.name, 80, 2, [])
+            ]
+        }
 
         order = order_service.create_order_from_cart(
             self.employee,
@@ -165,7 +183,8 @@ class OrderServiceStatusAndReorderTest(TestCase):
         result = order_service.reorder_to_cart(self.customer, session, self.order.pk)
 
         self.assertEqual(result, {"added": 2, "cart_count": 2})
-        self.assertEqual(
-            session["cart"],
-            [cart_service.build_cart_item(self.menu.pk, self.menu.name, 80, 2, [])],
-        )
+        cart = cart_service.get_cart(self.customer, session)
+        self.assertEqual(len(cart), 1)
+        self.assertEqual(cart[0]["menu_id"], self.menu.pk)
+        self.assertEqual(cart[0]["quantity"], 2)
+        self.assertEqual(cart[0]["subtotal"], 160)

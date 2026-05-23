@@ -1,0 +1,27 @@
+{% load i18n %}
+<div class="modal fade" id="cartPriceChangeModal" tabindex="-1" aria-labelledby="cartPriceChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="cartPriceChangeModalLabel">
+                    <i class="bi bi-exclamation-triangle text-warning"></i> {% trans "訂單價格已更新" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans '關閉' %}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary mb-3">{% trans "訂單價格已依最新菜單更新，請確認金額後再送出。" %}</p>
+                <div class="price-change-list" id="paymentPriceChangeList"></div>
+                <div class="payment-price-total mt-3">
+                    <span class="text-secondary">{% trans "最新總金額" %}</span>
+                    <span class="text-yellow fw-bold" id="paymentPriceChangeTotal"></span>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">{% trans "先不要" %}</button>
+                <button type="button" class="btn btn-yellow fw-bold" id="acceptPaymentPriceChanges">
+                    <i class="bi bi-check2-circle"></i> {% trans "接受最新價格並送出" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

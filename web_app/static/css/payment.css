@@ -99,6 +99,37 @@
     text-align: right;
 }
 
+.price-change-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.price-change-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.price-change-values {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.payment-price-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
 /* ── Mobile ── */
 @media (max-width: 575.98px) {
     .payment-layout {
@@ -137,5 +168,10 @@
 
     .payment-summary-col > .card:not(.guest-login-prompt):not(.payment-submit-card) {
         order: 1;
+    }
+
+    .price-change-row {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

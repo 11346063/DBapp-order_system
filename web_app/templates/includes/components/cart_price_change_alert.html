@@ -1,0 +1,37 @@
+{% load i18n %}
+<div class="card card-dark cart-price-alert mb-3" id="cartPriceChangeAlert" data-price-change-alert>
+    <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+            <div class="price-alert-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="text-white mb-1">{% trans "部分餐點價格已更新" %}</h6>
+                <p class="text-secondary small mb-3">{% trans "請確認最新價格後再結帳。" %}</p>
+                <div class="price-change-list">
+                    {% for change in price_changes %}
+                    <div class="price-change-row">
+                        <div>
+                            <span class="text-white">{{ change.name }}</span>
+                            <span class="text-secondary small ms-2">x{{ change.quantity }}</span>
+                        </div>
+                        <div class="price-change-values">
+                            <span class="text-secondary">${{ change.old_unit_price }}</span>
+                            <i class="bi bi-arrow-right-short"></i>
+                            <span class="text-yellow fw-bold">${{ change.new_unit_price }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button type="button" class="btn btn-yellow btn-sm fw-bold" id="acceptCartPriceChanges">
+                        <i class="bi bi-check2-circle"></i> {% trans "接受最新價格" %}
+                    </button>
+                    <a href="{{ ordering_return_url }}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-arrow-left"></i> {% trans "返回點餐" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

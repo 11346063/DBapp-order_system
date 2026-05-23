@@ -4,7 +4,7 @@
 {% block title %}{% trans "購物車" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/cart.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/cart.css' %}?v=3">
 {% endblock %}
 
 {% block content %}
@@ -16,6 +16,10 @@
 </div>
 
 {% if cart_items %}
+{% if price_changes %}
+{% include 'includes/components/cart_price_change_alert.html' with price_changes=price_changes ordering_return_url=ordering_return_url %}
+{% endif %}
+
 <div class="cart-list" id="cartList">
     {% for item in cart_items %}
     {% include 'includes/components/cart_item.html' with item=item index=forloop.counter0 %}
@@ -33,5 +37,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/cart.js' %}?v=2"></script>
+<script src="{% static 'js/cart.js' %}?v=3"></script>
 {% endblock %}

@@ -132,7 +132,21 @@ class CartPageNavigationTest(TestCase):
         self.assertContains(response, "返回點餐")
         self.assertContains(response, f'href="{reverse("web_app:home")}"')
         self.assertContains(response, "css/cart.css")
-        self.assertContains(response, "?v=2")
+        self.assertContains(response, "?v=3")
+
+    def test_cart_page_shows_price_change_alert(self):
+        self._set_cart()
+        self.menu.price = 90
+        self.menu.save(update_fields=["price"])
+
+        response = self.client.get(reverse("web_app:cart"))
+
+        self.assertContains(response, 'id="cartPriceChangeAlert"')
+        self.assertContains(response, "部分餐點價格已更新")
+        self.assertContains(response, "香脆炸雞")
+        self.assertContains(response, "$80")
+        self.assertContains(response, "$90")
+        self.assertContains(response, 'id="acceptCartPriceChanges"')
 
     def test_employee_can_access_cart_page(self):
         employee = User.objects.create_user(

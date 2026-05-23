@@ -4,7 +4,7 @@
 {% block title %}{% trans "付款" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=10">
+<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=11">
 {% endblock %}
 
 {% block content %}
@@ -30,7 +30,11 @@
 </div>
 {% endblock %}
 
+{% block modals %}
+{% include 'includes/components/cart_price_change_modal.html' %}
+{% endblock %}
+
 {% block extra_js %}
 <script>window.BASE_TOTAL = {{ total }};</script>
-<script src="{% static 'js/payment.js' %}?v=2"></script>
+<script src="{% static 'js/payment.js' %}?v=3"></script>
 {% endblock %}

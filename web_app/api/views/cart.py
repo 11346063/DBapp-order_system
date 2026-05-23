@@ -1,3 +1,5 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_protect
 from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiResponse,
@@ -17,6 +19,7 @@ from web_app.api.serializers.cart import (
 )
 from web_app.api.utils import api_error, api_success
 from web_app.services import cart as cart_service
+from web_app.services.exceptions import ServiceError
 
 # ---------- 共用 inline schema ----------
 
@@ -88,7 +91,72 @@ _400_validation = OpenApiResponse(
 )
 
 
-class CartAddAPIView(APIView):
+def _first_serializer_error(serializer):
+    return str(next(iter(serializer.errors.values()))[0])
+
+
+def _cart_service_response(func):
+    try:
+        return api_success(func())
+    except ServiceError as exc:
+        return api_error(exc.message, status=exc.status_code)
+
+
+class CartDetailAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="取得購物車內容",
+        description="回傳目前購物車明細、總金額、總件數與價格異動狀態。",
+        tags=["購物車"],
+    )
+    def get(self, request):
+        cart = cart_service.get_cart(request.user, request.session)
+        price_status = cart_service.validate_prices(request.user, request.session)
+        return api_success(
+            {
+                "items": cart,
+                "total": cart_service.cart_total(cart),
+                "cart_count": cart_service.cart_count(cart),
+                "price_changes": price_status["price_changes"],
+            }
+        )
+
+
+class CartValidatePricesAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="檢查購物車價格是否異動",
+        description="只檢查最新菜單/選項價格，不修改購物車資料。",
+        tags=["購物車"],
+    )
+    def post(self, request):
+        return _cart_service_response(
+            lambda: cart_service.validate_prices(request.user, request.session)
+        )
+
+
+@method_decorator(csrf_protect, name="dispatch")
+class CartMutationAPIView(APIView):
+    permission_classes = [AllowAny]
+
+
+class CartSyncPricesAPIView(CartMutationAPIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="同步購物車為最新價格",
+        description="顧客接受最新價格後，更新購物車價格 snapshot 與小計。",
+        tags=["購物車"],
+    )
+    def post(self, request):
+        return _cart_service_response(
+            lambda: cart_service.sync_prices(request.user, request.session)
+        )
+
+
+class CartAddAPIView(CartMutationAPIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -121,15 +189,18 @@ class CartAddAPIView(APIView):
     def post(self, request):
         serializer = CartAddSerializer(data=request.data)
         if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
+            return api_error(_first_serializer_error(serializer))
 
-        return api_success(
-            cart_service.add_item(request.session, serializer.validated_data)
+        return _cart_service_response(
+            lambda: cart_service.add_item(
+                request.user,
+                request.session,
+                serializer.validated_data,
+            )
         )
 
 
-class CartAdjustAPIView(APIView):
+class CartAdjustAPIView(CartMutationAPIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -164,15 +235,18 @@ class CartAdjustAPIView(APIView):
     def post(self, request):
         serializer = CartAdjustSerializer(data=request.data)
         if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
+            return api_error(_first_serializer_error(serializer))
 
-        return api_success(
-            cart_service.adjust_item(request.session, serializer.validated_data)
+        return _cart_service_response(
+            lambda: cart_service.adjust_item(
+                request.user,
+                request.session,
+                serializer.validated_data,
+            )
         )
 
 
-class CartUpdateAPIView(APIView):
+class CartUpdateAPIView(CartMutationAPIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -206,18 +280,20 @@ class CartUpdateAPIView(APIView):
     def post(self, request):
         serializer = CartUpdateSerializer(data=request.data)
         if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
+            return api_error(_first_serializer_error(serializer))
 
         d = serializer.validated_data
-        return api_success(
-            cart_service.update_item_quantity(
-                request.session, d["index"], d["quantity"]
+        return _cart_service_response(
+            lambda: cart_service.update_item_quantity(
+                request.user,
+                request.session,
+                d["index"],
+                d["quantity"],
             )
         )
 
 
-class CartRemoveAPIView(APIView):
+class CartRemoveAPIView(CartMutationAPIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -250,17 +326,18 @@ class CartRemoveAPIView(APIView):
     def post(self, request):
         serializer = CartRemoveSerializer(data=request.data)
         if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
+            return api_error(_first_serializer_error(serializer))
 
-        return api_success(
-            cart_service.remove_item(
-                request.session, serializer.validated_data["index"]
+        return _cart_service_response(
+            lambda: cart_service.remove_item(
+                request.user,
+                request.session,
+                serializer.validated_data["index"],
             )
         )
 
 
-class CartRemoveByMenuAPIView(APIView):
+class CartRemoveByMenuAPIView(CartMutationAPIView):
     """依 menu_id 移除購物車中最後一筆該品項（不限選項），用於代客點餐減量。"""
 
     permission_classes = [AllowAny]
@@ -284,11 +361,12 @@ class CartRemoveByMenuAPIView(APIView):
     def post(self, request):
         serializer = CartRemoveByMenuSerializer(data=request.data)
         if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
+            return api_error(_first_serializer_error(serializer))
 
-        return api_success(
-            cart_service.remove_last_item_by_menu(
-                request.session, serializer.validated_data["menu_id"]
+        return _cart_service_response(
+            lambda: cart_service.remove_last_item_by_menu(
+                request.user,
+                request.session,
+                serializer.validated_data["menu_id"],
             )
         )

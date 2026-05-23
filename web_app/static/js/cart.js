@@ -23,3 +23,27 @@ function removeCartItem(index) {
         })
         .catch(() => {});
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const acceptBtn = document.getElementById('acceptCartPriceChanges');
+    if (!acceptBtn) return;
+
+    acceptBtn.addEventListener('click', function () {
+        acceptBtn.disabled = true;
+        acceptBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>更新中...';
+
+        postJSON('/api/v1/cart/sync-prices/', {})
+            .then(data => {
+                if (data.status === 'success') {
+                    location.reload();
+                    return;
+                }
+                acceptBtn.disabled = false;
+                acceptBtn.innerHTML = '<i class="bi bi-check2-circle"></i> 接受最新價格';
+            })
+            .catch(() => {
+                acceptBtn.disabled = false;
+                acceptBtn.innerHTML = '<i class="bi bi-check2-circle"></i> 接受最新價格';
+            });
+    });
+});
