@@ -1,4 +1,5 @@
 from web_app.services import cart_db
+from web_app.services._cart_utils import build_cart_item, option_price
 from web_app.services.exceptions import PriceChangedError
 
 
@@ -34,30 +35,10 @@ def summarize_cart(cart):
     return {"total": cart_total(cart), "cart_count": cart_count(cart)}
 
 
-def _option_price(options):
-    return sum(opt.get("price", 0) for opt in options)
-
-
-def build_cart_item(menu_id, name, price, quantity, options=None):
-    options = options or []
-    options_price = _option_price(options)
-    unit_price = price + options_price
-    return {
-        "menu_id": menu_id,
-        "name": name,
-        "base_price": price,
-        "options": options,
-        "options_price": options_price,
-        "unit_price": unit_price,
-        "quantity": quantity,
-        "subtotal": unit_price * quantity,
-    }
-
-
 def _coerce_cart_item(item):
     options = item.get("options", [])
     base_price = item.get("base_price", item.get("price", 0))
-    options_price = item.get("options_price", _option_price(options))
+    options_price = item.get("options_price", option_price(options))
     unit_price = item.get("unit_price", base_price + options_price)
     quantity = item.get("quantity", 1)
     return {

@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Max
 
 from web_app.models import Cart, CartItem, CartItemOption, Identity, Menu, Options
+from web_app.services._cart_utils import build_cart_item, option_price
 from web_app.services.exceptions import NotFoundError
 
 
@@ -69,8 +70,8 @@ def append_item(user, data):
     cart = get_or_create_user_cart(user)
     options = normalize_options(data.get("options", []))
     base_price = menu.price
-    options_price = _option_price(options)
-    unit_price = base_price + options_price
+    opts_price = option_price(options)
+    unit_price = base_price + opts_price
     quantity = data["quantity"]
     next_order = (
         cart.items.aggregate(max_order=Max("sort_order"))["max_order"] or 0
@@ -82,18 +83,18 @@ def append_item(user, data):
             menu=menu,
             quantity=quantity,
             base_price=base_price,
-            options_price=options_price,
+            options_price=opts_price,
             unit_price=unit_price,
             subtotal=unit_price * quantity,
             sort_order=next_order,
         )
-        for option in options:
+        for opt in options:
             CartItemOption.objects.create(
                 cart_item=cart_item,
-                opt_id=option["id"],
-                name=option["name"],
-                price=option["price"],
-                level=option.get("level", 1),
+                opt_id=opt["id"],
+                name=opt["name"],
+                price=opt["price"],
+                level=opt.get("level", 1),
             )
     return cart_item
 
@@ -145,7 +146,7 @@ def adjust_item(user, data):
 
     items = cart_items(user)
     return {
-        "cart_count": sum(item["quantity"] for item in items),
+        "cart_count": sum(i["quantity"] for i in items),
         "item_quantity": item_quantity,
     }
 
@@ -177,10 +178,8 @@ def remove_last_item_by_menu(user, menu_id):
         item.delete()
     items = cart_items(user)
     return {
-        "cart_count": sum(item["quantity"] for item in items),
-        "item_quantity": sum(
-            item["quantity"] for item in items if item["menu_id"] == menu_id
-        ),
+        "cart_count": sum(i["quantity"] for i in items),
+        "item_quantity": sum(i["quantity"] for i in items if i["menu_id"] == menu_id),
     }
 
 
@@ -208,7 +207,7 @@ def latest_item_snapshot(item):
             }
         )
 
-    return _build_cart_item(
+    return build_cart_item(
         menu.pk,
         menu.name,
         menu.price,
@@ -261,26 +260,6 @@ def _db_data_from_cart_item(item):
         "price": item["base_price"],
         "quantity": item["quantity"],
         "options": item.get("options", []),
-    }
-
-
-def _option_price(options):
-    return sum(opt.get("price", 0) for opt in options)
-
-
-def _build_cart_item(menu_id, name, price, quantity, options=None):
-    options = options or []
-    options_price = _option_price(options)
-    unit_price = price + options_price
-    return {
-        "menu_id": menu_id,
-        "name": name,
-        "base_price": price,
-        "options": options,
-        "options_price": options_price,
-        "unit_price": unit_price,
-        "quantity": quantity,
-        "subtotal": unit_price * quantity,
     }
 
 
