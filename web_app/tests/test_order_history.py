@@ -30,6 +30,7 @@ class OrderHistoryReadyNotificationTest(TestCase):
             create_time=timezone.now(),
             ready_at=timezone.now(),
             ready_notified_at=timezone.now(),
+            customer_phone="0912345678",
         )
         OrderItem.objects.create(
             order=order,
@@ -41,9 +42,15 @@ class OrderHistoryReadyNotificationTest(TestCase):
 
         response = self.client.get(reverse("web_app:order_history"))
 
+        ready_label = "可取餐"
+        pickup_notice = "餐點已完成，請留意店家電話或至櫃台取餐"
+        contact_label = "聯絡電話"
+
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "可取餐")
-        self.assertContains(response, "餐點已完成，請至櫃台取餐")
+        self.assertIn(ready_label.encode("utf-8"), response.content)
+        self.assertIn(pickup_notice.encode("utf-8"), response.content)
+        self.assertIn(contact_label.encode("utf-8"), response.content)
+        self.assertContains(response, "0912345678")
         self.assertContains(response, "status-ready")
         self.assertContains(response, "css/order_history.css")
         self.assertContains(response, "?v=4")

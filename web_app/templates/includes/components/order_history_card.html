@@ -31,10 +31,17 @@ Props:
             </div>
             {% endif %}
 
+            {% if order.customer_phone %}
+            <div class="order-contact mb-3">
+                <i class="bi bi-telephone me-1"></i>
+                {% trans "聯絡電話：" %}{{ order.customer_phone }}
+            </div>
+            {% endif %}
+
             {% if order.status == 3 %}
             <div class="ready-notice mb-3">
                 <i class="bi bi-bell-fill me-1"></i>
-                {% trans "餐點已完成，請至櫃台取餐" %}
+                {% trans "餐點已完成，請留意店家電話或至櫃台取餐" %}
                 {% if order.ready_notified_at %}
                 <span class="ready-notice-time">{{ order.ready_notified_at|date:"m/d H:i" }}</span>
                 {% endif %}
