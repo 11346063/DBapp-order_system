@@ -7,7 +7,7 @@ from drf_spectacular.utils import (
 from rest_framework import serializers
 from rest_framework.views import APIView
 
-from web_app.api.permissions import IsEmployee
+from web_app.api.permissions import IsCustomer, IsEmployee
 from web_app.api.serializers.order import OrderStatusSerializer, ReorderSerializer
 from web_app.api.utils import api_error, api_success
 from web_app.services import order as order_service
@@ -180,13 +180,14 @@ class OrderReadyAPIView(APIView):
 
 
 class ReorderAPIView(APIView):
+    permission_classes = [IsCustomer]
+
     @extend_schema(
         summary="再次訂購（複製歷史訂單至購物車）",
         description=(
             "將指定歷史訂單的所有品項（**不含原選項**）加入目前 session 的購物車。\n\n"
             "**權限**：僅限已登入的**顧客**（`identity=C`）使用。\n"
-            "- 未登入 => `401`\n"
-            "- 員工或管理員登入 => `403`\n"
+            "- 未登入或非顧客 => `403`\n"
             "- 訂單不存在或不屬於目前使用者 => `404`\n\n"
             "若訂單中某品項對應的菜單已被刪除，該品項會被跳過（不會中斷整個流程）。"
         ),
@@ -220,25 +221,9 @@ class ReorderAPIView(APIView):
                     )
                 ],
             ),
-            401: OpenApiResponse(
-                response=_ErrorResponse,
-                description="未登入或 session 已過期",
-                examples=[
-                    OpenApiExample(
-                        "未登入",
-                        value={"status": "error", "message": "請先登入"},
-                    )
-                ],
-            ),
             403: OpenApiResponse(
                 response=_ErrorResponse,
-                description="員工或管理員帳號不允許使用此功能",
-                examples=[
-                    OpenApiExample(
-                        "員工禁用",
-                        value={"status": "error", "message": "員工不能使用再次訂購"},
-                    )
-                ],
+                description="未登入或非顧客帳號（員工／管理員）",
             ),
             404: OpenApiResponse(
                 response=_ErrorResponse,
@@ -247,11 +232,6 @@ class ReorderAPIView(APIView):
         },
     )
     def post(self, request):
-        if not request.user.is_authenticated:
-            return api_error("請先登入", status=401)
-        if request.user.identity in ("A", "E"):
-            return api_error("員工不能使用再次訂購", status=403)
-
         serializer = ReorderSerializer(data=request.data)
         if not serializer.is_valid():
             first_error = next(iter(serializer.errors.values()))[0]

@@ -69,13 +69,6 @@ function applyTheme(theme) {
     }
 }
 
-function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-bs-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
-    applyTheme(next);
-}
-
 // When DOM is ready: apply theme icons + bind toggle button
 document.addEventListener('DOMContentLoaded', function () {
     applyTheme(getStoredTheme());
