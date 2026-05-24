@@ -220,11 +220,16 @@ def sync_prices(user):
     cart = get_or_create_user_cart(user)
     with transaction.atomic():
         for item in cart.items.select_related("menu").prefetch_related("options__opt"):
-            latest = latest_item_snapshot(serialize_cart_item(item))
-            item.base_price = latest["base_price"]
-            item.options_price = latest["options_price"]
-            item.unit_price = latest["unit_price"]
-            item.subtotal = latest["subtotal"]
+            # Use already-prefetched menu and options — no extra queries needed
+            menu = item.menu
+            cart_opts = list(item.options.all())
+
+            new_opts_price = sum(co.opt.price for co in cart_opts)
+            new_unit_price = menu.price + new_opts_price
+            item.base_price = menu.price
+            item.options_price = new_opts_price
+            item.unit_price = new_unit_price
+            item.subtotal = new_unit_price * item.quantity
             item.save(
                 update_fields=[
                     "base_price",
@@ -235,22 +240,12 @@ def sync_prices(user):
                 ]
             )
 
-            existing = {option.opt_id: option for option in item.options.all()}
-            for option_data in latest["options"]:
-                option = existing.get(option_data["id"])
-                if option is None:
-                    CartItemOption.objects.create(
-                        cart_item=item,
-                        opt_id=option_data["id"],
-                        name=option_data["name"],
-                        price=option_data["price"],
-                        level=option_data["level"],
-                    )
-                else:
-                    option.name = option_data["name"]
-                    option.price = option_data["price"]
-                    option.level = option_data["level"]
-                    option.save(update_fields=["name", "price", "level"])
+            for co in cart_opts:
+                db_opt = co.opt
+                if co.name != db_opt.name or co.price != db_opt.price:
+                    co.name = db_opt.name
+                    co.price = db_opt.price
+                    co.save(update_fields=["name", "price"])
 
 
 def _db_data_from_cart_item(item):

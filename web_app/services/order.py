@@ -1,6 +1,13 @@
 from django.db import models, transaction
 from django.utils import timezone
 
+from web_app.constants import (
+    EXTRA_INGREDIENT_COST,
+    OPTION_BASIL,
+    OPTION_GARLIC,
+    OPTION_SPICY,
+    SYSTEM_OPTION_NAMES,
+)
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOptions, Options
 from web_app.services import cart as cart_service
 from web_app.services.exceptions import (
@@ -84,11 +91,11 @@ def format_order_options(raw_opts):
     for option_link in raw_opts:
         name = option_link.opt.name
         level = option_link.level
-        if name == "辣度":
+        if name == OPTION_SPICY:
             parts.append(SpicyLevel.display(level))
-        elif name == "加蒜":
+        elif name == OPTION_GARLIC:
             parts.append(f"加蒜頭x{level}")
-        elif name == "九層塔":
+        elif name == OPTION_BASIL:
             parts.append(f"加九層塔x{level}")
     return "｜".join(parts)
 
@@ -130,7 +137,9 @@ def create_order_from_cart(user, session, checkout_data):
         raise CheckoutPhoneRequired("結帳需要填寫聯絡電話")
 
     total = cart_service.cart_total(cart)
-    extra_cost = (data["extra_garlic_qty"] + data["extra_basil_qty"]) * 10
+    extra_cost = (
+        data["extra_garlic_qty"] + data["extra_basil_qty"]
+    ) * EXTRA_INGREDIENT_COST
     price_total = total + extra_cost
 
     with transaction.atomic():
@@ -144,9 +153,7 @@ def create_order_from_cart(user, session, checkout_data):
 
         opts = {
             option.name: option
-            for option in Options.objects.filter(
-                name__in=["辣度", "加蒜", "九層塔", "切"]
-            )
+            for option in Options.objects.filter(name__in=SYSTEM_OPTION_NAMES)
         }
 
         for item in cart:
@@ -173,17 +180,17 @@ def create_order_from_cart(user, session, checkout_data):
                         level=int(opt_data.get("level", 1)),
                     )
 
-        if "辣度" in opts:
+        if OPTION_SPICY in opts:
             OrderItemOptions.objects.create(
-                order=order, opt=opts["辣度"], level=data["spicy_level"]
+                order=order, opt=opts[OPTION_SPICY], level=data["spicy_level"]
             )
-        if data["extra_garlic_qty"] > 0 and "加蒜" in opts:
+        if data["extra_garlic_qty"] > 0 and OPTION_GARLIC in opts:
             OrderItemOptions.objects.create(
-                order=order, opt=opts["加蒜"], level=data["extra_garlic_qty"]
+                order=order, opt=opts[OPTION_GARLIC], level=data["extra_garlic_qty"]
             )
-        if data["extra_basil_qty"] > 0 and "九層塔" in opts:
+        if data["extra_basil_qty"] > 0 and OPTION_BASIL in opts:
             OrderItemOptions.objects.create(
-                order=order, opt=opts["九層塔"], level=data["extra_basil_qty"]
+                order=order, opt=opts[OPTION_BASIL], level=data["extra_basil_qty"]
             )
 
         cart_service.clear_cart(user, session)
