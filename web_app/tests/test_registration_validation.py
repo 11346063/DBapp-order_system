@@ -1,6 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from web_app.forms.login_form import LoginForm
 from web_app.models import User
 
 
@@ -11,26 +12,20 @@ class RegistrationValidationTest(TestCase):
 
     def valid_payload(self, **overrides):
         payload = {
-            "name": "新顧客",
-            "account": "new_customer",
-            "email": "customer@example.com",
             "phone_number": "0912345678",
-            "address": "",
             "password": "pass1234",
             "password_confirm": "pass1234",
         }
         payload.update(overrides)
         return payload
 
-    def test_register_rejects_invalid_email(self):
-        response = self.client.post(
-            self.url,
-            self.valid_payload(email="not-an-email"),
-        )
+    def test_register_form_uses_phone_number_as_account(self):
+        response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "請輸入有效的 Email 格式")
-        self.assertFalse(User.objects.filter(account="new_customer").exists())
+        self.assertContains(response, "手機號碼")
+        self.assertContains(response, 'name="phone_number"')
+        self.assertNotContains(response, 'name="account"')
 
     def test_register_rejects_invalid_phone_number(self):
         response = self.client.post(
@@ -40,7 +35,21 @@ class RegistrationValidationTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "請輸入有效的手機號碼")
-        self.assertFalse(User.objects.filter(account="new_customer").exists())
+        self.assertFalse(User.objects.exists())
+
+    def test_register_rejects_duplicate_phone_number(self):
+        User.objects.create_user(
+            account="0912345678",
+            password="pass",
+            name="既有顧客",
+            phone_number="0912345678",
+        )
+
+        response = self.client.post(self.url, self.valid_payload())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "此手機號碼已註冊")
+        self.assertEqual(User.objects.filter(account="0912345678").count(), 1)
 
     def test_register_accepts_formatted_taiwan_mobile_number(self):
         response = self.client.post(
@@ -49,5 +58,18 @@ class RegistrationValidationTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        created = User.objects.get(account="new_customer")
+        created = User.objects.get(account="0912345678")
         self.assertEqual(created.phone_number, "0912345678")
+        self.assertEqual(created.name, "顧客")
+        self.assertTrue(created.check_password("pass1234"))
+
+
+class PhoneLoginFormLabelTest(TestCase):
+    def test_login_form_uses_phone_number_wording(self):
+        form = LoginForm()
+
+        self.assertEqual(form.fields["account"].label, "手機號碼")
+        self.assertEqual(
+            form.fields["account"].widget.attrs["placeholder"],
+            "請輸入手機號碼",
+        )

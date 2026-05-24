@@ -26,8 +26,24 @@
     border-radius: 20px;
 }
 .status-pending   { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+.status-ready     { background: rgba(13, 202, 240, 0.15); color: #0dcaf0; }
 .status-completed { background: rgba(25, 135, 84, 0.15); color: #198754; }
 .status-cancelled { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+.ready-notice {
+    background: rgba(13, 202, 240, 0.10);
+    border: 1px solid rgba(13, 202, 240, 0.35);
+    border-radius: 8px;
+    color: #0dcaf0;
+    font-weight: 600;
+    padding: 10px 12px;
+}
+.ready-notice-time {
+    color: var(--text-secondary);
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 400;
+    margin-top: 2px;
+}
 .btn-reorder {
     background-color: var(--primary-yellow);
     color: #000;

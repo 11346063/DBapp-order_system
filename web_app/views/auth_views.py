@@ -30,7 +30,7 @@ def login_view(request):
                 next_url = request.GET.get("next", "web_app:home")
                 return redirect(next_url)
             else:
-                messages.error(request, _("帳號或密碼錯誤"))
+                messages.error(request, _("手機號碼或密碼錯誤"))
 
     return render(request, "auth/login.html", {"form": form})
 

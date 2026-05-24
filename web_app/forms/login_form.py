@@ -6,12 +6,13 @@ from captcha.fields import CaptchaField
 class LoginForm(forms.Form):
     account = forms.CharField(
         max_length=20,
-        label=_("帳號"),
+        label=_("手機號碼"),
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": _("請輸入帳號"),
+                "placeholder": _("請輸入手機號碼"),
                 "autocomplete": "username",
+                "inputmode": "tel",
             }
         ),
     )
@@ -26,3 +27,7 @@ class LoginForm(forms.Form):
         ),
     )
     captcha = CaptchaField(label=_("驗證碼"))
+
+    def clean_account(self):
+        account = self.cleaned_data["account"]
+        return account.replace(" ", "").replace("-", "")

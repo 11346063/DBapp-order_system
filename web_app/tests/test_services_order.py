@@ -177,6 +177,19 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertEqual(result["status_counts"][Order.OrderStatus.PENDING], 0)
         self.assertEqual(result["status_counts"][Order.OrderStatus.COMPLETED], 1)
 
+    def test_update_order_status_to_ready_records_notification_time(self):
+        result = order_service.update_order_status(
+            self.order.pk,
+            Order.OrderStatus.READY,
+        )
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.OrderStatus.READY)
+        self.assertIsNotNone(self.order.ready_at)
+        self.assertIsNotNone(self.order.ready_notified_at)
+        self.assertEqual(result["status_counts"][Order.OrderStatus.PENDING], 0)
+        self.assertEqual(result["status_counts"][Order.OrderStatus.READY], 1)
+
     def test_reorder_to_cart_appends_menu_items(self):
         session = {}
 

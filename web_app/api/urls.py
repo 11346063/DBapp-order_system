@@ -16,7 +16,7 @@ from web_app.api.views.menu import (
     MenuToggleAPIView,
     MenuUpdateAPIView,
 )
-from web_app.api.views.order import OrderStatusAPIView, ReorderAPIView
+from web_app.api.views.order import OrderReadyAPIView, OrderStatusAPIView, ReorderAPIView
 
 urlpatterns = [
     # Menu
@@ -61,5 +61,6 @@ urlpatterns = [
     path(
         "orders/<int:pk>/status/", OrderStatusAPIView.as_view(), name="api_order_status"
     ),
+    path("orders/<int:pk>/ready/", OrderReadyAPIView.as_view(), name="api_order_ready"),
     path("orders/reorder/", ReorderAPIView.as_view(), name="api_reorder"),
 ]

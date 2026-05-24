@@ -9,8 +9,8 @@ Props:
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
                 <span class="fw-bold" style="color: var(--text-primary);">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
-                <span class="status-badge ms-2 {% if order.status == 0 %}status-pending{% elif order.status == 1 %}status-completed{% else %}status-cancelled{% endif %}">
-                    {% if order.status == 0 %}{% trans "處理中" %}{% elif order.status == 1 %}{% trans "已完成" %}{% else %}{% trans "已取消" %}{% endif %}
+                <span class="status-badge ms-2 {% if order.status == 0 %}status-pending{% elif order.status == 3 %}status-ready{% elif order.status == 1 %}status-completed{% else %}status-cancelled{% endif %}">
+                    {% if order.status == 0 %}{% trans "處理中" %}{% elif order.status == 3 %}{% trans "可取餐" %}{% elif order.status == 1 %}{% trans "已完成" %}{% else %}{% trans "已取消" %}{% endif %}
                 </span>
             </div>
             <small style="color: var(--text-secondary);">{{ order.create_time|date:"Y/m/d H:i" }}</small>
@@ -28,6 +28,16 @@ Props:
             {% if order.remark %}
             <div class="mb-3 pb-2" style="border-bottom: 1px solid var(--border-color);">
                 <small style="color: var(--text-secondary);"><i class="bi bi-chat-left-text me-1"></i>{{ order.remark }}</small>
+            </div>
+            {% endif %}
+
+            {% if order.status == 3 %}
+            <div class="ready-notice mb-3">
+                <i class="bi bi-bell-fill me-1"></i>
+                {% trans "餐點已完成，請至櫃台取餐" %}
+                {% if order.ready_notified_at %}
+                <span class="ready-notice-time">{{ order.ready_notified_at|date:"m/d H:i" }}</span>
+                {% endif %}
             </div>
             {% endif %}
 

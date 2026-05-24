@@ -34,6 +34,11 @@ Props:
                 <small class="text-secondary"><i class="bi bi-chat-left-text"></i> {{ order.remark }}</small>
             </div>
             {% endif %}
+            {% if order.ready_notified_at %}
+            <div class="mb-2 px-2 py-1 rounded" style="background:rgba(13,202,240,.10); border-left:3px solid #0dcaf0;">
+                <small class="text-info"><i class="bi bi-bell"></i> {% trans "已通知取餐：" %}{{ order.ready_notified_at|date:"m/d H:i" }}</small>
+            </div>
+            {% endif %}
             <div class="mb-3">
                 {% for item in order.items %}
                 <div class="d-flex justify-content-between align-items-start py-1" style="color: var(--text-primary);">
@@ -53,6 +58,13 @@ Props:
                 <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>
                 <div class="d-flex gap-2">
                     {% if current_status == 0 %}
+                    <button class="btn btn-sm btn-info text-dark" onclick="updateOrderStatus({{ order.pk }}, 3)">
+                        <i class="bi bi-bell"></i> {% trans "通知取餐" %}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 2)">
+                        <i class="bi bi-x-lg"></i> {% trans "取消" %}
+                    </button>
+                    {% elif current_status == 3 %}
                     <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 1)">
                         <i class="bi bi-check-lg"></i> {% trans "完成" %}
                     </button>

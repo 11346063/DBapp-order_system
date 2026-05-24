@@ -25,6 +25,7 @@ class StaffNavigationBadgeTest(TestCase):
         Order.objects.create(status=0, price_total=100, create_time=now)
         Order.objects.create(status=1, price_total=200, create_time=now)
         Order.objects.create(status=2, price_total=300, create_time=now)
+        Order.objects.create(status=3, price_total=350, create_time=now)
         Order.objects.create(
             user=self.employee,
             status=0,
@@ -38,22 +39,25 @@ class StaffNavigationBadgeTest(TestCase):
 
         response = self.client.get(reverse("web_app:staff_orders"))
 
-        self.assertContains(response, "staff-nav-label", count=6)
-        self.assertContains(response, "staff-status-badge", count=6)
+        self.assertContains(response, "staff-nav-label", count=8)
+        self.assertContains(response, "staff-status-badge", count=8)
         self.assertContains(response, 'data-status-count="0"', count=2)
         self.assertContains(response, 'data-status-count="1"', count=2)
         self.assertContains(response, 'data-status-count="2"', count=2)
+        self.assertContains(response, 'data-status-count="3"', count=2)
         self.assertContains(response, "等待中")
+        self.assertContains(response, "可取餐")
         self.assertContains(response, "已完成")
         self.assertContains(response, "已取消")
         self.assertContains(response, "css/staff.css")
         self.assertContains(response, "?v=2")
         self.assertContains(response, "js/staff.js")
-        self.assertContains(response, "?v=5")
+        self.assertContains(response, "?v=6")
         self.assertContains(response, 'id="orderStatusConfirmModal"')
         self.assertContains(response, "確認更新訂單")
         self.assertContains(response, "電話客人")
         self.assertContains(response, "0912345678")
+        self.assertContains(response, "通知取餐")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")
@@ -61,7 +65,7 @@ class StaffNavigationBadgeTest(TestCase):
         response = self.client.get(reverse("web_app:staff_report"))
 
         self.assertIsNone(response.context["current_status"])
-        self.assertContains(response, "staff-status-badge", count=6)
+        self.assertContains(response, "staff-status-badge", count=8)
         self.assertContains(response, reverse("web_app:staff_report"))
         self.assertContains(response, "報表")
 
@@ -81,3 +85,37 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertEqual(data["data"]["status_counts"]["0"], 1)
         self.assertEqual(data["data"]["status_counts"]["1"], 2)
         self.assertEqual(data["data"]["status_counts"]["2"], 1)
+        self.assertEqual(data["data"]["status_counts"]["3"], 1)
+
+    def test_status_update_to_ready_records_notification_time(self):
+        self.client.login(username="staff_nav_employee", password="pass")
+        order = Order.objects.filter(status=0).first()
+
+        response = self.client.post(
+            reverse("web_app:api_order_status", kwargs={"pk": order.pk}),
+            data=json.dumps({"status": 3}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.READY)
+        self.assertIsNotNone(order.ready_at)
+        self.assertIsNotNone(order.ready_notified_at)
+        data = response.json()
+        self.assertEqual(data["data"]["status_counts"]["0"], 1)
+        self.assertEqual(data["data"]["status_counts"]["3"], 2)
+
+    def test_ready_endpoint_records_notification_time(self):
+        self.client.login(username="staff_nav_employee", password="pass")
+        order = Order.objects.filter(status=0).first()
+
+        response = self.client.post(
+            reverse("web_app:api_order_ready", kwargs={"pk": order.pk}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.READY)
+        self.assertIsNotNone(order.ready_at)
+        self.assertIsNotNone(order.ready_notified_at)

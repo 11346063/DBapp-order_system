@@ -5,7 +5,7 @@ from web_app.models import Order
 class OrderStatusSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
         choices=Order.OrderStatus.choices,
-        help_text="訂單狀態：0=等待中、1=已完成、2=已取消",
+        help_text="訂單狀態：0=等待中、1=已完成、2=已取消、3=可取餐",
         default=Order.OrderStatus.COMPLETED,
     )
 

@@ -35,8 +35,9 @@ _OrderStatusSuccessResponse = inline_serializer(
                     name="StatusCounts",
                     fields={
                         "0": serializers.IntegerField(help_text="待處理訂單數量"),
-                        "1": serializers.IntegerField(help_text="備餐中訂單數量"),
-                        "2": serializers.IntegerField(help_text="已完成訂單數量"),
+                        "1": serializers.IntegerField(help_text="已完成訂單數量"),
+                        "2": serializers.IntegerField(help_text="已取消訂單數量"),
+                        "3": serializers.IntegerField(help_text="可取餐訂單數量"),
                     },
                 )
             },
@@ -69,14 +70,14 @@ _status_update_responses = {
                 value={
                     "status": "success",
                     "message": "操作成功",
-                    "data": {"status_counts": {"0": 3, "1": 2, "2": 10}},
+                    "data": {"status_counts": {"0": 3, "1": 2, "2": 1, "3": 4}},
                 },
             )
         ],
     ),
     400: OpenApiResponse(
         response=_ErrorResponse,
-        description="`status` 值不在允許範圍（0、1、2）",
+        description="`status` 值不在允許範圍（0、1、2、3）",
         examples=[
             OpenApiExample(
                 "無效狀態值",
@@ -115,8 +116,9 @@ class OrderStatusAPIView(APIView):
             "**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份。\n\n"
             "訂單狀態對照：\n"
             "- `0` — 待處理\n"
-            "- `1` — 備餐中\n"
-            "- `2` — 完成"
+            "- `1` — 完成\n"
+            "- `2` — 取消\n"
+            "- `3` — 可取餐"
         ),
         tags=["訂單"],
         request=OrderStatusSerializer,
@@ -132,8 +134,9 @@ class OrderStatusAPIView(APIView):
             "**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份。\n\n"
             "訂單狀態對照：\n"
             "- `0` — 待處理\n"
-            "- `1` — 備餐中\n"
-            "- `2` — 完成"
+            "- `1` — 完成\n"
+            "- `2` — 取消\n"
+            "- `3` — 可取餐"
         ),
         tags=["訂單"],
         request=OrderStatusSerializer,
@@ -152,6 +155,26 @@ class OrderStatusAPIView(APIView):
                     serializer.validated_data["status"],
                 )
             )
+        except NotFoundError as exc:
+            return api_error(exc.message, status=exc.status_code)
+
+
+class OrderReadyAPIView(APIView):
+    permission_classes = [IsEmployee]
+
+    @extend_schema(
+        summary="通知顧客取餐",
+        description=(
+            "將指定訂單標記為可取餐，並寫入 `ready_at` 與 `ready_notified_at`。"
+            "第一版通知以站內狀態顯示為主。"
+        ),
+        tags=["訂單"],
+        request=None,
+        responses=_status_update_responses,
+    )
+    def post(self, request, pk):
+        try:
+            return api_success(order_service.mark_order_ready(pk))
         except NotFoundError as exc:
             return api_error(exc.message, status=exc.status_code)
 

@@ -61,6 +61,7 @@ def order_status_counts():
     status = Order.OrderStatus
     return {
         status.PENDING: Order.objects.filter(status=status.PENDING).count(),
+        status.READY: Order.objects.filter(status=status.READY).count(),
         status.COMPLETED: Order.objects.filter(status=status.COMPLETED).count(),
         status.CANCELLED: Order.objects.filter(status=status.CANCELLED).count(),
     }
@@ -87,8 +88,18 @@ def update_order_status(order_id, status):
         raise NotFoundError("找不到此訂單") from exc
 
     order.status = status
-    order.save(update_fields=["status"])
+    update_fields = ["status"]
+    if status == Order.OrderStatus.READY:
+        now = timezone.now()
+        order.ready_at = now
+        order.ready_notified_at = now
+        update_fields.extend(["ready_at", "ready_notified_at"])
+    order.save(update_fields=update_fields)
     return {"status_counts": order_status_counts()}
+
+
+def mark_order_ready(order_id):
+    return update_order_status(order_id, Order.OrderStatus.READY)
 
 
 def create_order_from_cart(user, session, checkout_data):
