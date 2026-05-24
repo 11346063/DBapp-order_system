@@ -15,12 +15,15 @@ Props:
             <div class="mb-2">
                 <small class="text-secondary">{% trans "顧客：" %}</small>
                 <span class="text-white">
-                    {% if order.customer_phone %}{% trans "電話客人" %}{% elif order.user %}{{ order.user.name }}{% else %}{% trans "訪客" %}{% endif %}
+                    {% if order.user.identity == 'A' or order.user.identity == 'E' %}{% trans "電話客人" %}{% elif order.user %}{{ order.user.name }}{% else %}{% trans "訪客" %}{% endif %}
                 </span>
             </div>
             {% if order.customer_phone %}
             <div class="mb-2">
-                <small class="text-secondary"><i class="bi bi-telephone"></i> {% trans "電話：" %}</small>
+                <small class="text-secondary">
+                    <i class="bi bi-telephone"></i>
+                    {% if order.user.identity == 'A' or order.user.identity == 'E' %}{% trans "客人電話：" %}{% else %}{% trans "聯絡電話：" %}{% endif %}
+                </small>
                 <span class="text-white">{{ order.customer_phone }}</span>
             </div>
             {% endif %}

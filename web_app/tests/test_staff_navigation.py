@@ -33,6 +33,12 @@ class StaffNavigationBadgeTest(TestCase):
             create_time=now,
             customer_phone="0912345678",
         )
+        Order.objects.create(
+            status=0,
+            price_total=500,
+            create_time=now,
+            customer_phone="0922333444",
+        )
 
     def test_staff_order_tabs_use_right_aligned_badge_structure(self):
         self.client.login(username="staff_nav_employee", password="pass")
@@ -56,7 +62,11 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, 'id="orderStatusConfirmModal"')
         self.assertContains(response, "確認更新訂單")
         self.assertContains(response, "電話客人")
+        self.assertContains(response, "客人電話")
         self.assertContains(response, "0912345678")
+        self.assertContains(response, "訪客")
+        self.assertContains(response, "聯絡電話")
+        self.assertContains(response, "0922333444")
         self.assertContains(response, "通知取餐")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
@@ -82,7 +92,7 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["status"], "success")
-        self.assertEqual(data["data"]["status_counts"]["0"], 1)
+        self.assertEqual(data["data"]["status_counts"]["0"], 2)
         self.assertEqual(data["data"]["status_counts"]["1"], 2)
         self.assertEqual(data["data"]["status_counts"]["2"], 1)
         self.assertEqual(data["data"]["status_counts"]["3"], 1)
@@ -103,7 +113,7 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertIsNotNone(order.ready_at)
         self.assertIsNotNone(order.ready_notified_at)
         data = response.json()
-        self.assertEqual(data["data"]["status_counts"]["0"], 1)
+        self.assertEqual(data["data"]["status_counts"]["0"], 2)
         self.assertEqual(data["data"]["status_counts"]["3"], 2)
 
     def test_ready_endpoint_records_notification_time(self):
