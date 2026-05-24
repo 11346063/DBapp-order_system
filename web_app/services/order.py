@@ -136,7 +136,6 @@ def create_order_from_cart(user, session, checkout_data):
     with transaction.atomic():
         order = Order.objects.create(
             user=user if user.is_authenticated else None,
-            create_time=timezone.now(),
             status=Order.OrderStatus.PENDING,
             price_total=price_total,
             remark=data["remark"],
@@ -153,8 +152,10 @@ def create_order_from_cart(user, session, checkout_data):
         for item in cart:
             try:
                 menu = Menu.objects.get(pk=item["menu_id"])
-            except Menu.DoesNotExist:
-                continue
+            except Menu.DoesNotExist as exc:
+                raise NotFoundError(
+                    "購物車中有餐點已下架或不存在，請重新整理購物車"
+                ) from exc
 
             order_item = OrderItem.objects.create(
                 order=order,
@@ -166,14 +167,11 @@ def create_order_from_cart(user, session, checkout_data):
             for opt_data in item.get("options", []):
                 opt_id = opt_data.get("id")
                 if opt_id and opt_id != 0:
-                    try:
-                        OrderItemOptions.objects.create(
-                            order_item=order_item,
-                            opt_id=opt_id,
-                            level=int(opt_data.get("level", 1)),
-                        )
-                    except Exception:
-                        pass
+                    OrderItemOptions.objects.create(
+                        order_item=order_item,
+                        opt_id=opt_id,
+                        level=int(opt_data.get("level", 1)),
+                    )
 
         if "辣度" in opts:
             OrderItemOptions.objects.create(

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class Order(models.Model):
@@ -9,7 +10,7 @@ class Order(models.Model):
         READY = 3, "可取餐"
 
     user = models.ForeignKey("User", on_delete=models.SET_NULL, null=True, blank=True)
-    create_time = models.DateTimeField()
+    create_time = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(
         choices=OrderStatus.choices, default=OrderStatus.PENDING
     )

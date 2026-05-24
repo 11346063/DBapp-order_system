@@ -33,7 +33,7 @@ def _check_staff_permission(request):
     if not request.user.is_authenticated:
         return redirect("web_app:login")
     if request.user.identity not in (Identity.ADMIN, Identity.EMPLOYEE):
-        return _json({"error": "權限不足"}, status=403)
+        return _json({"status": "error", "message": "權限不足"}, status=403)
     return None
 
 
@@ -41,7 +41,7 @@ def _check_admin_permission(request):
     if not request.user.is_authenticated:
         return redirect("web_app:login")
     if request.user.identity != Identity.ADMIN:
-        return _json({"error": "權限不足"}, status=403)
+        return _json({"status": "error", "message": "權限不足"}, status=403)
     return None
 
 
@@ -55,7 +55,9 @@ def menu_toggle_status(request, pk):
     try:
         return _json(menu_service.toggle_menu_status(pk))
     except NotFoundError as exc:
-        return _json({"error": exc.message}, status=exc.status_code)
+        return _json(
+            {"status": "error", "message": exc.message}, status=exc.status_code
+        )
 
 
 @require_POST
@@ -67,7 +69,7 @@ def menu_edit(request, pk):
 
     data = _parse_menu_request(request)
     if data is None:
-        return _json({"error": "無效的 JSON"}, status=400)
+        return _json({"status": "error", "message": "無效的 JSON"}, status=400)
 
     try:
         menu = menu_service.update_menu_item(
@@ -76,9 +78,13 @@ def menu_edit(request, pk):
             request.FILES.get("file_path"),
         )
     except NotFoundError as exc:
-        return _json({"error": exc.message}, status=exc.status_code)
+        return _json(
+            {"status": "error", "message": exc.message}, status=exc.status_code
+        )
     except ValidationServiceError as exc:
-        return _json({"error": exc.message}, status=exc.status_code)
+        return _json(
+            {"status": "error", "message": exc.message}, status=exc.status_code
+        )
 
     return _json(menu_service.menu_payload(menu))
 
@@ -92,11 +98,13 @@ def menu_create(request):
 
     data = _parse_menu_request(request)
     if data is None:
-        return _json({"error": "無效的 JSON"}, status=400)
+        return _json({"status": "error", "message": "無效的 JSON"}, status=400)
 
     try:
         menu = menu_service.create_menu_item(data, request.FILES.get("file_path"))
     except ValidationServiceError as exc:
-        return _json({"error": exc.message}, status=exc.status_code)
+        return _json(
+            {"status": "error", "message": exc.message}, status=exc.status_code
+        )
 
     return _json(menu_service.menu_payload(menu), status=201)
