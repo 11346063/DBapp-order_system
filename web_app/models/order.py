@@ -19,3 +19,9 @@ class Order(models.Model):
     customer_phone = models.CharField(max_length=20, blank=True, default="")
     ready_at = models.DateTimeField(null=True, blank=True)
     ready_notified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            # 後台常以電話號碼查詢訂單，加速單欄位查找
+            models.Index(fields=["customer_phone"], name="order_customer_phone_idx"),
+        ]

@@ -12,6 +12,10 @@ class Menu(models.Model):
     options = models.ManyToManyField("Options", through="OptGroup")
 
     class Meta:
+        indexes = [
+            # 菜單頁常以 (type, status) 過濾，加速分類+上架狀態的複合查詢
+            models.Index(fields=["type", "status"], name="menu_type_status_idx"),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(price__gte=0),

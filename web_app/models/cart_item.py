@@ -15,6 +15,10 @@ class CartItem(models.Model):
 
     class Meta:
         ordering = ["sort_order", "id"]
+        indexes = [
+            # 購物車頁常以 (cart, menu) 查詢同品項，加速重複品項偵測
+            models.Index(fields=["cart", "menu"], name="cartitem_cart_menu_idx"),
+        ]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(quantity__gt=0),
