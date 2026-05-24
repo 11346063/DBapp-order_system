@@ -1,7 +1,9 @@
 from django.shortcuts import render
+from ...decorators import admin_required
 from ...forms.type_form import TypeForm
 
 
+@admin_required
 def typeCreate(request):
     form = TypeForm()
 
