@@ -67,6 +67,9 @@
     </div>
     <div class="offcanvas-body">
         {% if user.identity != 'A' and user.identity != 'E' %}
+        <a href="{% url 'web_app:profile' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
+            <i class="bi bi-person-lines-fill me-2"></i>{% trans "個人資料" %}
+        </a>
         <a href="{% url 'web_app:order_history' %}" class="d-block py-2 text-decoration-none" style="color: var(--text-primary);">
             <i class="bi bi-clock-history me-2"></i>{% trans "歷史訂單" %}
         </a>

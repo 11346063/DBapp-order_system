@@ -49,6 +49,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     {% if user.identity != 'A' and user.identity != 'E' %}
+                    <li><a class="dropdown-item" href="{% url 'web_app:profile' %}"><i class="bi bi-person-lines-fill"></i> {% trans "個人資料" %}</a></li>
                     <li><a class="dropdown-item" href="{% url 'web_app:order_history' %}"><i class="bi bi-clock-history"></i> {% trans "歷史訂單" %}</a></li>
                     {% endif %}
                     {% if user.identity == 'A' or user.identity == 'E' %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}{% trans "個人資料" %} — 絕佳食雞{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="card card-dark auth-card">
+        <div class="card-body p-4">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{% url 'web_app:home' %}" class="me-3" style="color: var(--text-primary); text-decoration: none;">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+                <div>
+                    <h4 class="text-white mb-1">{% trans "個人資料" %}</h4>
+                    <small class="text-secondary">{% trans "補齊常用聯絡資訊" %}</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-secondary small">{% trans "登入手機號碼" %}</label>
+                <input class="form-control" value="{{ user.phone_number|default:user.account }}" disabled>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                {% for field in form %}
+                {% include 'includes/components/form_field.html' with field=field error_mode='first' %}
+                {% endfor %}
+
+                <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
+                    <i class="bi bi-check-circle"></i> {% trans "儲存資料" %}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

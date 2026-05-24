@@ -40,6 +40,7 @@ class NavigationVisibilityTest(TestCase):
         response = self.client.get(reverse("web_app:home"))
 
         self.assertContains(response, f'href="{reverse("web_app:order_history")}"')
+        self.assertContains(response, f'href="{reverse("web_app:profile")}"')
         self.assertContains(response, f'href="{reverse("web_app:cart")}"')
 
     def test_admin_navigation_hides_customer_history_but_keeps_cart(self):

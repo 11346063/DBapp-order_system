@@ -10,6 +10,7 @@ from web_app.views.cart import cart_view
 from web_app.views.home import assisted_ordering_view, home_view
 from web_app.views.order_history import order_history_view
 from web_app.views.payment import order_submit, payment_view
+from web_app.views.profile import profile_view
 from web_app.views.staff import account_management, staff_order_list, staff_report
 from web_app.views.type.type_views import typeCreate
 
@@ -26,6 +27,7 @@ urlpatterns = [
     path("order/submit/", order_submit, name="order_submit"),
     # 訂單歷史
     path("orders/", order_history_view, name="order_history"),
+    path("profile/", profile_view, name="profile"),
     # 身份認證
     path("login/", login_view, name="login"),
     path("register/", register_view, name="register"),
