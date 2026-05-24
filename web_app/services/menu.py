@@ -134,14 +134,17 @@ def search_menus(queryset, query):
     )
 
 
+def _sort(queryset, query):
+    return search_menus(queryset, query).order_by("type__type_name", "name")
+
+
 def visible_menus_for_user(user, query=""):
     if user.is_authenticated and user.identity in (Identity.ADMIN, Identity.EMPLOYEE):
         menus = Menu.objects.select_related("type").all()
     else:
         menus = Menu.objects.select_related("type").filter(status=True)
-    return search_menus(menus, query).order_by("type__type_name", "name")
+    return _sort(menus, query)
 
 
 def assisted_ordering_menus(query=""):
-    menus = Menu.objects.select_related("type").filter(status=True)
-    return search_menus(menus, query).order_by("type__type_name", "name")
+    return _sort(Menu.objects.select_related("type").filter(status=True), query)

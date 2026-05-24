@@ -4,7 +4,7 @@ Props:
   - item (required): cart item dict/object
   - index (required): zero-based cart index used by cart.js
 {% endcomment %}
-<div class="card card-dark mb-3 cart-item" data-index="{{ index }}">
+<div class="card card-dark mb-3 cart-item" data-index="{{ index }}" data-unit-price="{{ item.unit_price }}">
     <div class="card-body d-flex align-items-center gap-3">
         <div class="flex-grow-1">
             <h6 class="text-white mb-1">{{ item.name }}</h6>

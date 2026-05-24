@@ -6,9 +6,13 @@ function updateCartQty(index, delta) {
     postJSON('/api/cart/update/', { index: index, quantity: qty })
         .then(data => {
             if (data.status === 'success') {
+                const itemEl = document.querySelector(`.cart-item[data-index="${index}"]`);
+                const unitPrice = parseInt(itemEl?.dataset.unitPrice || 0);
                 qtyEl.textContent = qty;
-                document.getElementById('cartTotal').textContent = `$${data.data.total}`;
-                location.reload();
+                const subtotalEl = document.getElementById(`subtotal-${index}`);
+                if (subtotalEl) subtotalEl.textContent = `$${unitPrice * qty}`;
+                const totalEl = document.getElementById('cartTotal');
+                if (totalEl) totalEl.textContent = `$${data.data.total}`;
             }
         })
         .catch(() => {});
