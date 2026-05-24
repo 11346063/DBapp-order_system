@@ -27,12 +27,6 @@ function money(value) {
     return '$' + value;
 }
 
-function escapeHtml(value) {
-    const div = document.createElement('div');
-    div.textContent = value == null ? '' : String(value);
-    return div.innerHTML;
-}
-
 function setSubmitLoading(button, isLoading) {
     if (!button) return;
     button.disabled = isLoading;

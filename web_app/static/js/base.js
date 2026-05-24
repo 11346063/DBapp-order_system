@@ -96,3 +96,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     });
 });
+
+/* ===== Shared Utilities ===== */
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+}

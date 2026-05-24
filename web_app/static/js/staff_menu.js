@@ -215,18 +215,12 @@ function _renderCardImage(card, imageUrl, name) {
     if (iconEl) iconEl.classList.remove('d-none');
 }
 
-function _escapeHtml(value) {
-    const div = document.createElement('div');
-    div.textContent = value == null ? '' : String(value);
-    return div.innerHTML;
-}
-
 function _appendNewCard(item) {
     const grid = document.getElementById('menuGrid');
     if (!grid) return;
 
-    const safeName = _escapeHtml(item.name);
-    const safeImageUrl = _escapeHtml(item.image_url);
+    const safeName = escapeHtml(item.name);
+    const safeImageUrl = escapeHtml(item.image_url);
 
     const col = document.createElement('div');
     col.className = 'col-6 col-md-4 col-lg-3 menu-item';

@@ -5,6 +5,15 @@ from web_app.models import Identity, User
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 
+def _validate_phone_field(phone_number):
+    try:
+        return normalize_tw_mobile(phone_number)
+    except PhoneValidationError as exc:
+        raise ValidationError(
+            _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
+        ) from exc
+
+
 class PasswordConfirmMixin(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
@@ -57,13 +66,7 @@ class RegisterForm(PasswordConfirmMixin, forms.ModelForm):
         }
 
     def clean_phone_number(self):
-        phone_number = self.cleaned_data.get("phone_number", "")
-        try:
-            normalized = normalize_tw_mobile(phone_number)
-        except PhoneValidationError as exc:
-            raise ValidationError(
-                _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
-            ) from exc
+        normalized = _validate_phone_field(self.cleaned_data.get("phone_number", ""))
         if User.objects.filter(account=normalized).exists():
             raise ValidationError(_("此手機號碼已註冊"))
         return normalized
@@ -158,11 +161,4 @@ class AdminAccountCreateForm(PasswordConfirmMixin, forms.ModelForm):
         }
 
     def clean_phone_number(self):
-        phone_number = self.cleaned_data.get("phone_number", "")
-        try:
-            normalized = normalize_tw_mobile(phone_number)
-        except PhoneValidationError as exc:
-            raise ValidationError(
-                _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
-            ) from exc
-        return normalized
+        return _validate_phone_field(self.cleaned_data.get("phone_number", ""))
