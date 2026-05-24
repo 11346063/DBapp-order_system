@@ -15,8 +15,8 @@ from .models.opt_group import OptGroup
 #     extra = 0  # 預設不額外顯示空白列
 #     readonly_fields = ('total_price',) # 總價通常由系統計算
 
-# class OrderItemOptionsInline(admin.TabularInline):
-#     model = OrderItemOptions
+# class OrderItemOptionInline(admin.TabularInline):
+#     model = OrderItemOption
 #     extra = 0
 
 # --- 2. Order 客製化：核心 CRUD 介面 ---
@@ -30,7 +30,7 @@ from .models.opt_group import OptGroup
 #     ordering = ('-created_at',)
 
 #     # 將關聯模型內聯進訂單編輯頁面
-#     # inlines = [OrderItemInline, OrderItemOptionsInline]
+#     # inlines = [OrderItemInline, OrderItemOptionInline]
 
 #     # B. 表單欄位分組 (Fieldsets)
 #     fieldsets = (

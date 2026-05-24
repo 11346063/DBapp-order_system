@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class OrderItemOptions(models.Model):
+class OrderItemOption(models.Model):
     order = models.ForeignKey("Order", on_delete=models.CASCADE, null=True, blank=True)
     order_item = models.ForeignKey(
         "OrderItem", on_delete=models.CASCADE, null=True, blank=True
@@ -16,6 +16,6 @@ class OrderItemOptions(models.Model):
                     models.Q(order__isnull=False, order_item__isnull=True)
                     | models.Q(order__isnull=True, order_item__isnull=False)
                 ),
-                name="orderitemoptions_exactly_one_fk",
+                name="orderitemoption_exactly_one_fk",
             )
         ]

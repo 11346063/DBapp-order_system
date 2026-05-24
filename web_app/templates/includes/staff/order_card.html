@@ -49,7 +49,7 @@ Props:
                         <i class="bi bi-dot fs-5"></i>
                         {{ item.menu.name }}
                         <span class="text-yellow fw-bold">x{{ item.amount }}</span>
-                        {% for oi_opt in item.orderitemoptions_set.all %}
+                        {% for oi_opt in item.orderitemoption_set.all %}
                         <span class="text-secondary small ms-1">（{% if oi_opt.opt.name == "切" %}{% if oi_opt.level == 1 %}切{% else %}不切{% endif %}{% else %}{{ oi_opt.opt.name }}{% endif %}）</span>
                         {% endfor %}
                     </span>

@@ -8,7 +8,7 @@ from web_app.constants import (
     OPTION_SPICY,
     SYSTEM_OPTION_NAMES,
 )
-from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOptions, Options
+from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
 from web_app.services.exceptions import (
     CheckoutPhoneRequired,
@@ -174,22 +174,22 @@ def create_order_from_cart(user, session, checkout_data):
             for opt_data in item.get("options", []):
                 opt_id = opt_data.get("id")
                 if opt_id and opt_id != 0:
-                    OrderItemOptions.objects.create(
+                    OrderItemOption.objects.create(
                         order_item=order_item,
                         opt_id=opt_id,
                         level=int(opt_data.get("level", 1)),
                     )
 
         if OPTION_SPICY in opts:
-            OrderItemOptions.objects.create(
+            OrderItemOption.objects.create(
                 order=order, opt=opts[OPTION_SPICY], level=data["spicy_level"]
             )
         if data["extra_garlic_qty"] > 0 and OPTION_GARLIC in opts:
-            OrderItemOptions.objects.create(
+            OrderItemOption.objects.create(
                 order=order, opt=opts[OPTION_GARLIC], level=data["extra_garlic_qty"]
             )
         if data["extra_basil_qty"] > 0 and OPTION_BASIL in opts:
-            OrderItemOptions.objects.create(
+            OrderItemOption.objects.create(
                 order=order, opt=opts[OPTION_BASIL], level=data["extra_basil_qty"]
             )
 

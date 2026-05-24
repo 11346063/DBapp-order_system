@@ -8,7 +8,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
-from web_app.models import Identity, Order, OrderItem, OrderItemOptions, User
+from web_app.models import Identity, Order, OrderItem, OrderItemOption, User
 from web_app.decorators import employee_required, admin_required
 from web_app.services import order as order_service
 
@@ -40,7 +40,7 @@ def staff_order_list(request):
             .select_related("menu")
             .prefetch_related("orderitemoptions_set__opt")
         )
-        raw_opts = OrderItemOptions.objects.filter(
+        raw_opts = OrderItemOption.objects.filter(
             order=order, order_item=None
         ).select_related("opt")
         order.order_opts = order_service.format_order_options(raw_opts)

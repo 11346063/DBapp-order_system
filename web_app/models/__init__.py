@@ -6,7 +6,7 @@ from .menu import Menu as Menu
 from .order_item import OrderItem as OrderItem
 from .options import Options as Options
 from .opt_group import OptGroup as OptGroup
-from .order_item_options import OrderItemOptions as OrderItemOptions
+from .order_item_options import OrderItemOption as OrderItemOption
 from .user import Identity as Identity
 from .user import User as User
 from .order import Order as Order

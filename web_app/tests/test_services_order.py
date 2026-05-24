@@ -7,7 +7,7 @@ from web_app.models import (
     Options,
     Order,
     OrderItem,
-    OrderItemOptions,
+    OrderItemOption,
     Type,
     User,
 )
@@ -88,13 +88,13 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(item.amount, 2)
         self.assertEqual(item.total_price, 160)
 
-        item_option = OrderItemOptions.objects.get(order_item=item)
+        item_option = OrderItemOption.objects.get(order_item=item)
         self.assertEqual(item_option.opt, self.cut_option)
         self.assertEqual(item_option.level, 1)
 
         order_options = {
             option.opt.name: option.level
-            for option in OrderItemOptions.objects.filter(order=order)
+            for option in OrderItemOption.objects.filter(order=order)
         }
         self.assertEqual(order_options, {"辣度": 2, "加蒜": 2, "九層塔": 1})
 
