@@ -5,7 +5,17 @@ from web_app.models import Identity, User
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 
-class RegisterForm(forms.ModelForm):
+class PasswordConfirmMixin(forms.Form):
+    def clean(self):
+        cleaned_data = super().clean()
+        pw = cleaned_data.get("password")
+        pw2 = cleaned_data.get("password_confirm")
+        if pw and pw2 and pw != pw2:
+            self.add_error("password_confirm", _("兩次密碼不一致"))
+        return cleaned_data
+
+
+class RegisterForm(PasswordConfirmMixin, forms.ModelForm):
     phone_number = forms.CharField(
         label=_("手機號碼 *"),
         required=True,
@@ -58,14 +68,6 @@ class RegisterForm(forms.ModelForm):
             raise ValidationError(_("此手機號碼已註冊"))
         return normalized
 
-    def clean(self):
-        cleaned_data = super().clean()
-        pw = cleaned_data.get("password")
-        pw2 = cleaned_data.get("password_confirm")
-        if pw and pw2 and pw != pw2:
-            self.add_error("password_confirm", _("兩次密碼不一致"))
-        return cleaned_data
-
     def save(self, commit=True):
         user = super().save(commit=False)
         phone_number = self.cleaned_data["phone_number"]
@@ -78,7 +80,7 @@ class RegisterForm(forms.ModelForm):
         return user
 
 
-class AdminAccountCreateForm(forms.ModelForm):
+class AdminAccountCreateForm(PasswordConfirmMixin, forms.ModelForm):
     email = forms.EmailField(
         label="Email",
         required=False,
@@ -164,11 +166,3 @@ class AdminAccountCreateForm(forms.ModelForm):
                 _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
             ) from exc
         return normalized
-
-    def clean(self):
-        cleaned_data = super().clean()
-        pw = cleaned_data.get("password")
-        pw2 = cleaned_data.get("password_confirm")
-        if pw and pw2 and pw != pw2:
-            self.add_error("password_confirm", _("兩次密碼不一致"))
-        return cleaned_data

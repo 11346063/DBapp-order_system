@@ -146,7 +146,7 @@ def adjust_item(user, data):
 
     items = cart_items(user)
     return {
-        "cart_count": sum(i["quantity"] for i in items),
+        "cart_count": _summarize(items)["cart_count"],
         "item_quantity": item_quantity,
     }
 
@@ -178,7 +178,7 @@ def remove_last_item_by_menu(user, menu_id):
         item.delete()
     items = cart_items(user)
     return {
-        "cart_count": sum(i["quantity"] for i in items),
+        "cart_count": _summarize(items)["cart_count"],
         "item_quantity": sum(i["quantity"] for i in items if i["menu_id"] == menu_id),
     }
 

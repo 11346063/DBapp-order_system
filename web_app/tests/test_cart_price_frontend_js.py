@@ -128,6 +128,11 @@ class CartPriceFrontendJsTest(SimpleTestCase):
             }};
           }},
         }};
+        global.escapeHtml = function(value) {{
+          const div = document.createElement('div');
+          div.textContent = value == null ? '' : String(value);
+          return div.innerHTML;
+        }};
         global.postJSON = (url, payload) => {{
           calls.push(url);
           assert.deepEqual(payload, {{}});
