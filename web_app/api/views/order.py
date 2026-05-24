@@ -13,9 +13,8 @@ from web_app.api.serializers.order import (
     OrderStatusSerializer,
     ReorderSerializer,
 )
-from web_app.api.utils import api_error, api_success
+from web_app.api.utils import api_success
 from web_app.services import order as order_service
-from web_app.services.exceptions import NotFoundError, ValidationServiceError
 
 # ---------- 共用 inline schema ----------
 
@@ -141,19 +140,13 @@ class OrderStatusAPIView(APIView):
     )
     def patch(self, request, pk):
         serializer = OrderStatusSerializer(data=request.data)
-        if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
-
-        try:
-            return api_success(
-                order_service.update_order_status(
-                    pk,
-                    serializer.validated_data["status"],
-                )
+        serializer.is_valid(raise_exception=True)
+        return api_success(
+            order_service.update_order_status(
+                pk,
+                serializer.validated_data["status"],
             )
-        except NotFoundError as exc:
-            return api_error(exc.message, status=exc.status_code)
+        )
 
 
 class OrderReadyAPIView(APIView):
@@ -169,10 +162,7 @@ class OrderReadyAPIView(APIView):
         responses=_status_update_responses,
     )
     def post(self, request, pk):
-        try:
-            return api_success(order_service.mark_order_ready(pk))
-        except (NotFoundError, ValidationServiceError) as exc:
-            return api_error(exc.message, status=exc.status_code)
+        return api_success(order_service.mark_order_ready(pk))
 
 
 _AcceptSuccessResponse = inline_serializer(
@@ -230,19 +220,12 @@ class OrderAcceptAPIView(APIView):
     )
     def post(self, request, pk):
         serializer = AcceptOrderSerializer(data=request.data)
-        if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
-
-        try:
-            result = order_service.accept_order(
-                pk,
-                request.user,
-                serializer.validated_data["estimated_wait_minutes"],
-            )
-        except (NotFoundError, ValidationServiceError) as exc:
-            return api_error(exc.message, status=exc.status_code)
-
+        serializer.is_valid(raise_exception=True)
+        result = order_service.accept_order(
+            pk,
+            request.user,
+            serializer.validated_data["estimated_wait_minutes"],
+        )
         return api_success(result, message="接單成功")
 
 
@@ -300,17 +283,10 @@ class ReorderAPIView(APIView):
     )
     def post(self, request):
         serializer = ReorderSerializer(data=request.data)
-        if not serializer.is_valid():
-            first_error = next(iter(serializer.errors.values()))[0]
-            return api_error(str(first_error))
-
-        try:
-            result = order_service.reorder_to_cart(
-                request.user,
-                request.session,
-                serializer.validated_data["order_id"],
-            )
-        except NotFoundError as exc:
-            return api_error(exc.message, status=exc.status_code)
-
+        serializer.is_valid(raise_exception=True)
+        result = order_service.reorder_to_cart(
+            request.user,
+            request.session,
+            serializer.validated_data["order_id"],
+        )
         return api_success(result)

@@ -11,9 +11,8 @@ from rest_framework.views import APIView
 
 from web_app.api.permissions import IsAdmin, IsEmployee
 from web_app.api.serializers.menu import MenuDetailSerializer, MenuSerializer
-from web_app.api.utils import api_error, api_success
+from web_app.api.utils import api_success
 from web_app.services import menu as menu_service
-from web_app.services.exceptions import NotFoundError, ValidationServiceError
 
 # ---------- 共用 inline schema ----------
 
@@ -108,10 +107,7 @@ class MenuDetailAPIView(APIView):
         },
     )
     def get(self, request, pk):
-        try:
-            menu = menu_service.get_menu_detail(pk)
-        except NotFoundError as exc:
-            return api_error(exc.message, status=exc.status_code)
+        menu = menu_service.get_menu_detail(pk)
         return api_success(MenuDetailSerializer(menu).data)
 
 
@@ -163,10 +159,7 @@ class MenuToggleAPIView(APIView):
         },
     )
     def post(self, request, pk):
-        try:
-            result = menu_service.toggle_menu_status(pk)
-        except NotFoundError as exc:
-            return api_error(exc.message, status=exc.status_code)
+        result = menu_service.toggle_menu_status(pk)
         return api_success(result)
 
 
@@ -289,17 +282,11 @@ class MenuUpdateAPIView(APIView):
         responses=_edit_responses,
     )
     def patch(self, request, pk):
-        try:
-            menu = menu_service.update_menu_item(
-                pk,
-                request.data,
-                request.FILES.get("file_path"),
-            )
-        except NotFoundError as exc:
-            return api_error(exc.message, status=exc.status_code)
-        except ValidationServiceError as exc:
-            return api_error(exc.message, status=exc.status_code)
-
+        menu = menu_service.update_menu_item(
+            pk,
+            request.data,
+            request.FILES.get("file_path"),
+        )
         return api_success(MenuSerializer(menu).data)
 
 
@@ -382,12 +369,8 @@ class MenuCreateAPIView(APIView):
         },
     )
     def post(self, request):
-        try:
-            menu = menu_service.create_menu_item(
-                request.data,
-                request.FILES.get("file_path"),
-            )
-        except ValidationServiceError as exc:
-            return api_error(exc.message, status=exc.status_code)
-
+        menu = menu_service.create_menu_item(
+            request.data,
+            request.FILES.get("file_path"),
+        )
         return api_success(MenuSerializer(menu).data, status=201)

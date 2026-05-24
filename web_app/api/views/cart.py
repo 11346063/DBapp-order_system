@@ -17,9 +17,8 @@ from web_app.api.serializers.cart import (
     CartRemoveSerializer,
     CartUpdateSerializer,
 )
-from web_app.api.utils import api_error, api_success
+from web_app.api.utils import api_success
 from web_app.services import cart as cart_service
-from web_app.services.exceptions import ServiceError
 
 # ---------- 共用 inline schema ----------
 
@@ -91,17 +90,6 @@ _400_validation = OpenApiResponse(
 )
 
 
-def _first_serializer_error(serializer):
-    return str(next(iter(serializer.errors.values()))[0])
-
-
-def _cart_service_response(func):
-    try:
-        return api_success(func())
-    except ServiceError as exc:
-        return api_error(exc.message, status=exc.status_code)
-
-
 class CartDetailAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -132,9 +120,7 @@ class CartValidatePricesAPIView(APIView):
         tags=["購物車"],
     )
     def post(self, request):
-        return _cart_service_response(
-            lambda: cart_service.validate_prices(request.user, request.session)
-        )
+        return api_success(cart_service.validate_prices(request.user, request.session))
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -151,9 +137,7 @@ class CartSyncPricesAPIView(CartMutationAPIView):
         tags=["購物車"],
     )
     def post(self, request):
-        return _cart_service_response(
-            lambda: cart_service.sync_prices(request.user, request.session)
-        )
+        return api_success(cart_service.sync_prices(request.user, request.session))
 
 
 class CartAddAPIView(CartMutationAPIView):
@@ -188,11 +172,9 @@ class CartAddAPIView(CartMutationAPIView):
     )
     def post(self, request):
         serializer = CartAddSerializer(data=request.data)
-        if not serializer.is_valid():
-            return api_error(_first_serializer_error(serializer))
-
-        return _cart_service_response(
-            lambda: cart_service.add_item(
+        serializer.is_valid(raise_exception=True)
+        return api_success(
+            cart_service.add_item(
                 request.user,
                 request.session,
                 serializer.validated_data,
@@ -234,11 +216,9 @@ class CartAdjustAPIView(CartMutationAPIView):
     )
     def post(self, request):
         serializer = CartAdjustSerializer(data=request.data)
-        if not serializer.is_valid():
-            return api_error(_first_serializer_error(serializer))
-
-        return _cart_service_response(
-            lambda: cart_service.adjust_item(
+        serializer.is_valid(raise_exception=True)
+        return api_success(
+            cart_service.adjust_item(
                 request.user,
                 request.session,
                 serializer.validated_data,
@@ -279,12 +259,10 @@ class CartUpdateAPIView(CartMutationAPIView):
     )
     def post(self, request):
         serializer = CartUpdateSerializer(data=request.data)
-        if not serializer.is_valid():
-            return api_error(_first_serializer_error(serializer))
-
+        serializer.is_valid(raise_exception=True)
         d = serializer.validated_data
-        return _cart_service_response(
-            lambda: cart_service.update_item_quantity(
+        return api_success(
+            cart_service.update_item_quantity(
                 request.user,
                 request.session,
                 d["index"],
@@ -325,11 +303,9 @@ class CartRemoveAPIView(CartMutationAPIView):
     )
     def post(self, request):
         serializer = CartRemoveSerializer(data=request.data)
-        if not serializer.is_valid():
-            return api_error(_first_serializer_error(serializer))
-
-        return _cart_service_response(
-            lambda: cart_service.remove_item(
+        serializer.is_valid(raise_exception=True)
+        return api_success(
+            cart_service.remove_item(
                 request.user,
                 request.session,
                 serializer.validated_data["index"],
@@ -360,11 +336,9 @@ class CartRemoveByMenuAPIView(CartMutationAPIView):
     )
     def post(self, request):
         serializer = CartRemoveByMenuSerializer(data=request.data)
-        if not serializer.is_valid():
-            return api_error(_first_serializer_error(serializer))
-
-        return _cart_service_response(
-            lambda: cart_service.remove_last_item_by_menu(
+        serializer.is_valid(raise_exception=True)
+        return api_success(
+            cart_service.remove_last_item_by_menu(
                 request.user,
                 request.session,
                 serializer.validated_data["menu_id"],
