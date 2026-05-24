@@ -27,7 +27,7 @@ class OrderHistoryReadyNotificationTest(TestCase):
             user=self.customer,
             status=Order.OrderStatus.READY,
             price_total=80,
-            create_time=timezone.now(),
+            created_at=timezone.now(),
             ready_at=timezone.now(),
             ready_notified_at=timezone.now(),
             customer_phone="0912345678",

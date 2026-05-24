@@ -8,7 +8,7 @@ def order_history_view(request):
     if request.user.identity in (Identity.ADMIN, Identity.EMPLOYEE):
         return redirect("web_app:staff_orders")
 
-    orders = Order.objects.filter(user=request.user).order_by("-create_time")
+    orders = Order.objects.filter(user=request.user).order_by("-created_at")
 
     for order in orders:
         order.items = OrderItem.objects.filter(order=order).select_related("menu")

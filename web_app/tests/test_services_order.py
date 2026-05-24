@@ -159,7 +159,7 @@ class OrderServiceStatusAndReorderTest(TestCase):
             user=self.customer,
             status=Order.OrderStatus.PENDING,
             price_total=160,
-            create_time=timezone.now(),
+            created_at=timezone.now(),
         )
         OrderItem.objects.create(
             order=self.order,

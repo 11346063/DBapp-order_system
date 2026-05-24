@@ -10,7 +10,7 @@ class Order(models.Model):
         READY = 3, "可取餐"
 
     user = models.ForeignKey("User", on_delete=models.SET_NULL, null=True, blank=True)
-    create_time = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(
         choices=OrderStatus.choices, default=OrderStatus.PENDING
     )

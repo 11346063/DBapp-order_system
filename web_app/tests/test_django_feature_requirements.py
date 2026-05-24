@@ -119,7 +119,7 @@ class StaffOrderListPaginationTest(TestCase):
         )
         for i in range(11):
             Order.objects.create(
-                create_time=timezone.now(),
+                created_at=timezone.now(),
                 status=0,
                 price_total=100 + i,
             )
@@ -158,7 +158,7 @@ class OrderSignalTest(TestCase):
     def test_order_creation_signal_logs_event(self):
         with self.assertLogs("web_app.signals", level="INFO") as logs:
             Order.objects.create(
-                create_time=timezone.now(),
+                created_at=timezone.now(),
                 status=0,
                 price_total=100,
             )

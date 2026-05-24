@@ -9,7 +9,7 @@ Props:
     <div class="card card-dark h-100">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
             <span class="text-white fw-bold">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
-            <small class="text-secondary">{{ order.create_time|date:"m/d H:i" }}</small>
+            <small class="text-secondary">{{ order.created_at|date:"m/d H:i" }}</small>
         </div>
         <div class="card-body">
             <div class="mb-2">

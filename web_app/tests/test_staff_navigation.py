@@ -22,21 +22,21 @@ class StaffNavigationBadgeTest(TestCase):
             identity=Identity.EMPLOYEE,
         )
         now = timezone.now()
-        Order.objects.create(status=0, price_total=100, create_time=now)
-        Order.objects.create(status=1, price_total=200, create_time=now)
-        Order.objects.create(status=2, price_total=300, create_time=now)
-        Order.objects.create(status=3, price_total=350, create_time=now)
+        Order.objects.create(status=0, price_total=100, created_at=now)
+        Order.objects.create(status=1, price_total=200, created_at=now)
+        Order.objects.create(status=2, price_total=300, created_at=now)
+        Order.objects.create(status=3, price_total=350, created_at=now)
         Order.objects.create(
             user=self.employee,
             status=0,
             price_total=400,
-            create_time=now,
+            created_at=now,
             customer_phone="0912345678",
         )
         Order.objects.create(
             status=0,
             price_total=500,
-            create_time=now,
+            created_at=now,
             customer_phone="0922333444",
         )
 

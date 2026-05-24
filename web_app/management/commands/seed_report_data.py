@@ -146,7 +146,7 @@ class Command(BaseCommand):
         self,
         customer,
         menus,
-        create_time,
+        created_at,
         status,
         created_orders,
         created_items,
@@ -158,7 +158,7 @@ class Command(BaseCommand):
 
         order = Order.objects.create(
             user=customer,
-            create_time=create_time,
+            created_at=created_at,
             status=status,
             price_total=total,
             remark=f"{SEED_REMARK} status={status}",

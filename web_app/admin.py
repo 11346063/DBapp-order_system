@@ -24,10 +24,10 @@ from .models.opt_group import OptGroup
 # @admin.register(Order)
 # class OrderAdmin(admin.ModelAdmin):
 #     # A. 列表欄位與搜尋
-#     list_display = ('sno', 'get_user_name', 'price_total', 'status_label', 'create_time')
-#     list_filter = ('status', 'create_time')
+#     list_display = ('sno', 'get_user_name', 'price_total', 'status_label', 'created_at')
+#     list_filter = ('status', 'created_at')
 #     search_fields = ('sno', 'user__name', 'user__phone_number')
-#     ordering = ('-create_time',)
+#     ordering = ('-created_at',)
 
 #     # 將關聯模型內聯進訂單編輯頁面
 #     # inlines = [OrderItemInline, OrderItemOptionsInline]
@@ -41,7 +41,7 @@ from .models.opt_group import OptGroup
 #             'fields': ('price_total',),
 #         }),
 #         ('時間紀錄', {
-#             'fields': ('create_time',),
+#             'fields': ('created_at',),
 #             'classes': ('collapse',), # 可折疊
 #         }),
 #     )
@@ -71,8 +71,8 @@ from .models.opt_group import OptGroup
 #     當在 Admin 後台存檔時觸發
 #     """
 #     if not change: # 只有在「新增」時自動給予編號或預設時間
-#         if not obj.create_time:
-#             obj.create_time = now()
+#         if not obj.created_at:
+#             obj.created_at = now()
 
 #     # 這裡可以寫入業務邏輯，例如檢查庫存或計算總金額
 #     super().save_model(request, obj, form, change)
@@ -89,11 +89,11 @@ class MenuAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("name", "account", "phone_number", "status", "update_time")
+    list_display = ("name", "account", "phone_number", "status", "updated_at")
     list_filter = ("status",)
     # 隱藏密碼，或僅以唯讀顯示
     exclude = ("password",)
-    readonly_fields = ("create_time", "update_time")
+    readonly_fields = ("created_at", "updated_at")
 
 
 # 註冊其餘基礎模型

@@ -38,8 +38,8 @@ class User(AbstractBaseUser):
         choices=Identity.choices,
         default=Identity.CUSTOMER,
     )
-    create_time = models.DateTimeField(auto_now_add=True)
-    update_time = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
 
     objects = UserManager()

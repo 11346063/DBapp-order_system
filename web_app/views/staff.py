@@ -26,7 +26,7 @@ def staff_order_list(request):
     orders = (
         Order.objects.filter(status=status_val)
         .select_related("user")
-        .order_by("-create_time")
+        .order_by("-created_at")
     )
 
     paginator = Paginator(orders, ORDER_PAGE_SIZE)
@@ -66,8 +66,8 @@ def staff_report(request):
     # 日報表（近 30 天）
     thirty_days_ago = now - timedelta(days=30)
     daily = list(
-        Order.objects.filter(status=1, create_time__gte=thirty_days_ago)
-        .annotate(date=TruncDate("create_time"))
+        Order.objects.filter(status=1, created_at__gte=thirty_days_ago)
+        .annotate(date=TruncDate("created_at"))
         .values("date")
         .annotate(count=Count("id"), revenue=Sum("price_total"))
         .order_by("date")
@@ -76,8 +76,8 @@ def staff_report(request):
     # 月報表（近 12 個月）
     one_year_ago = now - timedelta(days=365)
     monthly = list(
-        Order.objects.filter(status=1, create_time__gte=one_year_ago)
-        .annotate(month=TruncMonth("create_time"))
+        Order.objects.filter(status=1, created_at__gte=one_year_ago)
+        .annotate(month=TruncMonth("created_at"))
         .values("month")
         .annotate(count=Count("id"), revenue=Sum("price_total"))
         .order_by("month")
@@ -113,7 +113,7 @@ def staff_report(request):
 def account_management(request):
     identity_filter = request.GET.get("identity", "")
     allowed_filters = {Identity.ADMIN, Identity.EMPLOYEE, Identity.CUSTOMER}
-    accounts = User.objects.order_by("-create_time")
+    accounts = User.objects.order_by("-created_at")
     if identity_filter in allowed_filters:
         accounts = accounts.filter(identity=identity_filter)
 
