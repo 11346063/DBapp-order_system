@@ -63,6 +63,16 @@ class RegistrationValidationTest(TestCase):
         self.assertEqual(created.name, "顧客")
         self.assertTrue(created.check_password("pass1234"))
 
+    def test_register_normalizes_international_taiwan_mobile_number(self):
+        response = self.client.post(
+            self.url,
+            self.valid_payload(phone_number="+886912345678"),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        created = User.objects.get(account="0912345678")
+        self.assertEqual(created.phone_number, "0912345678")
+
 
 class PhoneLoginFormLabelTest(TestCase):
     def test_login_form_uses_phone_number_wording(self):

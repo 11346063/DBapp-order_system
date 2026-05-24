@@ -4,10 +4,13 @@ from django.utils import timezone
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOptions, Options
 from web_app.services import cart as cart_service
 from web_app.services.exceptions import (
+    CheckoutPhoneRequired,
     EmptyCartError,
     NotFoundError,
     StaffCustomerPhoneRequired,
+    ValidationServiceError,
 )
+from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 
 class SpicyLevel(models.IntegerChoices):
@@ -46,11 +49,20 @@ def _non_negative_int(value, default=0):
         return default
 
 
+def normalize_customer_phone(phone_number):
+    try:
+        return normalize_tw_mobile(phone_number)
+    except PhoneValidationError as exc:
+        raise ValidationServiceError(
+            "請輸入有效的手機號碼，例如 0912345678 或 +886912345678"
+        ) from exc
+
+
 def normalize_checkout_data(data):
     spicy_level = SpicyLevel.from_label(data.get("spicy_level", SpicyLevel.NONE.label))
     return {
         "remark": data.get("remark", "").strip()[:200],
-        "customer_phone": data.get("customer_phone", "").strip()[:20],
+        "customer_phone": normalize_customer_phone(data.get("customer_phone", "")),
         "spicy_level": int(spicy_level),
         "extra_garlic_qty": _non_negative_int(data.get("extra_garlic_qty", 0)),
         "extra_basil_qty": _non_negative_int(data.get("extra_basil_qty", 0)),
@@ -110,8 +122,12 @@ def create_order_from_cart(user, session, checkout_data):
 
     data = normalize_checkout_data(checkout_data)
     is_staff_order = is_staff_order_user(user)
+    if not data["customer_phone"] and user.is_authenticated and not is_staff_order:
+        data["customer_phone"] = normalize_customer_phone(user.phone_number)
     if is_staff_order and not data["customer_phone"]:
         raise StaffCustomerPhoneRequired("員工代客點餐需要填寫電話")
+    if not data["customer_phone"]:
+        raise CheckoutPhoneRequired("結帳需要填寫聯絡電話")
 
     total = cart_service.cart_total(cart)
     extra_cost = (data["extra_garlic_qty"] + data["extra_basil_qty"]) * 10
@@ -124,7 +140,7 @@ def create_order_from_cart(user, session, checkout_data):
             status=Order.OrderStatus.PENDING,
             price_total=price_total,
             remark=data["remark"],
-            customer_phone=data["customer_phone"] if is_staff_order else "",
+            customer_phone=data["customer_phone"],
         )
 
         opts = {

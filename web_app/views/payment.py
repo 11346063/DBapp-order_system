@@ -4,9 +4,11 @@ from django.utils.translation import gettext as _
 from web_app.services import cart as cart_service
 from web_app.services import order as order_service
 from web_app.services.exceptions import (
+    CheckoutPhoneRequired,
     EmptyCartError,
     PriceChangedError,
     StaffCustomerPhoneRequired,
+    ValidationServiceError,
 )
 
 
@@ -17,6 +19,10 @@ def payment_view(request):
         return redirect("web_app:home")
 
     total = cart_service.cart_total(cart)
+    is_staff_order = order_service.is_staff_order_user(request.user)
+    checkout_phone_default = ""
+    if request.user.is_authenticated and not is_staff_order:
+        checkout_phone_default = request.user.phone_number or ""
     return render(
         request,
         "payment.html",
@@ -24,7 +30,8 @@ def payment_view(request):
             "cart_items": cart,
             "total": total,
             "is_guest": not request.user.is_authenticated,
-            "is_staff_order": order_service.is_staff_order_user(request.user),
+            "is_staff_order": is_staff_order,
+            "checkout_phone_default": checkout_phone_default,
         },
     )
 
@@ -44,6 +51,12 @@ def order_submit(request):
         return redirect("web_app:home")
     except StaffCustomerPhoneRequired:
         messages.error(request, _("員工代客點餐需要填寫電話"))
+        return redirect("web_app:payment")
+    except CheckoutPhoneRequired:
+        messages.error(request, _("結帳需要填寫聯絡電話"))
+        return redirect("web_app:payment")
+    except ValidationServiceError as exc:
+        messages.error(request, exc.message)
         return redirect("web_app:payment")
     except PriceChangedError:
         messages.warning(request, _("部分餐點價格已更新，請確認最新價格後再送出"))

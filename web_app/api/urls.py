@@ -16,7 +16,11 @@ from web_app.api.views.menu import (
     MenuToggleAPIView,
     MenuUpdateAPIView,
 )
-from web_app.api.views.order import OrderReadyAPIView, OrderStatusAPIView, ReorderAPIView
+from web_app.api.views.order import (
+    OrderReadyAPIView,
+    OrderStatusAPIView,
+    ReorderAPIView,
+)
 
 urlpatterns = [
     # Menu

@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("web_app", "0018_cart_cartitem_cartitemoption_and_more"),
     ]

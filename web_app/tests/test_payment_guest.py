@@ -19,6 +19,7 @@ class GuestCheckoutTest(TestCase):
             password="pass",
             name="顧客",
             identity=Identity.CUSTOMER,
+            phone_number="0912345678",
         )
         self.employee = User.objects.create_user(
             account="employee1",
@@ -62,6 +63,8 @@ class GuestCheckoutTest(TestCase):
         self.assertContains(response, 'id="acceptPaymentPriceChanges"')
         self.assertContains(response, "js/payment.js")
         self.assertContains(response, "?v=3")
+        self.assertContains(response, "聯絡電話")
+        self.assertContains(response, 'name="customer_phone"')
 
     def test_payment_page_no_login_prompt_for_logged_in_user(self):
         """已登入顧客的付款頁不顯示登入詢問提示"""
@@ -80,6 +83,7 @@ class GuestCheckoutTest(TestCase):
         response = self.client.get(reverse("web_app:payment"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "guest-login-prompt")
+        self.assertContains(response, 'value="0912345678"')
 
     def test_employee_can_access_payment_page_with_phone_field(self):
         """員工代客點餐可以進入付款頁，且必須看到客人電話欄位"""
@@ -103,21 +107,40 @@ class GuestCheckoutTest(TestCase):
     def test_guest_can_submit_order(self):
         """未登入訪客可以送出訂單"""
         self._set_cart()
-        response = self.client.post(reverse("web_app:order_submit"))
+        response = self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "0912345678"},
+        )
         self.assertRedirects(response, reverse("web_app:home"))
+
+    def test_guest_order_requires_customer_phone(self):
+        """訪客送單必須填寫聯絡電話"""
+        self._set_cart()
+
+        response = self.client.post(reverse("web_app:order_submit"))
+
+        self.assertRedirects(response, reverse("web_app:payment"))
+        self.assertEqual(Order.objects.count(), 0)
 
     def test_guest_order_has_null_user(self):
         """訪客送出的訂單 user 欄位為 None"""
         self._set_cart()
-        self.client.post(reverse("web_app:order_submit"))
+        self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "0912345678"},
+        )
         order = Order.objects.first()
         self.assertIsNotNone(order)
         self.assertIsNone(order.user)
+        self.assertEqual(order.customer_phone, "0912345678")
 
     def test_guest_order_creates_order_item(self):
         """訪客送出的訂單包含正確的 OrderItem"""
         self._set_cart()
-        self.client.post(reverse("web_app:order_submit"))
+        self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "0912345678"},
+        )
         from web_app.models import OrderItem
 
         self.assertEqual(OrderItem.objects.count(), 1)
@@ -128,7 +151,10 @@ class GuestCheckoutTest(TestCase):
     def test_guest_order_clears_cart(self):
         """訪客送出訂單後購物車應清空"""
         self._set_cart()
-        self.client.post(reverse("web_app:order_submit"))
+        self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "0912345678"},
+        )
         cart = self.client.session.get("cart", [])
         self.assertEqual(cart, [])
 
@@ -150,6 +176,7 @@ class GuestCheckoutTest(TestCase):
         order = Order.objects.first()
         self.assertIsNotNone(order)
         self.assertEqual(order.user, self.customer)
+        self.assertEqual(order.customer_phone, "0912345678")
 
     def test_employee_order_requires_customer_phone(self):
         """員工代客點餐未填電話時不建立訂單"""
@@ -174,4 +201,17 @@ class GuestCheckoutTest(TestCase):
         order = Order.objects.first()
         self.assertIsNotNone(order)
         self.assertEqual(order.user, self.employee)
+        self.assertEqual(order.customer_phone, "0912345678")
+
+    def test_checkout_normalizes_international_taiwan_mobile_number(self):
+        """結帳電話支援台灣國碼格式並正規化保存"""
+        self._set_cart()
+
+        self.client.post(
+            reverse("web_app:order_submit"),
+            data={"customer_phone": "+886912345678"},
+        )
+
+        order = Order.objects.first()
+        self.assertIsNotNone(order)
         self.assertEqual(order.customer_phone, "0912345678")

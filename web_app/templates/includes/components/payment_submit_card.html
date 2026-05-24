@@ -46,14 +46,15 @@ Props:
                     </div>
                 </div>
             </div>
-            {% if is_staff_order %}
             <div class="mb-3">
-                <label class="form-label text-secondary small" for="customerPhone">{% trans "客人電話" %}</label>
+                <label class="form-label text-secondary small" for="customerPhone">
+                    {% if is_staff_order %}{% trans "客人電話" %}{% else %}{% trans "聯絡電話" %}{% endif %}
+                </label>
                 <input id="customerPhone" name="customer_phone" type="tel"
                        class="form-control" maxlength="20" required
+                       value="{{ checkout_phone_default }}"
                        placeholder="{% trans '請輸入電話' %}">
             </div>
-            {% endif %}
             <div class="mb-3">
                 <label class="form-label text-secondary small">{% trans "備註（選填）" %}</label>
                 <textarea name="remark" class="form-control remark-input"

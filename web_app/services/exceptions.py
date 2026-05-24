@@ -30,5 +30,9 @@ class StaffCustomerPhoneRequired(ServiceError):
     pass
 
 
+class CheckoutPhoneRequired(ServiceError):
+    pass
+
+
 class PriceChangedError(ServiceError):
     pass

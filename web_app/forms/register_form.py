@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from web_app.models import Identity, User
+from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 
 class RegisterForm(forms.ModelForm):
@@ -47,23 +48,12 @@ class RegisterForm(forms.ModelForm):
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get("phone_number", "")
-        normalized = phone_number.replace(" ", "").replace("-", "")
-        if (
-            normalized
-            and not (
-                normalized.startswith("09")
-                and len(normalized) == 10
-                and normalized.isdigit()
-            )
-            and not (
-                normalized.startswith("+8869")
-                and len(normalized) == 13
-                and normalized[1:].isdigit()
-            )
-        ):
+        try:
+            normalized = normalize_tw_mobile(phone_number)
+        except PhoneValidationError as exc:
             raise ValidationError(
                 _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
-            )
+            ) from exc
         if User.objects.filter(account=normalized).exists():
             raise ValidationError(_("此手機號碼已註冊"))
         return normalized
@@ -167,23 +157,12 @@ class AdminAccountCreateForm(forms.ModelForm):
 
     def clean_phone_number(self):
         phone_number = self.cleaned_data.get("phone_number", "")
-        normalized = phone_number.replace(" ", "").replace("-", "")
-        if (
-            normalized
-            and not (
-                normalized.startswith("09")
-                and len(normalized) == 10
-                and normalized.isdigit()
-            )
-            and not (
-                normalized.startswith("+8869")
-                and len(normalized) == 13
-                and normalized[1:].isdigit()
-            )
-        ):
+        try:
+            normalized = normalize_tw_mobile(phone_number)
+        except PhoneValidationError as exc:
             raise ValidationError(
                 _("請輸入有效的手機號碼，例如 0912345678 或 +886912345678")
-            )
+            ) from exc
         return normalized
 
     def clean(self):

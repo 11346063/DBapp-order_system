@@ -37,6 +37,7 @@ class OrderServiceCreateOrderTest(TestCase):
             password="pass",
             name="顧客",
             identity=Identity.CUSTOMER,
+            phone_number="0912345678",
         )
         self.employee = User.objects.create_user(
             account="svc_employee",
@@ -79,6 +80,7 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(order.user, self.customer)
         self.assertEqual(order.price_total, 190)
         self.assertEqual(order.remark, "少鹽")
+        self.assertEqual(order.customer_phone, "0912345678")
         self.assertEqual(cart_service.get_cart(self.customer, session), [])
 
         item = OrderItem.objects.get(order=order)
