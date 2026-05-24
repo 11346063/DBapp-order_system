@@ -1,0 +1,32 @@
+{% comment %}
+Component: OrderAcceptModal
+Props: none. IDs are used by staff.js.
+{% endcomment %}
+{% load i18n %}
+<div class="modal fade" id="orderAcceptModal" tabindex="-1" aria-labelledby="orderAcceptModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-dark order-status-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="orderAcceptModalTitle">
+                    <i class="bi bi-check2-circle text-yellow"></i> {% trans "同意接單" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans '關閉' %}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-white mb-3" id="orderAcceptMessage">{% trans "請輸入預估等待時間後接單。" %}</p>
+                <div class="mb-3">
+                    <label for="acceptWaitMinutes" class="form-label text-secondary">{% trans "預估等待時間（分鐘）" %}</label>
+                    <input type="number" class="form-control bg-dark text-white border-secondary"
+                           id="acceptWaitMinutes" min="1" max="180" value="20">
+                    <div class="form-text text-secondary">{% trans "請輸入 1–180 分鐘" %}</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "取消" %}</button>
+                <button type="button" class="btn btn-yellow fw-bold" id="orderAcceptConfirmBtn">
+                    <i class="bi bi-check-lg"></i> {% trans "確認接單" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

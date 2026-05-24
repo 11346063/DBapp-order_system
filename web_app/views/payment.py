@@ -41,7 +41,7 @@ def order_submit(request):
         return redirect("web_app:payment")
 
     try:
-        order = order_service.create_order_from_cart(
+        order_service.create_order_from_cart(
             request.user,
             request.session,
             request.POST,
@@ -62,5 +62,8 @@ def order_submit(request):
         messages.warning(request, _("部分餐點價格已更新，請確認最新價格後再送出"))
         return redirect("web_app:payment")
 
-    messages.success(request, _("訂單已成功送出！").format(pk=order.pk))
+    if order_service.is_staff_order_user(request.user):
+        messages.success(request, _("代客訂單已送出，已自動接單"))
+    else:
+        messages.success(request, _("訂單已送出，等待店家接單"))
     return redirect("web_app:home")

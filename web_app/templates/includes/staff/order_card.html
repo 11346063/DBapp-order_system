@@ -9,7 +9,12 @@ Props:
     <div class="card card-dark h-100">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
             <span class="text-white fw-bold">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
-            <small class="text-secondary">{{ order.created_at|date:"m/d H:i" }}</small>
+            <div class="d-flex align-items-center gap-2">
+                {% if order.pickup_code %}
+                <span class="badge bg-warning text-dark fw-bold">{{ order.pickup_code }}</span>
+                {% endif %}
+                <small class="text-secondary">{{ order.created_at|date:"m/d H:i" }}</small>
+            </div>
         </div>
         <div class="card-body">
             <div class="mb-2">
@@ -27,6 +32,15 @@ Props:
                 <span class="text-white">{{ order.customer_phone }}</span>
             </div>
             {% endif %}
+            {% if order.accepted_by %}
+            <div class="mb-2">
+                <small class="text-secondary"><i class="bi bi-person-check"></i> {% trans "接單：" %}</small>
+                <span class="text-white">{{ order.accepted_by.name }}</span>
+                {% if order.estimated_wait_minutes %}
+                <span class="badge bg-info text-dark ms-1">{% blocktrans with m=order.estimated_wait_minutes %}預估 {{ m }} 分鐘{% endblocktrans %}</span>
+                {% endif %}
+            </div>
+            {% endif %}
             {% if order.order_opts %}
             <div class="mb-2 px-2 py-1 rounded" style="background:rgba(243,200,0,.08); border-left:3px solid var(--primary-yellow);">
                 <small class="text-yellow"><i class="bi bi-sliders"></i> {{ order.order_opts }}</small>
@@ -35,6 +49,11 @@ Props:
             {% if order.remark %}
             <div class="mb-2 px-2 py-1 rounded" style="background:rgba(255,255,255,.04); border-left:3px solid var(--text-secondary);">
                 <small class="text-secondary"><i class="bi bi-chat-left-text"></i> {{ order.remark }}</small>
+            </div>
+            {% endif %}
+            {% if order.cancel_reason %}
+            <div class="mb-2 px-2 py-1 rounded" style="background:rgba(220,53,69,.08); border-left:3px solid #dc3545;">
+                <small class="text-danger"><i class="bi bi-x-circle"></i> {{ order.cancel_reason }}</small>
             </div>
             {% endif %}
             {% if order.ready_notified_at %}
@@ -61,22 +80,25 @@ Props:
                 <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>
                 <div class="d-flex gap-2">
                     {% if current_status == 0 %}
-                    <button class="btn btn-sm btn-info text-dark" onclick="updateOrderStatus({{ order.pk }}, 3)">
+                    <button class="btn btn-sm btn-yellow fw-bold" onclick="acceptOrder({{ order.pk }})">
+                        <i class="bi bi-check2-circle"></i> {% trans "接單" %}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
+                        <i class="bi bi-x-lg"></i> {% trans "拒單" %}
+                    </button>
+                    {% elif current_status == 1 %}
+                    <button class="btn btn-sm btn-info text-dark" onclick="notifyReady({{ order.pk }})">
                         <i class="bi bi-bell"></i> {% trans "通知取餐" %}
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 2)">
-                        <i class="bi bi-x-lg"></i> {% trans "取消" %}
-                    </button>
-                    {% elif current_status == 3 %}
-                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 1)">
-                        <i class="bi bi-check-lg"></i> {% trans "完成" %}
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 2)">
+                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
                         <i class="bi bi-x-lg"></i> {% trans "取消" %}
                     </button>
                     {% elif current_status == 2 %}
-                    <button class="btn btn-sm btn-outline-light" onclick="updateOrderStatus({{ order.pk }}, 0)">
-                        <i class="bi bi-arrow-counterclockwise"></i> {% trans "恢復" %}
+                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 3)">
+                        <i class="bi bi-check-lg"></i> {% trans "完成" %}
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
+                        <i class="bi bi-x-lg"></i> {% trans "取消" %}
                     </button>
                     {% endif %}
                 </div>

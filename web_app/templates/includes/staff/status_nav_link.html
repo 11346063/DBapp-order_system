@@ -1,7 +1,7 @@
 {% comment %}
 Component: StaffStatusNavLink
 Props:
-  - status (required): 0 pending, 1 completed, 2 cancelled, 3 ready
+  - status (required): 0 submitted, 1 accepted, 2 ready, 3 completed, 4 cancelled
   - current_status (required): active status
   - count (required): status count
   - link_class (required): sidebar-link or staff-tab
@@ -12,15 +12,17 @@ Props:
 <a class="nav-link {{ link_class }} {% if current_status == status %}active{% endif %}" href="{% url 'web_app:staff_orders' %}?status={{ status }}">
     <span class="staff-nav-label">
         {% if status == 0 %}
-        <i class="bi bi-clock"></i> {% trans "等待中" %}
-        {% elif status == 3 %}
-        <i class="bi bi-bell"></i> {% trans "可取餐" %}
+        <i class="bi bi-clock"></i> {% trans "等待接單" %}
         {% elif status == 1 %}
+        <i class="bi bi-fire"></i> {% trans "備餐中" %}
+        {% elif status == 2 %}
+        <i class="bi bi-bell"></i> {% trans "可取餐" %}
+        {% elif status == 3 %}
         <i class="bi bi-check-circle"></i> {% trans "已完成" %}
         {% else %}
         <i class="bi bi-x-circle"></i> {% trans "已取消" %}
         {% endif %}
     </span>
-    <span class="badge {% if status == 0 %}badge-yellow{% elif status == 3 %}bg-info text-dark{% elif status == 1 %}bg-success{% else %}bg-danger{% endif %} staff-status-badge" data-status-count="{{ status }}">{{ count }}</span>
+    <span class="badge {% if status == 0 %}badge-yellow{% elif status == 1 %}bg-primary{% elif status == 2 %}bg-info text-dark{% elif status == 3 %}bg-success{% else %}bg-danger{% endif %} staff-status-badge" data-status-count="{{ status }}">{{ count }}</span>
 </a>
 {% if wrapper == 'li' %}</li>{% endif %}

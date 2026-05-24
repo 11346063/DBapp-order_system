@@ -73,7 +73,7 @@ class Command(BaseCommand):
                     customer,
                     menus,
                     order_date + timedelta(hours=2),
-                    Order.OrderStatus.PENDING,
+                    Order.OrderStatus.SUBMITTED,
                     created_orders,
                     created_items,
                 )

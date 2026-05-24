@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -76,10 +78,26 @@ def normalize_checkout_data(data):
     }
 
 
+def generate_pickup_code(customer_phone: str) -> str:
+    """
+    以電話號碼尾碼產生當日唯一取餐號碼。
+    先取後 3 碼；若今日已有相同號碼，往前再拿一碼（後 4 碼），依此類推。
+    電話用盡時以完整數字部分作為 fallback。
+    """
+    digits = "".join(c for c in customer_phone if c.isdigit())
+    today = date.today()
+    for length in range(3, len(digits) + 1):
+        code = digits[-length:]
+        if not Order.objects.filter(created_at__date=today, pickup_code=code).exists():
+            return code
+    return digits  # fallback：完整電話數字，極不可能到達
+
+
 def order_status_counts():
     status = Order.OrderStatus
     return {
-        status.PENDING: Order.objects.filter(status=status.PENDING).count(),
+        status.SUBMITTED: Order.objects.filter(status=status.SUBMITTED).count(),
+        status.ACCEPTED: Order.objects.filter(status=status.ACCEPTED).count(),
         status.READY: Order.objects.filter(status=status.READY).count(),
         status.COMPLETED: Order.objects.filter(status=status.COMPLETED).count(),
         status.CANCELLED: Order.objects.filter(status=status.CANCELLED).count(),
@@ -107,18 +125,66 @@ def update_order_status(order_id, status):
         raise NotFoundError("找不到此訂單") from exc
 
     order.status = status
-    update_fields = ["status"]
-    if status == Order.OrderStatus.READY:
-        now = timezone.now()
-        order.ready_at = now
-        order.ready_notified_at = now
-        update_fields.extend(["ready_at", "ready_notified_at"])
-    order.save(update_fields=update_fields)
+    order.save(update_fields=["status"])
     return {"status_counts": order_status_counts()}
 
 
 def mark_order_ready(order_id):
-    return update_order_status(order_id, Order.OrderStatus.READY)
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist as exc:
+        raise NotFoundError("找不到此訂單") from exc
+
+    if order.status != Order.OrderStatus.ACCEPTED:
+        from web_app.services.exceptions import ValidationServiceError
+
+        raise ValidationServiceError("只有備餐中的訂單才能通知取餐")
+
+    now = timezone.now()
+    order.status = Order.OrderStatus.READY
+    order.ready_at = now
+    order.ready_notified_at = now
+    order.save(update_fields=["status", "ready_at", "ready_notified_at"])
+    return {"status_counts": order_status_counts()}
+
+
+def accept_order(order_id, staff_user, estimated_wait_minutes):
+    from web_app.services.exceptions import ValidationServiceError
+
+    try:
+        order = Order.objects.get(pk=order_id)
+    except Order.DoesNotExist as exc:
+        raise NotFoundError("找不到此訂單") from exc
+
+    if order.status != Order.OrderStatus.SUBMITTED:
+        raise ValidationServiceError("只有等待接單的訂單才能接單")
+
+    if not (1 <= estimated_wait_minutes <= 180):
+        raise ValidationServiceError("等待時間必須在 1 到 180 分鐘之間")
+
+    now = timezone.now()
+    order.status = Order.OrderStatus.ACCEPTED
+    order.accepted_at = now
+    order.accepted_by = staff_user
+    order.estimated_wait_minutes = estimated_wait_minutes
+    order.pickup_code = generate_pickup_code(order.customer_phone)
+    order.save(
+        update_fields=[
+            "status",
+            "accepted_at",
+            "accepted_by",
+            "estimated_wait_minutes",
+            "pickup_code",
+        ]
+    )
+    return {
+        "order_id": order.pk,
+        "status": order.status,
+        "estimated_wait_minutes": estimated_wait_minutes,
+        "accepted_at": order.accepted_at.isoformat(),
+        "pickup_code": order.pickup_code,
+        "status_counts": order_status_counts(),
+    }
 
 
 def create_order_from_cart(user, session, checkout_data):
@@ -142,10 +208,13 @@ def create_order_from_cart(user, session, checkout_data):
     ) * EXTRA_INGREDIENT_COST
     price_total = total + extra_cost
 
+    initial_status = (
+        Order.OrderStatus.ACCEPTED if is_staff_order else Order.OrderStatus.SUBMITTED
+    )
     with transaction.atomic():
         order = Order.objects.create(
             user=user if user.is_authenticated else None,
-            status=Order.OrderStatus.PENDING,
+            status=initial_status,
             price_total=price_total,
             remark=data["remark"],
             customer_phone=data["customer_phone"],

@@ -9,8 +9,20 @@ Props:
         <div class="card-header d-flex justify-content-between align-items-center">
             <div>
                 <span class="fw-bold" style="color: var(--text-primary);">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
-                <span class="status-badge ms-2 {% if order.status == 0 %}status-pending{% elif order.status == 3 %}status-ready{% elif order.status == 1 %}status-completed{% else %}status-cancelled{% endif %}">
-                    {% if order.status == 0 %}{% trans "處理中" %}{% elif order.status == 3 %}{% trans "可取餐" %}{% elif order.status == 1 %}{% trans "已完成" %}{% else %}{% trans "已取消" %}{% endif %}
+                {% if order.pickup_code %}
+                <span class="badge bg-warning text-dark ms-1">{{ order.pickup_code }}</span>
+                {% endif %}
+                <span class="status-badge ms-2
+                    {% if order.status == 0 %}status-pending
+                    {% elif order.status == 1 %}status-accepted
+                    {% elif order.status == 2 %}status-ready
+                    {% elif order.status == 3 %}status-completed
+                    {% else %}status-cancelled{% endif %}">
+                    {% if order.status == 0 %}{% trans "等待接單" %}
+                    {% elif order.status == 1 %}{% trans "備餐中" %}
+                    {% elif order.status == 2 %}{% trans "可取餐" %}
+                    {% elif order.status == 3 %}{% trans "已完成" %}
+                    {% else %}{% trans "已取消" %}{% endif %}
                 </span>
             </div>
             <small style="color: var(--text-secondary);">{{ order.created_at|date:"Y/m/d H:i" }}</small>
@@ -38,13 +50,26 @@ Props:
             </div>
             {% endif %}
 
-            {% if order.status == 3 %}
+            {% if order.status == 1 and order.estimated_wait_minutes %}
+            <div class="ready-notice mb-3" style="background: rgba(13,110,253,.1); border-left: 3px solid #0d6efd;">
+                <i class="bi bi-fire me-1"></i>
+                {% blocktrans with m=order.estimated_wait_minutes %}備餐中，預估等待 {{ m }} 分鐘{% endblocktrans %}
+            </div>
+            {% endif %}
+
+            {% if order.status == 2 %}
             <div class="ready-notice mb-3">
                 <i class="bi bi-bell-fill me-1"></i>
                 {% trans "餐點已完成，請留意店家電話或至櫃台取餐" %}
                 {% if order.ready_notified_at %}
                 <span class="ready-notice-time">{{ order.ready_notified_at|date:"m/d H:i" }}</span>
                 {% endif %}
+            </div>
+            {% endif %}
+
+            {% if order.status == 4 and order.cancel_reason %}
+            <div class="mb-3 pb-2" style="border-bottom: 1px solid var(--border-color); color: var(--bs-danger);">
+                <small><i class="bi bi-x-circle me-1"></i>{% trans "取消原因：" %}{{ order.cancel_reason }}</small>
             </div>
             {% endif %}
 

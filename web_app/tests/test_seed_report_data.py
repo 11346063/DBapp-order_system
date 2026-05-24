@@ -31,9 +31,9 @@ class SeedReportDataCommandTest(TestCase):
         )
 
         seeded_orders = Order.objects.filter(remark__startswith=SEED_REMARK)
-        self.assertEqual(seeded_orders.filter(status=1).count(), 9)
-        self.assertGreater(seeded_orders.filter(status=0).count(), 0)
-        self.assertGreater(seeded_orders.filter(status=2).count(), 0)
+        self.assertEqual(seeded_orders.filter(status=3).count(), 9)  # COMPLETED=3
+        self.assertGreater(seeded_orders.filter(status=0).count(), 0)  # SUBMITTED=0
+        self.assertGreater(seeded_orders.filter(status=4).count(), 0)  # CANCELLED=4
         self.assertEqual(OrderItem.objects.filter(order__in=seeded_orders).count(), 22)
         self.assertIn("Seed report data completed", out.getvalue())
 

@@ -38,7 +38,7 @@ def staff_order_list(request):
         order.items = (
             OrderItem.objects.filter(order=order)
             .select_related("menu")
-            .prefetch_related("orderitemoptions_set__opt")
+            .prefetch_related("orderitemoption_set__opt")
         )
         raw_opts = OrderItemOption.objects.filter(
             order=order, order_item=None
@@ -66,7 +66,9 @@ def staff_report(request):
     # 日報表（近 30 天）
     thirty_days_ago = now - timedelta(days=30)
     daily = list(
-        Order.objects.filter(status=1, created_at__gte=thirty_days_ago)
+        Order.objects.filter(
+            status=Order.OrderStatus.COMPLETED, created_at__gte=thirty_days_ago
+        )
         .annotate(date=TruncDate("created_at"))
         .values("date")
         .annotate(count=Count("id"), revenue=Sum("price_total"))
@@ -76,7 +78,9 @@ def staff_report(request):
     # 月報表（近 12 個月）
     one_year_ago = now - timedelta(days=365)
     monthly = list(
-        Order.objects.filter(status=1, created_at__gte=one_year_ago)
+        Order.objects.filter(
+            status=Order.OrderStatus.COMPLETED, created_at__gte=one_year_ago
+        )
         .annotate(month=TruncMonth("created_at"))
         .values("month")
         .annotate(count=Count("id"), revenue=Sum("price_total"))
