@@ -41,6 +41,8 @@ class User(AbstractBaseUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.BooleanField(default=True)
+    auth_provider = models.CharField(max_length=10, default="phone")
+    google_sub = models.CharField(max_length=128, unique=True, null=True, blank=True)
 
     objects = UserManager()
 

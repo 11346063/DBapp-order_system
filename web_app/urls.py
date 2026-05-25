@@ -8,6 +8,11 @@ from web_app.forms.password_reset_form import (
 from web_app.views.auth_views import login_view, logout_view, register_view
 from web_app.views.cart import cart_view
 from web_app.views.home import assisted_ordering_view, home_view
+from web_app.views.oauth_views import (
+    google_oauth_callback,
+    google_oauth_initiate,
+    oauth_phone_required,
+)
 from web_app.views.order_history import order_history_view
 from web_app.views.payment import order_submit, payment_view
 from web_app.views.profile import profile_view
@@ -32,6 +37,10 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("register/", register_view, name="register"),
     path("logout/", logout_view, name="logout"),
+    # Google OAuth
+    path("oauth/google/", google_oauth_initiate, name="google_oauth_initiate"),
+    path("oauth/google/callback/", google_oauth_callback, name="google_oauth_callback"),
+    path("oauth/phone-required/", oauth_phone_required, name="oauth_phone_required"),
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(

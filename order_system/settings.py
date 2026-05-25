@@ -138,6 +138,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 LOGIN_URL = "/login/"
 
+GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID", "")
+GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET", "")
+GOOGLE_OAUTH2_REDIRECT_URI = os.getenv(
+    "GOOGLE_OAUTH2_REDIRECT_URI", "http://localhost:8000/oauth/google/callback/"
+)
+
 
 def env_bool(name, default=False):
     return os.getenv(name, str(default)).lower() in {"1", "true", "yes", "on"}
