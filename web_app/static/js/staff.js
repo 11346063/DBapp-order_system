@@ -139,6 +139,11 @@ function updateStatusBadges(statusCounts) {
 }
 
 function removeOrderCard(orderId) {
+    if (window.STAFF_VIEW_MODE === 'kanban') {
+        // Kanban: reload so all columns reflect the new status
+        setTimeout(() => location.reload(), 300);
+        return;
+    }
     const card = document.getElementById(`order-${orderId}`);
     if (card) {
         card.style.transition = 'opacity 0.3s';
@@ -156,6 +161,84 @@ function showEmptyStateIfNeeded() {
 
     const emptyState = document.getElementById('staffOrderEmptyTemplate');
     if (emptyState) emptyState.classList.remove('d-none');
+}
+
+// ===== Card Collapse =====
+
+function toggleCardCollapse(orderId) {
+    const body = document.getElementById(`card-body-${orderId}`);
+    const icon = document.getElementById(`collapse-icon-${orderId}`);
+    if (!body) return;
+
+    const isCollapsed = body.classList.contains('d-none');
+    if (isCollapsed) {
+        body.classList.remove('d-none');
+        icon && icon.classList.remove('collapsed');
+        localStorage.setItem(`order-collapse-${orderId}`, 'open');
+    } else {
+        body.classList.add('d-none');
+        icon && icon.classList.add('collapsed');
+        localStorage.setItem(`order-collapse-${orderId}`, 'closed');
+    }
+}
+
+function restoreCollapseStates(defaultCollapsed) {
+    document.querySelectorAll('[data-order-id]').forEach(el => {
+        const orderId = el.dataset.orderId;
+        const body = document.getElementById(`card-body-${orderId}`);
+        const icon = document.getElementById(`collapse-icon-${orderId}`);
+        const saved = localStorage.getItem(`order-collapse-${orderId}`);
+        const shouldCollapse = saved ? saved === 'closed' : defaultCollapsed;
+        if (shouldCollapse && body) {
+            body.classList.add('d-none');
+            icon && icon.classList.add('collapsed');
+        }
+    });
+}
+
+// ===== Kanban Drag & Drop =====
+
+function initKanban() {
+    // Only adjacent forward transitions are valid
+    const VALID_TRANSITIONS = { '0': '1', '1': '2', '2': '3' };
+
+    document.querySelectorAll('.kanban-cards').forEach(container => {
+        Sortable.create(container, {
+            group: 'kanban',
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            filter: '.kanban-empty',
+            onEnd(evt) {
+                const fromStatus = evt.from.dataset.status;
+                const toStatus = evt.to.dataset.status;
+                const orderId = parseInt(evt.item.dataset.orderId, 10);
+
+                if (fromStatus === toStatus) return;
+
+                // Always snap back — API success triggers removeOrderCard
+                revertDrag(evt.item, evt.from, evt.oldIndex);
+
+                if (VALID_TRANSITIONS[fromStatus] !== toStatus) return;
+
+                if (fromStatus === '0') {
+                    acceptOrder(orderId);
+                } else if (fromStatus === '1') {
+                    notifyReady(orderId);
+                } else if (fromStatus === '2') {
+                    updateOrderStatus(orderId, 3);
+                }
+            },
+        });
+    });
+}
+
+function revertDrag(item, fromEl, oldIndex) {
+    const siblings = fromEl.children;
+    if (oldIndex < siblings.length) {
+        fromEl.insertBefore(item, siblings[oldIndex]);
+    } else {
+        fromEl.appendChild(item);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -177,5 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const acceptConfirmBtn = document.getElementById('orderAcceptConfirmBtn');
     if (acceptConfirmBtn) {
         acceptConfirmBtn.addEventListener('click', submitAcceptOrder);
+    }
+
+    const isKanban = window.STAFF_VIEW_MODE === 'kanban';
+    restoreCollapseStates(isKanban);
+    if (isKanban && typeof Sortable !== 'undefined') {
+        initKanban();
     }
 });

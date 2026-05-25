@@ -3,19 +3,22 @@ Component: StaffOrderCard
 Props:
   - order (required): order with items
   - current_status (required): current status filter
+  - card_mode (optional): 'kanban' changes outer wrapper class
 {% endcomment %}
 {% load i18n %}
-<div class="col-12 col-md-6" id="order-{{ order.pk }}">
+<div class="{% if card_mode == 'kanban' %}kanban-card-wrapper{% else %}col-12 col-md-6{% endif %}" id="order-{{ order.pk }}" data-order-id="{{ order.pk }}">
     <div class="card card-dark h-100">
-        <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
-            {% if order.pickup_code %}
-            <span class="text-white fw-bold fs-5">{{ order.pickup_code }}</span>
-            {% else %}
-            <span></span>
-            {% endif %}
-            <small class="text-white">{{ order.created_at|date:"m/d H:i" }}</small>
+        <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary card-collapse-trigger"
+             onclick="toggleCardCollapse({{ order.pk }})">
+            <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                {% if order.pickup_code %}
+                <span class="text-white fw-bold fs-5">{{ order.pickup_code }}</span>
+                {% endif %}
+                <small class="text-secondary text-truncate">{{ order.created_at|date:"m/d H:i" }}</small>
+            </div>
+            <i class="bi bi-chevron-up card-collapse-icon" id="collapse-icon-{{ order.pk }}"></i>
         </div>
-        <div class="card-body d-flex flex-column">
+        <div class="card-body d-flex flex-column" id="card-body-{{ order.pk }}">
             {% if order.estimated_wait_minutes %}
             <div class="mb-2">
                 <span class="badge bg-info text-dark">{% blocktrans with m=order.estimated_wait_minutes %}預估 {{ m }} 分鐘{% endblocktrans %}</span>

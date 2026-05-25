@@ -15,8 +15,79 @@ from web_app.services import order as order_service
 ORDER_PAGE_SIZE = 10
 
 
+def _attach_order_details(orders):
+    """附加品項與 order-level 選項至每筆 order。"""
+    for order in orders:
+        order.items = (
+            OrderItem.objects.filter(order=order)
+            .select_related("menu")
+            .prefetch_related("orderitemoption_set__opt")
+        )
+        raw_opts = OrderItemOption.objects.filter(
+            order=order, order_item=None
+        ).select_related("opt")
+        order.order_opts = order_service.format_order_options(raw_opts)
+        order.order_opts_tags = order_service.format_order_option_tags(raw_opts)
+
+
 @employee_required
 def staff_order_list(request):
+    view_mode = request.GET.get("view", "list")
+    status_counts = order_service.order_status_counts()
+
+    if view_mode == "kanban":
+        kanban_groups = {}
+        for sv in [0, 1, 2]:
+            group = list(
+                Order.objects.filter(status=sv)
+                .select_related("user")
+                .order_by("-created_at")[:20]
+            )
+            _attach_order_details(group)
+            kanban_groups[sv] = group
+
+        kanban_cols = [
+            {
+                "status": 0,
+                "label": "等待接單",
+                "icon": "bi-clock",
+                "text_class": "text-warning",
+                "badge_class": "badge-yellow",
+                "count": status_counts.get(0, 0),
+                "orders": kanban_groups[0],
+            },
+            {
+                "status": 1,
+                "label": "備餐中",
+                "icon": "bi-fire",
+                "text_class": "text-primary",
+                "badge_class": "bg-primary",
+                "count": status_counts.get(1, 0),
+                "orders": kanban_groups[1],
+            },
+            {
+                "status": 2,
+                "label": "可取餐",
+                "icon": "bi-bell",
+                "text_class": "text-info",
+                "badge_class": "bg-info text-dark",
+                "count": status_counts.get(2, 0),
+                "orders": kanban_groups[2],
+            },
+        ]
+
+        return render(
+            request,
+            "staff/order_list.html",
+            {
+                "view_mode": "kanban",
+                "kanban_cols": kanban_cols,
+                "current_status": None,
+                "status_counts": status_counts,
+            },
+        )
+
+    # --- 清單模式 ---
     status_filter = request.GET.get("status", "0")
     try:
         status_val = int(status_filter)
@@ -32,26 +103,13 @@ def staff_order_list(request):
     paginator = Paginator(orders, ORDER_PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
     paged_orders = list(page_obj.object_list)
-
-    # 附加品項（含 item-level 選項）與 order-level 選項
-    for order in paged_orders:
-        order.items = (
-            OrderItem.objects.filter(order=order)
-            .select_related("menu")
-            .prefetch_related("orderitemoption_set__opt")
-        )
-        raw_opts = OrderItemOption.objects.filter(
-            order=order, order_item=None
-        ).select_related("opt")
-        order.order_opts = order_service.format_order_options(raw_opts)
-        order.order_opts_tags = order_service.format_order_option_tags(raw_opts)
-
-    status_counts = order_service.order_status_counts()
+    _attach_order_details(paged_orders)
 
     return render(
         request,
         "staff/order_list.html",
         {
+            "view_mode": "list",
             "orders": paged_orders,
             "page_obj": page_obj,
             "current_status": status_val,

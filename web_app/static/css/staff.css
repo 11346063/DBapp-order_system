@@ -159,3 +159,65 @@
 .account-table td {
     white-space: nowrap;
 }
+
+/* ===== Kanban Board ===== */
+.kanban-board {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    align-items: flex-start;
+    padding-bottom: 20px;
+}
+
+.kanban-col {
+    flex: 0 0 300px;
+    min-width: 0;
+}
+
+.kanban-col-header {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.kanban-cards {
+    min-height: 80px;
+    border-radius: 8px;
+    transition: outline 0.15s;
+}
+
+.kanban-cards.drag-over {
+    outline: 2px dashed var(--primary-yellow);
+    outline-offset: 2px;
+}
+
+.kanban-card-wrapper {
+    margin-bottom: 10px;
+}
+
+.kanban-empty {
+    border: 1px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+}
+
+/* SortableJS drag visuals */
+.sortable-ghost {
+    opacity: 0.35;
+}
+
+/* ===== Card Collapse ===== */
+.card-collapse-trigger {
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-collapse-icon {
+    color: rgba(255, 255, 255, 0.45);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.card-collapse-icon.collapsed {
+    transform: rotate(180deg);
+}
