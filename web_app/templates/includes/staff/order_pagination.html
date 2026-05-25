@@ -1,20 +1,26 @@
 {% load i18n %}
 {% if page_obj.has_other_pages %}
 <nav class="mt-4" aria-label="{% trans '訂單分頁' %}">
-    <ul class="pagination justify-content-center mb-0">
+    <ul class="pagination justify-content-center mb-0 gap-1">
         <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
-            <a class="page-link" href="?status={{ current_status }}&amp;page={% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
-                {% trans "上一頁" %}
+            <a class="page-link rounded border-0 fw-bold"
+               style="background:rgba(255,255,255,.08); color:{% if page_obj.has_previous %}#fff{% else %}rgba(255,255,255,.3){% endif %};"
+               href="?status={{ current_status }}&amp;page={% if page_obj.has_previous %}{{ page_obj.previous_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
             </a>
         </li>
         {% for page_number in page_obj.paginator.page_range %}
-        <li class="page-item{% if page_obj.number == page_number %} active{% endif %}">
-            <a class="page-link" href="?status={{ current_status }}&amp;page={{ page_number }}">{{ page_number }}</a>
+        <li class="page-item">
+            <a class="page-link rounded border-0 fw-bold"
+               style="{% if page_obj.number == page_number %}background:#F3E800; color:#1a1a1a;{% else %}background:rgba(255,255,255,.08); color:#fff;{% endif %}"
+               href="?status={{ current_status }}&amp;page={{ page_number }}">{{ page_number }}</a>
         </li>
         {% endfor %}
         <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
-            <a class="page-link" href="?status={{ current_status }}&amp;page={% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
-                {% trans "下一頁" %}
+            <a class="page-link rounded border-0 fw-bold"
+               style="background:rgba(255,255,255,.08); color:{% if page_obj.has_next %}#fff{% else %}rgba(255,255,255,.3){% endif %};"
+               href="?status={{ current_status }}&amp;page={% if page_obj.has_next %}{{ page_obj.next_page_number }}{% else %}{{ page_obj.number }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
             </a>
         </li>
     </ul>

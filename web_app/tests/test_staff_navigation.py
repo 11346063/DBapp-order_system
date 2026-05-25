@@ -65,12 +65,6 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "確認更新訂單")
         self.assertContains(response, 'id="orderAcceptModal"')
         self.assertContains(response, "同意接單")
-        self.assertContains(response, "電話客人")
-        self.assertContains(response, "客人電話")
-        self.assertContains(response, "0912345678")
-        self.assertContains(response, "訪客")
-        self.assertContains(response, "聯絡電話")
-        self.assertContains(response, "0922333444")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")

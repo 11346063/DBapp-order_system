@@ -44,6 +44,7 @@ def staff_order_list(request):
             order=order, order_item=None
         ).select_related("opt")
         order.order_opts = order_service.format_order_options(raw_opts)
+        order.order_opts_tags = order_service.format_order_option_tags(raw_opts)
 
     status_counts = order_service.order_status_counts()
 

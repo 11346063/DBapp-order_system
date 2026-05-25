@@ -133,7 +133,7 @@ class StaffOrderListPaginationTest(TestCase):
         self.assertIn("page_obj", response.context)
         self.assertEqual(len(response.context["orders"]), 10)
         self.assertTrue(response.context["page_obj"].has_next())
-        self.assertContains(response, "下一頁")
+        self.assertContains(response, "bi-chevron-right")
 
     def test_staff_order_list_second_page_has_remaining_order(self):
         self.client.login(username="order_page_employee", password="pass")

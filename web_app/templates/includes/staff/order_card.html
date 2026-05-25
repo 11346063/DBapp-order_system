@@ -8,42 +8,24 @@ Props:
 <div class="col-12 col-md-6" id="order-{{ order.pk }}">
     <div class="card card-dark h-100">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary">
-            <span class="text-white fw-bold">{% blocktrans with pk=order.pk %}訂單 #{{ pk }}{% endblocktrans %}</span>
-            <div class="d-flex align-items-center gap-2">
-                {% if order.pickup_code %}
-                <span class="badge bg-warning text-dark fw-bold">{{ order.pickup_code }}</span>
-                {% endif %}
-                <small class="text-secondary">{{ order.created_at|date:"m/d H:i" }}</small>
-            </div>
+            {% if order.pickup_code %}
+            <span class="text-white fw-bold fs-5">{{ order.pickup_code }}</span>
+            {% else %}
+            <span></span>
+            {% endif %}
+            <small class="text-white">{{ order.created_at|date:"m/d H:i" }}</small>
         </div>
-        <div class="card-body">
+        <div class="card-body d-flex flex-column">
+            {% if order.estimated_wait_minutes %}
             <div class="mb-2">
-                <small class="text-secondary">{% trans "顧客：" %}</small>
-                <span class="text-white">
-                    {% if order.user.identity == 'A' or order.user.identity == 'E' %}{% trans "電話客人" %}{% elif order.user %}{{ order.user.name }}{% else %}{% trans "訪客" %}{% endif %}
-                </span>
-            </div>
-            {% if order.customer_phone %}
-            <div class="mb-2">
-                <small class="text-secondary">
-                    <i class="bi bi-telephone"></i>
-                    {% if order.user.identity == 'A' or order.user.identity == 'E' %}{% trans "客人電話：" %}{% else %}{% trans "聯絡電話：" %}{% endif %}
-                </small>
-                <span class="text-white">{{ order.customer_phone }}</span>
+                <span class="badge bg-info text-dark">{% blocktrans with m=order.estimated_wait_minutes %}預估 {{ m }} 分鐘{% endblocktrans %}</span>
             </div>
             {% endif %}
-            {% if order.accepted_by %}
-            <div class="mb-2">
-                <small class="text-secondary"><i class="bi bi-person-check"></i> {% trans "接單：" %}</small>
-                <span class="text-white">{{ order.accepted_by.name }}</span>
-                {% if order.estimated_wait_minutes %}
-                <span class="badge bg-info text-dark ms-1">{% blocktrans with m=order.estimated_wait_minutes %}預估 {{ m }} 分鐘{% endblocktrans %}</span>
-                {% endif %}
-            </div>
-            {% endif %}
-            {% if order.order_opts %}
-            <div class="mb-2 px-2 py-1 rounded" style="background:rgba(243,200,0,.08); border-left:3px solid var(--primary-yellow);">
-                <small class="text-yellow"><i class="bi bi-sliders"></i> {{ order.order_opts }}</small>
+            {% if order.order_opts_tags %}
+            <div class="mb-2 d-flex flex-wrap gap-1">
+                {% for tag in order.order_opts_tags %}
+                <span class="badge fs-6 {{ tag.css }}"{% if tag.style %} style="{{ tag.style }}"{% endif %}>{{ tag.label }}</span>
+                {% endfor %}
             </div>
             {% endif %}
             {% if order.remark %}
@@ -63,31 +45,30 @@ Props:
             {% endif %}
             <div class="mb-3">
                 {% for item in order.items %}
-                <div class="d-flex justify-content-between align-items-start py-1" style="color: var(--text-primary);">
+                <div class="d-flex justify-content-between align-items-start py-1 text-white">
                     <span>
-                        <i class="bi bi-dot fs-5"></i>
                         {{ item.menu.name }}
                         <span class="text-yellow fw-bold">x{{ item.amount }}</span>
                         {% for oi_opt in item.orderitemoption_set.all %}
-                        <span class="text-secondary small ms-1">（{% if oi_opt.opt.name == "切" %}{% if oi_opt.level == 1 %}切{% else %}不切{% endif %}{% else %}{{ oi_opt.opt.name }}{% endif %}）</span>
+                        <span class="badge fs-6 bg-success text-white ms-1">{% if oi_opt.opt.name == "切" %}{% if oi_opt.level == 1 %}切{% else %}不切{% endif %}{% else %}{{ oi_opt.opt.name }}{% endif %}</span>
                         {% endfor %}
                     </span>
-                    <span class="text-yellow flex-shrink-0 ms-2">${{ item.total_price }}</span>
+                    <span class="text-white flex-shrink-0 ms-2">${{ item.total_price }}</span>
                 </div>
                 {% endfor %}
             </div>
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="text-yellow fw-bold fs-5">${{ order.price_total }}</span>
+            <div class="d-flex justify-content-between align-items-center mt-auto">
+                <span class="text-white fw-bold fs-5">${{ order.price_total }}</span>
                 <div class="d-flex gap-2">
                     {% if current_status == 0 %}
-                    <button class="btn btn-sm btn-yellow fw-bold" onclick="acceptOrder({{ order.pk }})">
+                    <button class="btn btn-sm btn-success" onclick="acceptOrder({{ order.pk }})">
                         <i class="bi bi-check2-circle"></i> {% trans "接單" %}
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
                         <i class="bi bi-x-lg"></i> {% trans "拒單" %}
                     </button>
                     {% elif current_status == 1 %}
-                    <button class="btn btn-sm btn-info text-dark" onclick="notifyReady({{ order.pk }})">
+                    <button class="btn btn-sm btn-success" onclick="notifyReady({{ order.pk }})">
                         <i class="bi bi-bell"></i> {% trans "通知取餐" %}
                     </button>
                     <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">

@@ -19,7 +19,9 @@ def _make_token_response(access_token="fake_access_token"):
     return resp
 
 
-def _make_userinfo_response(sub="12345678901234567890", email="test@gmail.com", name="Test User"):
+def _make_userinfo_response(
+    sub="12345678901234567890", email="test@gmail.com", name="Test User"
+):
     resp = MagicMock()
     resp.status_code = 200
     resp.json.return_value = {"sub": sub, "email": email, "name": name}
@@ -48,11 +50,16 @@ class GoogleOAuthInitiateTest(TestCase):
 
     def test_authenticated_user_redirects_to_home(self):
         user = User.objects.create_user(
-            account="0912345678", password="pass", name="Test", identity=Identity.CUSTOMER
+            account="0912345678",
+            password="pass",
+            name="Test",
+            identity=Identity.CUSTOMER,
         )
         self.client.force_login(user)
         response = self.client.get(reverse("web_app:google_oauth_initiate"))
-        self.assertRedirects(response, reverse("web_app:home"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:home"), fetch_redirect_response=False
+        )
 
 
 class GoogleOAuthCallbackTest(TestCase):
@@ -70,17 +77,23 @@ class GoogleOAuthCallbackTest(TestCase):
         response = self.client.get(
             self._callback_url(state="wrong_state", code="somecode")
         )
-        self.assertRedirects(response, reverse("web_app:login"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
 
     def test_missing_state_redirects_to_login(self):
         response = self.client.get(self._callback_url(code="somecode"))
-        self.assertRedirects(response, reverse("web_app:login"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
 
     def test_google_error_param_redirects_to_login(self):
         response = self.client.get(
             self._callback_url(state="valid_state", error="access_denied")
         )
-        self.assertRedirects(response, reverse("web_app:login"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
 
     @patch("web_app.views.oauth_views.requests.get")
     @patch("web_app.views.oauth_views.requests.post")
@@ -132,7 +145,9 @@ class GoogleOAuthCallbackTest(TestCase):
                 self._callback_url(state="valid_state", code="authcode")
             )
 
-        self.assertRedirects(response, reverse("web_app:home"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:home"), fetch_redirect_response=False
+        )
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     @patch("web_app.views.oauth_views.requests.post")
@@ -150,7 +165,9 @@ class GoogleOAuthCallbackTest(TestCase):
                 self._callback_url(state="valid_state", code="authcode")
             )
 
-        self.assertRedirects(response, reverse("web_app:login"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
 
 
 class OAuthPhoneRequiredTest(TestCase):
@@ -177,7 +194,9 @@ class OAuthPhoneRequiredTest(TestCase):
         del session["oauth_pending_user_id"]
         session.save()
         response = self.client.get(reverse("web_app:oauth_phone_required"))
-        self.assertRedirects(response, reverse("web_app:login"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
 
     def test_valid_phone_saves_and_logs_in(self):
         response = self.client.post(
@@ -186,7 +205,9 @@ class OAuthPhoneRequiredTest(TestCase):
         )
         self.user.refresh_from_db()
         self.assertEqual(self.user.phone_number, "0912345678")
-        self.assertRedirects(response, reverse("web_app:home"), fetch_redirect_response=False)
+        self.assertRedirects(
+            response, reverse("web_app:home"), fetch_redirect_response=False
+        )
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
     def test_invalid_phone_shows_error(self):

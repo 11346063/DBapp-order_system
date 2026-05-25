@@ -118,6 +118,33 @@ def format_order_options(raw_opts):
     return "｜".join(parts)
 
 
+def format_order_option_tags(raw_opts):
+    tags = []
+    for option_link in raw_opts:
+        name = option_link.opt.name
+        level = option_link.level
+        if name == OPTION_SPICY:
+            label = SpicyLevel.display(level)
+            if level == SpicyLevel.NONE:
+                css = "text-white"
+                style = "background-color:#9a7200;"
+            else:
+                css = "bg-danger text-white"
+                style = ""
+        elif name == OPTION_GARLIC:
+            label = f"加蒜頭x{level}"
+            css = "bg-primary text-white"
+            style = ""
+        elif name == OPTION_BASIL:
+            label = f"加九層塔x{level}"
+            css = "bg-primary text-white"
+            style = ""
+        else:
+            continue
+        tags.append({"label": label, "css": css, "style": style})
+    return tags
+
+
 def update_order_status(order_id, status):
     try:
         order = Order.objects.get(pk=order_id)
