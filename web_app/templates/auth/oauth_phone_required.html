@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static i18n %}
 
-{% block title %}補填聯絡電話 — 絕佳食雞{% endblock %}
+{% block title %}{% trans "補填聯絡電話" %} — 絕佳食雞{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
@@ -13,8 +13,8 @@
         <div class="card-body p-4">
             <div class="text-center mb-4">
                 <i class="bi bi-telephone-fill fs-1 text-yellow"></i>
-                <h4 class="text-white mt-2">補填聯絡電話</h4>
-                <p class="text-secondary small">Google 帳號沒有電話資料，請補填後才能完成結帳</p>
+                <h4 class="text-white mt-2">{% trans "補填聯絡電話" %}</h4>
+                <p class="text-secondary small">{% trans "Google 帳號沒有電話資料，請補填後才能完成結帳" %}</p>
             </div>
 
             {% if error %}
@@ -24,7 +24,7 @@
             <form method="POST">
                 {% csrf_token %}
                 <div class="mb-4">
-                    <label class="form-label text-white-50">手機號碼 <span class="text-danger">*</span></label>
+                    <label class="form-label text-white-50">{% trans "手機號碼" %} <span class="text-danger">*</span></label>
                     <input type="tel" name="phone_number"
                            class="form-control bg-dark text-white border-secondary"
                            placeholder="例：0912345678"
@@ -32,7 +32,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-yellow w-100 py-2 fw-bold">
-                    <i class="bi bi-check-circle"></i> 確認並登入
+                    <i class="bi bi-check-circle"></i> {% trans "確認並登入" %}
                 </button>
             </form>
         </div>

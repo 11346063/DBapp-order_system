@@ -500,3 +500,204 @@ msgstr "Enter your name"
 
 msgid "帳號權限 *"
 msgstr "Role *"
+
+# --- Register form (phone-based) ---
+msgid "手機號碼 *"
+msgstr "Phone Number *"
+
+msgid "請輸入手機號碼，例如 0912345678"
+msgstr "Enter your phone number, e.g. 0912345678"
+
+msgid "此手機號碼已註冊"
+msgstr "This phone number is already registered"
+
+# --- Auth: Login (Google OAuth) ---
+msgid "或"
+msgstr "or"
+
+msgid "使用 Google 登入"
+msgstr "Sign in with Google"
+
+# --- Auth: OAuth phone required ---
+msgid "補填聯絡電話"
+msgstr "Add Phone Number"
+
+msgid "Google 帳號沒有電話資料，請補填後才能完成結帳"
+msgstr "Your Google account has no phone number. Please add one to complete checkout."
+
+msgid "確認並登入"
+msgstr "Confirm and Sign In"
+
+# --- Auth: View flash messages (Google OAuth) ---
+msgid "登入驗證失敗，請重試"
+msgstr "Login verification failed, please try again"
+
+msgid "Google 登入已取消"
+msgstr "Google login cancelled"
+
+msgid "Google 登入失敗，請重試"
+msgstr "Google login failed, please try again"
+
+msgid "無法取得 Google 帳號資料，請重試"
+msgstr "Unable to retrieve Google account info, please try again"
+
+msgid "Google 帳號資料不完整，請重試"
+msgstr "Google account info is incomplete, please try again"
+
+msgid "請輸入有效的台灣手機號碼（例：0912345678）"
+msgstr "Please enter a valid Taiwan mobile number (e.g. 0912345678)"
+
+msgid "歡迎，{name}！"
+msgstr "Welcome, {name}!"
+
+msgid "手機號碼或密碼錯誤"
+msgstr "Invalid phone number or password"
+
+# --- Profile page ---
+msgid "個人資料"
+msgstr "Profile"
+
+msgid "補齊常用聯絡資訊"
+msgstr "Fill in your contact details"
+
+msgid "登入手機號碼"
+msgstr "Login Phone Number"
+
+msgid "儲存資料"
+msgstr "Save Profile"
+
+msgid "個人資料已更新"
+msgstr "Profile updated"
+
+# --- Order status labels (new states) ---
+msgid "等待接單"
+msgstr "Awaiting Acceptance"
+
+msgid "備餐中"
+msgstr "Preparing"
+
+msgid "可取餐"
+msgstr "Ready for Pickup"
+
+# --- Order history card (new fields) ---
+msgid "聯絡電話："
+msgstr "Contact Phone:"
+
+msgid "備餐中，預估等待 %(m)s 分鐘"
+msgstr "Preparing, estimated wait %(m)s min"
+
+msgid "餐點已完成，請留意店家電話或至櫃台取餐"
+msgstr "Your order is ready. Please check your phone or pick up at the counter."
+
+msgid "取消原因："
+msgstr "Cancellation reason:"
+
+# --- Staff order card (new actions & fields) ---
+msgid "預估 %(m)s 分鐘"
+msgstr "Est. %(m)s min"
+
+msgid "已通知取餐："
+msgstr "Pickup notified:"
+
+msgid "接單"
+msgstr "Accept"
+
+msgid "拒單"
+msgstr "Reject"
+
+msgid "通知取餐"
+msgstr "Notify Pickup"
+
+# --- Order accept modal ---
+msgid "同意接單"
+msgstr "Accept Order"
+
+msgid "請輸入預估等待時間後接單。"
+msgstr "Enter estimated wait time to accept this order."
+
+msgid "預估等待時間（分鐘）"
+msgstr "Estimated Wait Time (minutes)"
+
+msgid "請輸入 1–180 分鐘"
+msgstr "Enter 1–180 minutes"
+
+msgid "確認接單"
+msgstr "Confirm Acceptance"
+
+# --- Order list view mode toggle ---
+msgid "清單模式"
+msgstr "List Mode"
+
+msgid "Kanban 模式"
+msgstr "Kanban Mode"
+
+# --- Order pagination ---
+msgid "訂單分頁"
+msgstr "Order pagination"
+
+# --- Payment submit card (spice & add-ons) ---
+msgid "辣度"
+msgstr "Spice Level"
+
+msgid "不辣"
+msgstr "No Spice"
+
+msgid "小辣"
+msgstr "Mild"
+
+msgid "中辣"
+msgstr "Medium"
+
+msgid "大辣"
+msgstr "Hot"
+
+msgid "加料（每份 +$10）"
+msgstr "Add-ons (each +$10)"
+
+msgid "加蒜頭"
+msgstr "Add Garlic"
+
+msgid "加九層塔"
+msgstr "Add Basil"
+
+msgid "聯絡電話"
+msgstr "Contact Phone"
+
+# --- Cart price change alert ---
+msgid "部分餐點價格已更新"
+msgstr "Some item prices have been updated"
+
+msgid "請確認最新價格後再結帳。"
+msgstr "Please confirm the latest prices before checking out."
+
+msgid "接受最新價格"
+msgstr "Accept New Prices"
+
+# --- Cart price change modal (payment page) ---
+msgid "訂單價格已更新"
+msgstr "Order Prices Updated"
+
+msgid "訂單價格已依最新菜單更新，請確認金額後再送出。"
+msgstr "Order prices have been updated based on the latest menu. Please confirm before submitting."
+
+msgid "最新總金額"
+msgstr "Updated Total"
+
+msgid "先不要"
+msgstr "Not Now"
+
+msgid "接受最新價格並送出"
+msgstr "Accept & Submit"
+
+# --- Payment view flash messages ---
+msgid "結帳需要填寫聯絡電話"
+msgstr "A contact phone number is required for checkout"
+
+msgid "部分餐點價格已更新，請確認最新價格後再送出"
+msgstr "Some item prices have been updated. Please confirm before submitting."
+
+msgid "代客訂單已送出，已自動接單"
+msgstr "Staff order submitted and auto-accepted."
+
+msgid "訂單已送出，等待店家接單"
+msgstr "Order submitted, waiting for acceptance."
