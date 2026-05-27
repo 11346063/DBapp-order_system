@@ -16,7 +16,12 @@ from web_app.views.oauth_views import (
 from web_app.views.order_history import order_history_view
 from web_app.views.payment import order_submit, order_waiting_view, payment_view
 from web_app.views.profile import profile_view
-from web_app.views.staff import account_management, staff_order_list, staff_report
+from web_app.views.staff import (
+    account_management,
+    staff_order_list,
+    staff_report,
+    staff_settings_view,
+)
 from web_app.views.views import typeCreate
 
 app_name = "web_app"
@@ -80,6 +85,7 @@ urlpatterns = [
     path("staff/orders/", staff_order_list, name="staff_orders"),
     path("staff/report/", staff_report, name="staff_report"),
     path("staff/accounts/", account_management, name="account_management"),
+    path("staff/settings/", staff_settings_view, name="staff_settings"),
     path("type/create/", typeCreate, name="type_create"),
     # RESTful API（DRF）
     path("api/", include("web_app.api.urls")),

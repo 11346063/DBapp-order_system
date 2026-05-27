@@ -10,3 +10,4 @@ from .order_item_options import OrderItemOption as OrderItemOption
 from .user import Identity as Identity
 from .user import User as User
 from .order import Order as Order
+from .store_settings import StoreSettings as StoreSettings

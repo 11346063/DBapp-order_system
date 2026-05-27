@@ -1,0 +1,73 @@
+{% extends "staff/base_staff.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "系統設定" %} — 絕佳食雞{% endblock %}
+
+{% block staff_content %}
+<div class="mb-4">
+    <h4 class="text-yellow fw-bold"><i class="bi bi-gear me-2"></i>{% trans "系統設定" %}</h4>
+    <p class="text-secondary">{% trans "調整加料單價與系統選項名稱。選項名稱更動會同步更新資料庫，請謹慎操作。" %}</p>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="card-dark p-4 mb-4">
+        <h6 class="text-yellow mb-3"><i class="bi bi-currency-dollar me-1"></i>{% trans "加料定價" %}</h6>
+        <div class="mb-3">
+            <label for="extra_ingredient_cost" class="form-label text-secondary">
+                {% trans "加蒜 / 九層塔每份單價（元）" %}
+            </label>
+            <div class="input-group" style="max-width:200px;">
+                <span class="input-group-text bg-dark border-secondary text-secondary">$</span>
+                <input type="number" class="form-control bg-dark text-white border-secondary"
+                       id="extra_ingredient_cost" name="extra_ingredient_cost"
+                       value="{{ settings.extra_ingredient_cost }}" min="0" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-dark p-4 mb-4">
+        <h6 class="text-yellow mb-3"><i class="bi bi-tag me-1"></i>{% trans "系統選項名稱" %}</h6>
+        <div class="alert alert-warning py-2 mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            {% trans "更改選項名稱將同步修改資料庫中對應的選項記錄，已完成的歷史訂單顯示可能受影響。" %}
+        </div>
+        <div class="row g-3">
+            <div class="col-12 col-sm-6">
+                <label for="option_name_spicy" class="form-label text-secondary">{% trans "辣度選項名稱" %}</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary"
+                       id="option_name_spicy" name="option_name_spicy"
+                       value="{{ settings.option_name_spicy }}" maxlength="20" required>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label for="option_name_garlic" class="form-label text-secondary">{% trans "加蒜選項名稱" %}</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary"
+                       id="option_name_garlic" name="option_name_garlic"
+                       value="{{ settings.option_name_garlic }}" maxlength="20" required>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label for="option_name_basil" class="form-label text-secondary">{% trans "九層塔選項名稱" %}</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary"
+                       id="option_name_basil" name="option_name_basil"
+                       value="{{ settings.option_name_basil }}" maxlength="20" required>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label for="option_name_cut" class="form-label text-secondary">{% trans "切法選項名稱" %}</label>
+                <input type="text" class="form-control bg-dark text-white border-secondary"
+                       id="option_name_cut" name="option_name_cut"
+                       value="{{ settings.option_name_cut }}" maxlength="20" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-3">
+        <button type="submit" class="btn btn-yellow fw-bold px-4">
+            <i class="bi bi-check-lg me-1"></i>{% trans "儲存設定" %}
+        </button>
+        <a href="{% url 'web_app:staff_orders' %}" class="btn btn-outline-secondary px-4">
+            {% trans "取消" %}
+        </a>
+    </div>
+</form>
+{% endblock %}

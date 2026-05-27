@@ -3,13 +3,7 @@ from datetime import date
 from django.db import transaction
 from django.utils import timezone
 
-from web_app.constants import (
-    EXTRA_INGREDIENT_COST,
-    OPTION_BASIL,
-    OPTION_GARLIC,
-    OPTION_SPICY,
-    SYSTEM_OPTION_NAMES,
-)
+from web_app.services.store_settings import get_settings
 from web_app.enums import SpicyLevel
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
@@ -84,25 +78,27 @@ def order_status_counts():
 
 
 def format_order_options(raw_opts):
+    s = get_settings()
     parts = []
     for option_link in raw_opts:
         name = option_link.opt.name
         level = option_link.level
-        if name == OPTION_SPICY:
+        if name == s.option_name_spicy:
             parts.append(SpicyLevel.display(level))
-        elif name == OPTION_GARLIC:
+        elif name == s.option_name_garlic:
             parts.append(f"加蒜頭x{level}")
-        elif name == OPTION_BASIL:
+        elif name == s.option_name_basil:
             parts.append(f"加九層塔x{level}")
     return "｜".join(parts)
 
 
 def format_order_option_tags(raw_opts):
+    s = get_settings()
     tags = []
     for option_link in raw_opts:
         name = option_link.opt.name
         level = option_link.level
-        if name == OPTION_SPICY:
+        if name == s.option_name_spicy:
             label = SpicyLevel.display(level)
             if level == SpicyLevel.NONE:
                 css = "text-white"
@@ -110,11 +106,11 @@ def format_order_option_tags(raw_opts):
             else:
                 css = "bg-danger text-white"
                 style = ""
-        elif name == OPTION_GARLIC:
+        elif name == s.option_name_garlic:
             label = f"加蒜頭x{level}"
             css = "bg-primary text-white"
             style = ""
-        elif name == OPTION_BASIL:
+        elif name == s.option_name_basil:
             label = f"加九層塔x{level}"
             css = "bg-primary text-white"
             style = ""
@@ -208,15 +204,22 @@ def create_order_from_cart(user, session, checkout_data):
     if not data["customer_phone"]:
         raise CheckoutPhoneRequired("結帳需要填寫聯絡電話")
 
+    s = get_settings()
     total = cart_service.cart_total(cart)
     extra_cost = (
         data["extra_garlic_qty"] + data["extra_basil_qty"]
-    ) * EXTRA_INGREDIENT_COST
+    ) * s.extra_ingredient_cost
     price_total = total + extra_cost
 
     initial_status = (
         Order.OrderStatus.ACCEPTED if is_staff_order else Order.OrderStatus.SUBMITTED
     )
+    system_option_names = [
+        s.option_name_spicy,
+        s.option_name_garlic,
+        s.option_name_basil,
+        s.option_name_cut,
+    ]
     with transaction.atomic():
         order = Order.objects.create(
             user=user if user.is_authenticated else None,
@@ -228,7 +231,7 @@ def create_order_from_cart(user, session, checkout_data):
 
         opts = {
             option.name: option
-            for option in Options.objects.filter(name__in=SYSTEM_OPTION_NAMES)
+            for option in Options.objects.filter(name__in=system_option_names)
         }
 
         for item in cart:
@@ -255,17 +258,17 @@ def create_order_from_cart(user, session, checkout_data):
                         level=int(opt_data.get("level", 1)),
                     )
 
-        if OPTION_SPICY in opts:
+        if s.option_name_spicy in opts:
             OrderItemOption.objects.create(
-                order=order, opt=opts[OPTION_SPICY], level=data["spicy_level"]
+                order=order, opt=opts[s.option_name_spicy], level=data["spicy_level"]
             )
-        if data["extra_garlic_qty"] > 0 and OPTION_GARLIC in opts:
+        if data["extra_garlic_qty"] > 0 and s.option_name_garlic in opts:
             OrderItemOption.objects.create(
-                order=order, opt=opts[OPTION_GARLIC], level=data["extra_garlic_qty"]
+                order=order, opt=opts[s.option_name_garlic], level=data["extra_garlic_qty"]
             )
-        if data["extra_basil_qty"] > 0 and OPTION_BASIL in opts:
+        if data["extra_basil_qty"] > 0 and s.option_name_basil in opts:
             OrderItemOption.objects.create(
-                order=order, opt=opts[OPTION_BASIL], level=data["extra_basil_qty"]
+                order=order, opt=opts[s.option_name_basil], level=data["extra_basil_qty"]
             )
 
         cart_service.clear_cart(user, session)

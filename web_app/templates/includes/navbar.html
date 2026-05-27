@@ -58,6 +58,7 @@
                     <li><a class="dropdown-item" href="{% url 'web_app:staff_orders' %}"><i class="bi bi-clipboard-data"></i> {% trans "訂單管理" %}</a></li>
                     {% if user.identity == 'A' %}
                     <li><a class="dropdown-item" href="{% url 'web_app:account_management' %}"><i class="bi bi-people"></i> {% trans "管理者帳號管理" %}</a></li>
+                    <li><a class="dropdown-item" href="{% url 'web_app:staff_settings' %}"><i class="bi bi-gear"></i> {% trans "系統設定" %}</a></li>
                     {% endif %}
                     {% endif %}
                     <li><hr class="dropdown-divider"></li>

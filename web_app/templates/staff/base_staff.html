@@ -24,9 +24,12 @@
                 {% include 'includes/staff/status_nav_link.html' with status=3 current_status=current_status count=status_counts.3 link_class='sidebar-link' %}
                 {% include 'includes/staff/status_nav_link.html' with status=4 current_status=current_status count=status_counts.4 link_class='sidebar-link' %}
                 {% if user.identity == 'A' %}
+                {% url 'web_app:staff_settings' as staff_settings_url %}
+                {% trans "系統設定" as label_settings %}
                 <hr class="border-secondary my-3">
                 {% include 'includes/staff/admin_nav_link.html' with target_url=staff_report_url url_name='staff_report' active_url_name=request.resolver_match.url_name icon='bi-bar-chart-line' label=label_report link_class='sidebar-link' %}
                 {% include 'includes/staff/admin_nav_link.html' with target_url=account_management_url url_name='account_management' active_url_name=request.resolver_match.url_name icon='bi-people' label=label_account_mgmt link_class='sidebar-link' %}
+                {% include 'includes/staff/admin_nav_link.html' with target_url=staff_settings_url url_name='staff_settings' active_url_name=request.resolver_match.url_name icon='bi-gear' label=label_settings link_class='sidebar-link' %}
                 {% endif %}
             </nav>
         </div>
@@ -43,6 +46,7 @@
             {% if user.identity == 'A' %}
             {% include 'includes/staff/admin_nav_link.html' with target_url=staff_report_url url_name='staff_report' active_url_name=request.resolver_match.url_name icon='bi-bar-chart-line' label=label_report link_class='staff-tab' wrapper='li' %}
             {% include 'includes/staff/admin_nav_link.html' with target_url=account_management_url url_name='account_management' active_url_name=request.resolver_match.url_name icon='bi-people' label=label_accounts link_class='staff-tab' wrapper='li' %}
+            {% include 'includes/staff/admin_nav_link.html' with target_url=staff_settings_url url_name='staff_settings' active_url_name=request.resolver_match.url_name icon='bi-gear' label=label_settings link_class='staff-tab' wrapper='li' %}
             {% endif %}
         </ul>
     </div>
