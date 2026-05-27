@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "等待確認訂單" %} — 絕佳食雞{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-6 col-lg-5">
+
+        {% comment %} 等待中畫面 {% endcomment %}
+        <div id="waitingSection" class="text-center py-5">
+            <div class="mb-4">
+                <div class="spinner-border text-yellow" style="width:3.5rem;height:3.5rem;" role="status">
+                    <span class="visually-hidden">{% trans "載入中" %}</span>
+                </div>
+            </div>
+            <h4 class="fw-bold mb-2">{% trans "等待店家確認訂單中..." %}</h4>
+            <p class="text-secondary mb-0">{% trans "請稍候，店家確認後將自動顯示結果" %}</p>
+            <p id="errorHint" class="text-danger mt-3 d-none">
+                {% trans "連線異常，請" %}
+                <a href="javascript:location.reload()" class="text-warning">{% trans "重新整理" %}</a>
+                {% trans "後再試" %}
+            </p>
+        </div>
+
+        {% comment %} 已接單畫面（初始隱藏） {% endcomment %}
+        <div id="acceptedSection" class="d-none py-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size:3.5rem;"></i>
+            </div>
+            <div class="card border-0 shadow-sm mb-4" style="background: var(--card-bg);">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold text-center mb-4">{% trans "訂單已確認！" %}</h4>
+                    <div class="d-flex justify-content-between align-items-center py-3"
+                         style="border-bottom: 1px solid var(--border-color);">
+                        <span class="text-secondary">{% trans "取餐號碼" %}</span>
+                        <span id="pickupCode" class="fw-bold fs-4 text-yellow"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-3">
+                        <span class="text-secondary">{% trans "預估等待時間" %}</span>
+                        <span id="waitMinutes" class="fw-bold fs-5"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center">
+                <a href="{% url 'web_app:home' %}" class="btn btn-yellow fw-bold px-5">
+                    <i class="bi bi-house me-2"></i>{% trans "返回主頁" %}
+                </a>
+            </div>
+        </div>
+
+        {% comment %} 已取消畫面（初始隱藏） {% endcomment %}
+        <div id="cancelledSection" class="d-none text-center py-5">
+            <div class="mb-4">
+                <i class="bi bi-x-circle-fill text-danger" style="font-size:3.5rem;"></i>
+            </div>
+            <h4 class="fw-bold mb-2">{% trans "訂單已取消" %}</h4>
+            <p class="text-secondary mb-4">{% trans "如有疑問請聯繫店家" %}</p>
+            <a href="{% url 'web_app:home' %}" class="btn btn-outline-secondary px-5">
+                <i class="bi bi-house me-2"></i>{% trans "返回主頁" %}
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const ORDER_ID = {{ order_id }};
+    const API_URL = `/api/orders/${ORDER_ID}/customer-status/`;
+    const POLL_INTERVAL = 3000;
+    const MAX_ERRORS = 3;
+
+    let errorCount = 0;
+    let timerId = null;
+
+    function showAccepted(data) {
+        document.getElementById('waitingSection').classList.add('d-none');
+        document.getElementById('acceptedSection').classList.remove('d-none');
+        document.getElementById('pickupCode').textContent = data.pickup_code || '—';
+        const mins = data.estimated_wait_minutes;
+        document.getElementById('waitMinutes').textContent =
+            mins ? `${mins} 分鐘` : '—';
+    }
+
+    function showCancelled() {
+        document.getElementById('waitingSection').classList.add('d-none');
+        document.getElementById('cancelledSection').classList.remove('d-none');
+    }
+
+    async function poll() {
+        try {
+            const res = await fetch(API_URL, { credentials: 'same-origin' });
+            if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
+            const json = await res.json();
+            errorCount = 0;
+            const status = json.data?.order_status;
+            if (status === 1) {
+                clearInterval(timerId);
+                showAccepted(json.data);
+            } else if (status === 4) {
+                clearInterval(timerId);
+                showCancelled();
+            }
+        } catch (_) {
+            errorCount++;
+            if (errorCount >= MAX_ERRORS) {
+                clearInterval(timerId);
+                document.getElementById('errorHint').classList.remove('d-none');
+            }
+        }
+    }
+
+    poll();
+    timerId = setInterval(poll, POLL_INTERVAL);
+})();
+</script>
+{% endblock %}

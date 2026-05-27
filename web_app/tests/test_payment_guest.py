@@ -105,13 +105,17 @@ class GuestCheckoutTest(TestCase):
     # --- order_submit ---
 
     def test_guest_can_submit_order(self):
-        """未登入訪客可以送出訂單"""
+        """未登入訪客可以送出訂單，結帳後跳至等待確認頁"""
         self._set_cart()
         response = self.client.post(
             reverse("web_app:order_submit"),
             data={"customer_phone": "0912345678"},
         )
-        self.assertRedirects(response, reverse("web_app:home"))
+        order = Order.objects.first()
+        self.assertIsNotNone(order)
+        self.assertRedirects(
+            response, reverse("web_app:order_waiting", kwargs={"pk": order.pk})
+        )
 
     def test_guest_order_requires_customer_phone(self):
         """訪客送單必須填寫聯絡電話"""

@@ -5,6 +5,8 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from rest_framework import serializers
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from web_app.api.permissions import IsCustomer, IsEmployee
@@ -14,6 +16,7 @@ from web_app.api.serializers.order import (
     ReorderSerializer,
 )
 from web_app.api.utils import api_success
+from web_app.models.order import Order
 from web_app.services import order as order_service
 
 # ---------- 共用 inline schema ----------
@@ -290,3 +293,62 @@ class ReorderAPIView(APIView):
             serializer.validated_data["order_id"],
         )
         return api_success(result)
+
+
+class OrderCustomerStatusAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="顧客查詢訂單狀態（Polling 用）",
+        description=(
+            "讓顧客（含訪客）在等待頁輪詢訂單狀態。\n\n"
+            "驗證規則：登入顧客需為訂單擁有者；訪客需在 session 中持有此訂單 ID。"
+        ),
+        tags=["訂單"],
+        responses={
+            200: inline_serializer(
+                name="CustomerOrderStatusResponse",
+                fields={
+                    "status": serializers.CharField(default="success"),
+                    "data": inline_serializer(
+                        name="CustomerOrderStatusData",
+                        fields={
+                            "order_status": serializers.IntegerField(),
+                            "estimated_wait_minutes": serializers.IntegerField(
+                                allow_null=True
+                            ),
+                            "pickup_code": serializers.CharField(),
+                        },
+                    ),
+                },
+            ),
+            403: OpenApiResponse(
+                response=_ErrorResponse, description="無權限查詢此訂單"
+            ),
+            404: OpenApiResponse(response=_ErrorResponse, description="訂單不存在"),
+        },
+    )
+    def get(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist:
+            return Response({"status": "error", "message": "找不到此訂單"}, status=404)
+
+        if request.user.is_authenticated:
+            if order.user_id != request.user.pk:
+                return Response(
+                    {"status": "error", "message": "無權限查詢此訂單"}, status=403
+                )
+        else:
+            if request.session.get("last_order_id") != pk:
+                return Response(
+                    {"status": "error", "message": "無權限查詢此訂單"}, status=403
+                )
+
+        return api_success(
+            {
+                "order_status": order.status,
+                "estimated_wait_minutes": order.estimated_wait_minutes,
+                "pickup_code": order.pickup_code,
+            }
+        )

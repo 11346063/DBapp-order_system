@@ -14,7 +14,7 @@ from web_app.views.oauth_views import (
     oauth_phone_required,
 )
 from web_app.views.order_history import order_history_view
-from web_app.views.payment import order_submit, payment_view
+from web_app.views.payment import order_submit, order_waiting_view, payment_view
 from web_app.views.profile import profile_view
 from web_app.views.staff import account_management, staff_order_list, staff_report
 from web_app.views.views import typeCreate
@@ -30,6 +30,7 @@ urlpatterns = [
     # 結帳
     path("payment/", payment_view, name="payment"),
     path("order/submit/", order_submit, name="order_submit"),
+    path("order/<int:pk>/waiting/", order_waiting_view, name="order_waiting"),
     # 訂單歷史
     path("orders/", order_history_view, name="order_history"),
     path("profile/", profile_view, name="profile"),

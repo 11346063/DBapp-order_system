@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils.translation import gettext as _
+from web_app.models.order import Order
 from web_app.services import cart as cart_service
 from web_app.services import order as order_service
 from web_app.services.exceptions import (
@@ -41,7 +42,7 @@ def order_submit(request):
         return redirect("web_app:payment")
 
     try:
-        order_service.create_order_from_cart(
+        order = order_service.create_order_from_cart(
             request.user,
             request.session,
             request.POST,
@@ -64,6 +65,23 @@ def order_submit(request):
 
     if order_service.is_staff_order_user(request.user):
         messages.success(request, _("代客訂單已送出，已自動接單"))
+        return redirect("web_app:home")
+
+    request.session["last_order_id"] = order.pk
+    return redirect("web_app:order_waiting", pk=order.pk)
+
+
+def order_waiting_view(request, pk):
+    try:
+        order = Order.objects.get(pk=pk)
+    except Order.DoesNotExist:
+        return redirect("web_app:home")
+
+    if request.user.is_authenticated:
+        if order.user_id != request.user.pk:
+            return redirect("web_app:home")
     else:
-        messages.success(request, _("訂單已送出，等待店家接單"))
-    return redirect("web_app:home")
+        if request.session.get("last_order_id") != pk:
+            return redirect("web_app:home")
+
+    return render(request, "order_waiting.html", {"order_id": pk})
