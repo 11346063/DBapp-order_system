@@ -1,6 +1,6 @@
 from datetime import date
 
-from django.db import models, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from web_app.constants import (
@@ -10,6 +10,7 @@ from web_app.constants import (
     OPTION_SPICY,
     SYSTEM_OPTION_NAMES,
 )
+from web_app.enums import SpicyLevel
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
 from web_app.services.exceptions import (
@@ -20,28 +21,6 @@ from web_app.services.exceptions import (
     ValidationServiceError,
 )
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
-
-
-class SpicyLevel(models.IntegerChoices):
-    NONE = 0, "不辣"
-    MILD = 1, "小辣"
-    MEDIUM = 2, "中辣"
-    HOT = 3, "大辣"
-
-    @classmethod
-    def from_label(cls, label):
-        label = (label or "").strip()
-        for level in cls:
-            if level.label == label:
-                return level
-        return cls.NONE
-
-    @classmethod
-    def display(cls, value):
-        try:
-            return cls(value).label
-        except ValueError:
-            return f"辣度{value}"
 
 
 def is_staff_order_user(user):

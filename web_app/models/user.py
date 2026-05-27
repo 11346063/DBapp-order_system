@@ -1,12 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.db import models
 
-
-class Identity(models.TextChoices):
-    ADMIN = "A", "管理員"
-    EMPLOYEE = "E", "員工"
-    CUSTOMER = "C", "顧客"
-    GUEST = "G", "訪客"
+from web_app.enums import Identity as Identity
 
 
 class UserManager(BaseUserManager):

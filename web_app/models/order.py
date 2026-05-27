@@ -1,14 +1,11 @@
 from django.db import models
 from django.utils import timezone
 
+from web_app.enums import OrderStatus
+
 
 class Order(models.Model):
-    class OrderStatus(models.IntegerChoices):
-        SUBMITTED = 0, "等待接單"
-        ACCEPTED = 1, "備餐中"
-        READY = 2, "可取餐"
-        COMPLETED = 3, "已完成"
-        CANCELLED = 4, "已取消"
+    OrderStatus = OrderStatus
 
     user = models.ForeignKey("User", on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
