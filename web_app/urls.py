@@ -17,7 +17,7 @@ from web_app.views.order_history import order_history_view
 from web_app.views.payment import order_submit, payment_view
 from web_app.views.profile import profile_view
 from web_app.views.staff import account_management, staff_order_list, staff_report
-from web_app.views.type.type_views import typeCreate
+from web_app.views.views import typeCreate
 
 app_name = "web_app"
 
