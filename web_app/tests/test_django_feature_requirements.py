@@ -1,30 +1,10 @@
 import json
-import unittest
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from web_app.models import Identity, Menu, Order, Type, User
-
-
-class RequestResponseDemoTest(TestCase):
-    @unittest.skip("request_response_demo endpoint removed")
-    def test_demo_endpoint_returns_request_and_session_data(self):
-        session = self.client.session
-        session["cart"] = [{"quantity": 2}, {"quantity": 3}]
-        session.save()
-
-        response = self.client.get(
-            reverse("web_app:request_response_demo"), {"foo": "bar"}
-        )
-
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["method"], "GET")
-        self.assertEqual(payload["query"], {"foo": "bar"})
-        self.assertEqual(payload["cart_count"], 5)
-        self.assertFalse(payload["is_authenticated"])
 
 
 class ApiExceptionHandlingTest(TestCase):
