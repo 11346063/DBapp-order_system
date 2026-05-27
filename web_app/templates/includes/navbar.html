@@ -5,18 +5,28 @@
             <i class="bi bi-fire"></i> 絕佳食雞
         </a>
         <div class="d-flex align-items-center nav-actions">
-            <form class="language-switcher d-none d-sm-flex" action="{% url 'set_language' %}" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <label class="visually-hidden" for="languageSelect">{% trans "切換語言" %}</label>
-                <select id="languageSelect" class="form-select form-select-sm" name="language" onchange="this.form.submit()" aria-label="{% trans '切換語言' %}">
-                    {% get_current_language as CURRENT_LANGUAGE %}
-                    {% get_available_languages as AVAILABLE_LANGUAGES %}
+            <!-- Language Switcher -->
+            {% get_current_language as CURRENT_LANGUAGE %}
+            {% get_available_languages as AVAILABLE_LANGUAGES %}
+            <div class="dropdown language-switcher">
+                <button class="nav-icon-btn no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{% trans '切換語言' %}">
+                    <i class="bi bi-globe2"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end lang-dropdown">
                     {% for code, name in AVAILABLE_LANGUAGES %}
-                    <option value="{{ code }}"{% if code == CURRENT_LANGUAGE %} selected{% endif %}>{% if code == 'zh-hant' %}繁體中文{% elif code == 'en' %}English{% else %}{{ name }}{% endif %}</option>
+                    <li>
+                        <form action="{% url 'set_language' %}" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <input type="hidden" name="language" value="{{ code }}">
+                            <button type="submit" class="dropdown-item{% if code == CURRENT_LANGUAGE %} active{% endif %}">
+                                {% if code == 'zh-hant' %}🇹🇼 繁體中文{% elif code == 'en' %}🇺🇸 English{% else %}{{ name }}{% endif %}
+                            </button>
+                        </form>
+                    </li>
                     {% endfor %}
-                </select>
-            </form>
+                </ul>
+            </div>
 
             <!-- Theme Toggle -->
             <button class="nav-icon-btn" id="themeToggle" title="{% trans '切換深淺模式' %}">

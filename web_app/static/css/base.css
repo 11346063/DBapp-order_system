@@ -59,7 +59,7 @@ body {
 /* Mobile bottom nav spacing */
 @media (max-width: 767.98px) {
     .main-content {
-        padding-bottom: 80px;
+        padding-bottom: 80px !important;
     }
 }
 
@@ -75,21 +75,34 @@ body {
     gap: 12px;
 }
 
-.language-switcher .form-select {
-    width: 124px;
-    background-color: var(--input-bg);
-    border-color: var(--input-border);
-    color: var(--text-primary);
+.no-caret::after {
+    display: none !important;
 }
 
-.language-switcher .form-select option {
+.lang-dropdown {
     background-color: var(--card-bg);
-    color: var(--text-primary);
+    border-color: var(--input-border);
+    min-width: 140px;
 }
 
-.language-switcher .form-select option:checked {
+.lang-dropdown .dropdown-item {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    color: var(--text-primary);
+    padding: 0.4rem 1rem;
+}
+
+.lang-dropdown .dropdown-item:hover {
+    background-color: rgba(243, 232, 0, 0.15);
+    color: var(--primary-yellow);
+}
+
+.lang-dropdown .dropdown-item.active {
     background-color: var(--primary-yellow);
     color: #000;
+    font-weight: 600;
 }
 
 /* Unified icon button (theme, history, cart) */
