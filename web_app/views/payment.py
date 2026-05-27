@@ -4,6 +4,7 @@ from django.utils.translation import gettext as _
 from web_app.models.order import Order
 from web_app.services import cart as cart_service
 from web_app.services import order as order_service
+from web_app.services import store_settings as settings_service
 from web_app.services.exceptions import (
     CheckoutPhoneRequired,
     EmptyCartError,
@@ -24,6 +25,8 @@ def payment_view(request):
     checkout_phone_default = ""
     if request.user.is_authenticated and not is_staff_order:
         checkout_phone_default = request.user.phone_number or ""
+    custom_options = settings_service.get_active_custom_options()
+    s = settings_service.get_settings()
     return render(
         request,
         "payment.html",
@@ -33,6 +36,8 @@ def payment_view(request):
             "is_guest": not request.user.is_authenticated,
             "is_staff_order": is_staff_order,
             "checkout_phone_default": checkout_phone_default,
+            "custom_options": custom_options,
+            "extra_ingredient_cost": s.extra_ingredient_cost,
         },
     )
 

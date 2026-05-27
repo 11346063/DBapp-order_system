@@ -4,11 +4,12 @@ function changeExtra(fieldId, delta) {
     const newVal = Math.max(0, parseInt(input.value || 0) + delta);
     input.value = newVal;
 
+    const extraCost = window.EXTRA_INGREDIENT_COST || 10;
     const isGarlic = fieldId === 'extra_garlic_qty';
     const displayEl = document.getElementById(isGarlic ? 'extraGarlicDisplay' : 'extraBasilDisplay');
     const priceEl = document.getElementById(isGarlic ? 'extraGarlicPrice' : 'extraBasilPrice');
     if (displayEl) displayEl.textContent = newVal;
-    if (priceEl) priceEl.textContent = '+$' + (newVal * 10);
+    if (priceEl) priceEl.textContent = '+$' + (newVal * extraCost);
 
     updateTotal();
 }
@@ -16,9 +17,16 @@ function changeExtra(fieldId, delta) {
 function updateTotal() {
     const garlic = parseInt(document.getElementById('extra_garlic_qty')?.value || 0);
     const basil = parseInt(document.getElementById('extra_basil_qty')?.value || 0);
-    const extra = (garlic + basil) * 10;
+    const extraCost = window.EXTRA_INGREDIENT_COST || 10;
+    const extra = (garlic + basil) * extraCost;
+
+    let customTotal = 0;
+    document.querySelectorAll('.custom-extra-check:checked').forEach(cb => {
+        customTotal += parseInt(cb.dataset.price || 0);
+    });
+
     const el = document.getElementById('displayTotal');
-    if (el) el.textContent = '$' + ((window.BASE_TOTAL || 0) + extra);
+    if (el) el.textContent = '$' + ((window.BASE_TOTAL || 0) + extra + customTotal);
 }
 
 window.changeExtra = changeExtra;
@@ -65,6 +73,10 @@ function renderPriceChanges(data) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.custom-extra-check').forEach(cb => {
+        cb.addEventListener('change', updateTotal);
+    });
+
     const form = document.querySelector('form[action*="order/submit"]');
     if (form) {
         let bypassPriceValidation = false;

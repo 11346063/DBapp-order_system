@@ -115,6 +115,7 @@ class CartPriceFrontendJsTest(SimpleTestCase):
               displayTotal: {{ textContent: '' }},
             }}[id] || null;
           }},
+          querySelectorAll() {{ return []; }},
           createElement() {{
             return {{
               _text: '',

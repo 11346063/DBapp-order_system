@@ -4,24 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0025_user_oauth_fields'),
+        ("web_app", "0025_user_oauth_fields"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StoreSettings',
+            name="StoreSettings",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('extra_ingredient_cost', models.PositiveIntegerField(default=10)),
-                ('option_name_spicy', models.CharField(default='辣度', max_length=20)),
-                ('option_name_garlic', models.CharField(default='加蒜', max_length=20)),
-                ('option_name_basil', models.CharField(default='九層塔', max_length=20)),
-                ('option_name_cut', models.CharField(default='切', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("extra_ingredient_cost", models.PositiveIntegerField(default=10)),
+                ("option_name_spicy", models.CharField(default="辣度", max_length=20)),
+                ("option_name_garlic", models.CharField(default="加蒜", max_length=20)),
+                (
+                    "option_name_basil",
+                    models.CharField(default="九層塔", max_length=20),
+                ),
+                ("option_name_cut", models.CharField(default="切", max_length=20)),
             ],
             options={
-                'verbose_name': '系統設定',
+                "verbose_name": "系統設定",
             },
         ),
     ]

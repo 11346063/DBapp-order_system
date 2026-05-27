@@ -217,7 +217,40 @@ def account_management(request):
 @admin_required
 def staff_settings_view(request):
     status_counts = order_service.order_status_counts()
+
     if request.method == "POST":
+        action = request.POST.get("action", "save_settings")
+
+        if action == "add_custom_option":
+            name = request.POST.get("new_option_name", "").strip()
+            try:
+                price = int(request.POST.get("new_option_price", 0))
+                if price < 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                messages.error(request, _("價格必須是非負整數"))
+                return redirect("web_app:staff_settings")
+            try:
+                settings_service.create_custom_option(name, price)
+                messages.success(request, _("選項已新增"))
+            except ValueError as exc:
+                messages.error(request, str(exc))
+            return redirect("web_app:staff_settings")
+
+        if action == "delete_custom_option":
+            option_id = request.POST.get("option_id")
+            if option_id:
+                settings_service.delete_custom_option(int(option_id))
+                messages.success(request, _("選項已刪除"))
+            return redirect("web_app:staff_settings")
+
+        if action == "toggle_custom_option":
+            option_id = request.POST.get("option_id")
+            if option_id:
+                settings_service.toggle_custom_option_active(int(option_id))
+            return redirect("web_app:staff_settings")
+
+        # default: save_settings
         try:
             extra_cost = int(request.POST.get("extra_ingredient_cost", 10))
             if extra_cost < 0:
@@ -247,6 +280,7 @@ def staff_settings_view(request):
         "staff/settings.html",
         {
             "settings": settings_service.get_settings(),
+            "custom_options": settings_service.get_custom_options(),
             "status_counts": status_counts,
             "current_status": None,
         },

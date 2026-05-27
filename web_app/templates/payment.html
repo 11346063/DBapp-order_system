@@ -25,7 +25,7 @@
         {% endif %}
 
         {% url 'web_app:order_submit' as order_submit_url %}
-        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url is_staff_order=is_staff_order %}
+        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url is_staff_order=is_staff_order custom_options=custom_options extra_ingredient_cost=extra_ingredient_cost %}
     </div>
 </div>
 {% endblock %}
@@ -35,6 +35,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>window.BASE_TOTAL = {{ total }};</script>
-<script src="{% static 'js/payment.js' %}?v=3"></script>
+<script>window.BASE_TOTAL = {{ total }}; window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};</script>
+<script src="{% static 'js/payment.js' %}?v=4"></script>
 {% endblock %}

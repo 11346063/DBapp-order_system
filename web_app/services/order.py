@@ -89,6 +89,8 @@ def format_order_options(raw_opts):
             parts.append(f"加蒜頭x{level}")
         elif name == s.option_name_basil:
             parts.append(f"加九層塔x{level}")
+        elif option_link.opt.is_custom_extra:
+            parts.append(name)
     return "｜".join(parts)
 
 
@@ -113,6 +115,10 @@ def format_order_option_tags(raw_opts):
         elif name == s.option_name_basil:
             label = f"加九層塔x{level}"
             css = "bg-primary text-white"
+            style = ""
+        elif option_link.opt.is_custom_extra:
+            label = name
+            css = "bg-success text-white"
             style = ""
         else:
             continue
@@ -205,11 +211,29 @@ def create_order_from_cart(user, session, checkout_data):
         raise CheckoutPhoneRequired("結帳需要填寫聯絡電話")
 
     s = get_settings()
+
+    # 解析勾選的自定義加料選項 IDs
+    selected_custom_ids = [
+        int(key[len("custom_option_") :])
+        for key in checkout_data
+        if key.startswith("custom_option_") and checkout_data[key]
+    ]
+    custom_opts = (
+        list(
+            Options.objects.filter(
+                pk__in=selected_custom_ids, is_custom_extra=True, is_active=True
+            )
+        )
+        if selected_custom_ids
+        else []
+    )
+    custom_cost = sum(opt.price for opt in custom_opts)
+
     total = cart_service.cart_total(cart)
     extra_cost = (
         data["extra_garlic_qty"] + data["extra_basil_qty"]
     ) * s.extra_ingredient_cost
-    price_total = total + extra_cost
+    price_total = total + extra_cost + custom_cost
 
     initial_status = (
         Order.OrderStatus.ACCEPTED if is_staff_order else Order.OrderStatus.SUBMITTED
@@ -264,12 +288,19 @@ def create_order_from_cart(user, session, checkout_data):
             )
         if data["extra_garlic_qty"] > 0 and s.option_name_garlic in opts:
             OrderItemOption.objects.create(
-                order=order, opt=opts[s.option_name_garlic], level=data["extra_garlic_qty"]
+                order=order,
+                opt=opts[s.option_name_garlic],
+                level=data["extra_garlic_qty"],
             )
         if data["extra_basil_qty"] > 0 and s.option_name_basil in opts:
             OrderItemOption.objects.create(
-                order=order, opt=opts[s.option_name_basil], level=data["extra_basil_qty"]
+                order=order,
+                opt=opts[s.option_name_basil],
+                level=data["extra_basil_qty"],
             )
+
+        for custom_opt in custom_opts:
+            OrderItemOption.objects.create(order=order, opt=custom_opt, level=1)
 
         cart_service.clear_cart(user, session)
 

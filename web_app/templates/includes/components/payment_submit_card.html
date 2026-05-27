@@ -24,7 +24,7 @@ Props:
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label text-secondary small">{% trans "加料（每份 +$10）" %}</label>
+                <label class="form-label text-secondary small">{% blocktrans with cost=extra_ingredient_cost %}加料（每份 +${{ cost }}）{% endblocktrans %}</label>
                 <div class="extra-row mb-2">
                     <span>{% trans "加蒜頭" %}</span>
                     <div class="extra-ctrl">
@@ -46,6 +46,24 @@ Props:
                     </div>
                 </div>
             </div>
+            {% if custom_options %}
+            <div class="mb-3">
+                <label class="form-label text-secondary small">{% trans "其他加料" %}</label>
+                {% for opt in custom_options %}
+                <div class="d-flex justify-content-between align-items-center py-1">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input custom-extra-check" type="checkbox"
+                               name="custom_option_{{ opt.pk }}" id="customOpt{{ opt.pk }}"
+                               value="on" data-price="{{ opt.price }}">
+                        <label class="form-check-label" for="customOpt{{ opt.pk }}">{{ opt.name }}</label>
+                    </div>
+                    <span class="text-secondary small">
+                        {% if opt.price > 0 %}+${{ opt.price }}{% else %}{% trans "免費" %}{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
             <div class="mb-3">
                 <label class="form-label text-secondary small" for="customerPhone">
                     {% if is_staff_order %}{% trans "客人電話" %}{% else %}{% trans "聯絡電話" %}{% endif %}
