@@ -12,6 +12,7 @@
 
 import json
 
+from django.conf import settings
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -44,6 +45,13 @@ class ExceptionHandlerFormatTest(TestCase):
             password="pass",
             name="管理員",
             identity=Identity.ADMIN,
+        )
+
+    def test_drf_exception_handler_uses_api_module(self):
+        """DRF exception handler 使用目前的 api.exceptions 模組"""
+        self.assertEqual(
+            settings.REST_FRAMEWORK["EXCEPTION_HANDLER"],
+            "web_app.api.exceptions.custom_exception_handler",
         )
 
     def _json_post(self, url, data, user=None):
