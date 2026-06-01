@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static i18n %}
+
+{% block title %}絕佳食雞 — 代客點餐{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}?v=16">
+<link rel="stylesheet" href="{% static 'css/detail.css' %}?v=11">
+<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=11">
+<link rel="stylesheet" href="{% static 'css/assisted_ordering.css' %}?v=4">
+<style>
+/* 代客點餐頁面禁止整頁捲動，捲動只發生在左欄與右欄內部 */
+html, body { overflow: hidden !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-0 assisted-layout">
+
+    {% comment %} 左欄：菜單品項 {% endcomment %}
+    <div class="col-lg-7 left-panel pe-lg-3">
+        <div class="row g-2" id="menuGrid">
+            {% for item in menus %}
+            {% include 'includes/components/assisted_menu_card.html' with item=item cut_required_ids=cut_required_ids %}
+            {% endfor %}
+        </div>
+        {% if not menus %}
+        <div class="text-center text-secondary mt-5">
+            <i class="bi bi-inbox fs-1"></i>
+            <p class="mt-2">目前沒有餐點</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% comment %} 右欄：訂單草稿（貼齊底部）{% endcomment %}
+    <div class="col-lg-5 right-panel ps-lg-3 mt-3 mt-lg-0">
+        <div class="order-panel card card-dark">
+
+            <div class="order-panel-header">
+                <h6 class="text-white mb-0"><i class="bi bi-receipt me-1"></i>訂單清單</h6>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearOrderDraft()">清空</button>
+            </div>
+
+            <div id="orderDraftList" class="order-draft-list">
+                <div id="orderEmptyState" class="text-center text-secondary py-4">
+                    <i class="bi bi-cart fs-2"></i>
+                    <p class="small mt-2 mb-0">點擊左側品項加入訂單</p>
+                </div>
+            </div>
+
+            <div class="order-submit-section">
+
+                <div class="mb-2">
+                    <label class="form-label text-secondary small mb-1" for="customerPhone">
+                        客人電話 <span class="text-danger">*</span>
+                    </label>
+                    <input id="customerPhone" type="tel" class="form-control form-control-sm"
+                           maxlength="20" placeholder="0912345678">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label text-secondary small mb-1">辣度</label>
+                    <div class="spicy-options">
+                        <label class="spicy-opt"><input type="radio" name="ao_spicy" value="不辣" checked><span>不辣</span></label>
+                        <label class="spicy-opt"><input type="radio" name="ao_spicy" value="小辣"><span>小辣</span></label>
+                        <label class="spicy-opt"><input type="radio" name="ao_spicy" value="中辣"><span>中辣</span></label>
+                        <label class="spicy-opt"><input type="radio" name="ao_spicy" value="大辣"><span>大辣</span></label>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label text-secondary small mb-1">加料（每份 +${{ extra_ingredient_cost }}）</label>
+                    <div class="d-flex gap-3">
+                        <div class="extra-row flex-fill">
+                            <span>加蒜頭</span>
+                            <div class="extra-ctrl">
+                                <button type="button" class="extra-qty-btn" onclick="changeExtra('extra_garlic_qty', -1)">−</button>
+                                <span id="extraGarlicDisplay">0</span>
+                                <button type="button" class="extra-qty-btn" onclick="changeExtra('extra_garlic_qty', 1)">+</button>
+                                <input type="hidden" id="extra_garlic_qty" value="0">
+                            </div>
+                        </div>
+                        <div class="extra-row flex-fill">
+                            <span>加九層塔</span>
+                            <div class="extra-ctrl">
+                                <button type="button" class="extra-qty-btn" onclick="changeExtra('extra_basil_qty', -1)">−</button>
+                                <span id="extraBasilDisplay">0</span>
+                                <button type="button" class="extra-qty-btn" onclick="changeExtra('extra_basil_qty', 1)">+</button>
+                                <input type="hidden" id="extra_basil_qty" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if custom_options %}
+                <div class="mb-2">
+                    <label class="form-label text-secondary small mb-1">其他加料</label>
+                    {% for opt in custom_options %}
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input custom-extra-check" type="checkbox"
+                                   id="customOpt{{ opt.pk }}" value="{{ opt.pk }}" data-price="{{ opt.price }}">
+                            <label class="form-check-label text-white small" for="customOpt{{ opt.pk }}">{{ opt.name }}</label>
+                        </div>
+                        <span class="text-secondary small">
+                            {% if opt.price > 0 %}+${{ opt.price }}{% else %}免費{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mb-2">
+                    <label class="form-label text-secondary small mb-1" for="orderRemark">備註（選填）</label>
+                    <textarea id="orderRemark" class="form-control form-control-sm remark-input"
+                              rows="2" maxlength="200" placeholder="例如：少辣、不要蔥"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-secondary fw-bold">總金額</span>
+                    <span class="text-yellow fs-5 fw-bold" id="assistedTotal">$0</span>
+                </div>
+
+                <button type="button" id="assistedSubmitBtn"
+                        class="btn btn-yellow w-100 py-2 fw-bold"
+                        onclick="submitStaffOrder()">
+                    <i class="bi bi-check-circle me-1"></i>送出訂單
+                </button>
+
+                <div id="assistedError" class="text-danger small mt-2 d-none"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include 'item_detail_modal.html' with show_customer_ordering=True is_staff=False %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};
+window.ASSISTED_ORDER_URL = '{% url "web_app:v1_staff_order_create" %}';
+window.CUT_REQUIRED_IDS = {{ cut_required_ids_json }};
+</script>
+<script src="{% static 'js/home.js' %}"></script>
+<script src="{% static 'js/detail.js' %}?v=12"></script>
+<script src="{% static 'js/assisted_ordering.js' %}?v=2"></script>
+{% endblock %}

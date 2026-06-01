@@ -95,20 +95,17 @@ class HomeViewFilterTest(TestCase):
         self.assertNotContains(response, "編輯品項")
 
     def test_employee_assisted_ordering_sees_only_active_items(self):
-        """員工代客點餐頁只顯示上架商品，不混入管理操作"""
+        """員工代客點餐頁只顯示上架商品，使用單頁雙欄 UI"""
         self.client.login(username="employee1", password="pass")
         response = self.client.get(reverse("web_app:assisted_ordering"))
         menus = response.context["menus"]
         self.assertIn(self.active_item, menus)
         self.assertNotIn(self.inactive_item, menus)
-        self.assertFalse(response.context["is_staff"])
-        self.assertFalse(response.context["can_manage_menu"])
-        self.assertTrue(response.context["is_assisted_ordering"])
-        self.assertContains(response, "assisted-item-card")
-        self.assertContains(response, 'data-assisted-delta="-1"')
-        self.assertContains(response, 'data-assisted-delta="1"')
-        self.assertNotContains(response, "card-img-top-placeholder")
-        # 代客點餐頁的 item modal 內有「加入購物車」（切法品項用），此為正常行為
+        # 新版卡片與送出按鈕
+        self.assertContains(response, "assisted-menu-card")
+        self.assertContains(response, "送出訂單")
+        # 不含舊版元素
+        self.assertNotContains(response, "data-assisted-delta")
         self.assertNotContains(response, "編輯品項")
 
     def test_anonymous_cannot_access_assisted_ordering(self):

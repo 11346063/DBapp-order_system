@@ -22,6 +22,7 @@ from web_app.api.views.order import (
     OrderReadyAPIView,
     OrderStatusAPIView,
     ReorderAPIView,
+    StaffOrderCreateAPIView,
 )
 
 urlpatterns = [
@@ -78,5 +79,11 @@ urlpatterns = [
         "orders/<int:pk>/customer-status/",
         OrderCustomerStatusAPIView.as_view(),
         name="api_order_customer_status",
+    ),
+    # Staff assisted ordering (direct, no cart)
+    path(
+        "v1/orders/staff/",
+        StaffOrderCreateAPIView.as_view(),
+        name="v1_staff_order_create",
     ),
 ]

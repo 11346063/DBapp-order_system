@@ -1,0 +1,20 @@
+{% comment %}
+Component: AssistedMenuCard
+Props:
+  - item (required): Menu instance
+  - cut_required_ids (required): set of menu IDs that require cut method selection
+{% endcomment %}
+<div class="col-6 col-md-4 col-xl-3 menu-item" data-type-id="{{ item.type_id }}">
+    <div class="card card-dark assisted-menu-card h-100"
+         data-menu-id="{{ item.id }}"
+         data-menu-name="{{ item.name }}"
+         data-menu-price="{{ item.price }}"
+         data-cut-required="{% if item.id in cut_required_ids %}true{% else %}false{% endif %}"
+         role="button"
+         tabindex="0"
+         aria-label="{{ item.name }} ${{ item.price }}">
+        <div class="card-body p-2 d-flex align-items-center justify-content-center">
+            <span class="text-white fw-semibold text-center" style="font-size:1.25rem;">{{ item.name }}</span>
+        </div>
+    </div>
+</div>

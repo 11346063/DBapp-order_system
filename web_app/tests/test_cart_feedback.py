@@ -78,22 +78,25 @@ class CartFeedbackTemplateTest(TestCase):
         self.assertNotContains(response, 'id="cartFeedback"')
 
     def test_employee_assisted_ordering_includes_customer_ordering_actions(self):
-        """員工代客點餐頁使用精簡數量控制；含切法品項的 modal 一併渲染（隱藏），卡片不顯示圖片或編輯入口"""
+        """員工代客點餐頁使用單頁雙欄 UI：左側菜單卡片、右側訂單草稿與送出按鈕"""
         self.client.login(username="cart_emp", password="pass")
 
         response = self.client.get(reverse("web_app:assisted_ordering"))
 
-        self.assertFalse(response.context["is_staff"])
-        self.assertTrue(response.context["show_customer_ordering"])
-        self.assertTrue(response.context["is_assisted_ordering"])
-        self.assertContains(response, "assisted-item-card")
-        self.assertContains(response, 'data-assisted-delta="-1"')
-        self.assertContains(response, 'data-assisted-delta="1"')
-        self.assertContains(response, 'id="cartFeedback"')
-        self.assertContains(response, f'href="{reverse("web_app:cart")}"')
-        self.assertNotContains(response, "card-img-top-placeholder")
-        # 加入購物車 按鈕存在於隱藏 modal（供切法品項使用）
+        # 新版 context 包含 menus / custom_options / extra_ingredient_cost
+        self.assertIn("menus", response.context)
+        self.assertIn("custom_options", response.context)
+        self.assertIn("extra_ingredient_cost", response.context)
+        # 新版卡片樣式
+        self.assertContains(response, "assisted-menu-card")
+        # 右側訂單面板
+        self.assertContains(response, "訂單清單")
+        self.assertContains(response, "送出訂單")
+        self.assertContains(response, "客人電話")
+        # 加入購物車 按鈕存在於 detail modal（供切法品項使用）
         self.assertContains(response, "加入購物車")
+        # 不含舊版元素
+        self.assertNotContains(response, "data-assisted-delta")
         self.assertNotContains(response, "編輯品項")
 
 

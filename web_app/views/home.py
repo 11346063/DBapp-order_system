@@ -1,9 +1,12 @@
+import json
+
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils.translation import gettext as _
 from django.views.decorators.csrf import ensure_csrf_cookie
-from web_app.models import Type, Identity
+
+from web_app.models import Identity, Menu, Options, Type
 from web_app.services import menu as menu_service
+from web_app.services import store_settings as settings_service
 
 
 @ensure_csrf_cookie
@@ -56,18 +59,30 @@ def assisted_ordering_view(request):
     search_query = request.GET.get("q", "").strip()
     menus = menu_service.assisted_ordering_menus(search_query)
 
+    s = settings_service.get_settings()
+    custom_options = settings_service.get_active_custom_options()
+
+    cut_option = Options.objects.filter(name=s.option_name_cut).first()
+    cut_required_ids = (
+        set(
+            Menu.objects.filter(status=True, options=cut_option).values_list(
+                "id", flat=True
+            )
+        )
+        if cut_option
+        else set()
+    )
+
     return render(
         request,
-        "home.html",
+        "assisted_ordering.html",
         {
             "types": types,
             "menus": menus,
             "search_query": search_query,
-            "is_staff": False,
-            "can_manage_menu": False,
-            "show_customer_ordering": True,
-            "is_assisted_ordering": True,
-            "page_urls": {},
-            "page_title": _("代客點餐"),
+            "custom_options": custom_options,
+            "extra_ingredient_cost": s.extra_ingredient_cost,
+            "cut_required_ids": cut_required_ids,
+            "cut_required_ids_json": json.dumps(list(cut_required_ids)),
         },
     )

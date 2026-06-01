@@ -229,6 +229,11 @@ function addToCart() {
 
     const selectedOptions = getSelectedOptions();
 
+    if (typeof window.assistedOrderAddToCart === 'function') {
+        window.assistedOrderAddToCart(currentItem, currentQty, selectedOptions);
+        return;
+    }
+
     postJSON('/api/cart/add/', {
         menu_id: currentItem.id,
         name: currentItem.name,

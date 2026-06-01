@@ -307,6 +307,117 @@ def create_order_from_cart(user, session, checkout_data):
     return order
 
 
+def create_staff_order_from_items(user, validated_data):
+    """不經過購物車直接建立代客訂單（status=ACCEPTED，自動接單）。"""
+    raw_phone = (validated_data.get("customer_phone") or "").strip()
+    if not raw_phone:
+        raise StaffCustomerPhoneRequired("員工代客點餐需要填寫電話")
+
+    data = normalize_checkout_data(
+        {
+            "customer_phone": raw_phone,
+            "spicy_level": validated_data.get("spicy_level", "不辣"),
+            "extra_garlic_qty": validated_data.get("extra_garlic_qty", 0),
+            "extra_basil_qty": validated_data.get("extra_basil_qty", 0),
+            "remark": validated_data.get("remark", ""),
+        }
+    )
+
+    items = validated_data.get("items") or []
+    if not items:
+        raise EmptyCartError("訂單沒有品項")
+
+    s = get_settings()
+    selected_custom_ids = validated_data.get("custom_options") or []
+    custom_opts = (
+        list(
+            Options.objects.filter(
+                pk__in=selected_custom_ids, is_custom_extra=True, is_active=True
+            )
+        )
+        if selected_custom_ids
+        else []
+    )
+    custom_cost = sum(opt.price for opt in custom_opts)
+
+    menu_ids = [item["menu_id"] for item in items]
+    menus_by_id = {m.pk: m for m in Menu.objects.filter(pk__in=menu_ids, status=True)}
+
+    menu_total = sum(
+        menus_by_id[item["menu_id"]].price * item["qty"]
+        for item in items
+        if item["menu_id"] in menus_by_id
+    )
+    extra_cost = (
+        data["extra_garlic_qty"] + data["extra_basil_qty"]
+    ) * s.extra_ingredient_cost
+    price_total = menu_total + extra_cost + custom_cost
+
+    pickup_code = generate_pickup_code(data["customer_phone"])
+    system_option_names = [
+        s.option_name_spicy,
+        s.option_name_garlic,
+        s.option_name_basil,
+    ]
+
+    with transaction.atomic():
+        order = Order.objects.create(
+            user=user,
+            status=Order.OrderStatus.ACCEPTED,
+            price_total=price_total,
+            remark=data["remark"],
+            customer_phone=data["customer_phone"],
+            accepted_at=timezone.now(),
+            accepted_by=user,
+            pickup_code=pickup_code,
+        )
+
+        opts = {
+            option.name: option
+            for option in Options.objects.filter(name__in=system_option_names)
+        }
+
+        for item_data in items:
+            menu = menus_by_id.get(item_data["menu_id"])
+            if not menu:
+                continue
+            order_item = OrderItem.objects.create(
+                order=order,
+                menu=menu,
+                amount=item_data["qty"],
+                total_price=menu.price * item_data["qty"],
+            )
+            for opt_data in item_data.get("options") or []:
+                opt_id = opt_data.get("id")
+                if opt_id and opt_id != 0:
+                    OrderItemOption.objects.create(
+                        order_item=order_item,
+                        opt_id=opt_id,
+                        level=int(opt_data.get("level", 1)),
+                    )
+
+        if s.option_name_spicy in opts:
+            OrderItemOption.objects.create(
+                order=order, opt=opts[s.option_name_spicy], level=data["spicy_level"]
+            )
+        if data["extra_garlic_qty"] > 0 and s.option_name_garlic in opts:
+            OrderItemOption.objects.create(
+                order=order,
+                opt=opts[s.option_name_garlic],
+                level=data["extra_garlic_qty"],
+            )
+        if data["extra_basil_qty"] > 0 and s.option_name_basil in opts:
+            OrderItemOption.objects.create(
+                order=order,
+                opt=opts[s.option_name_basil],
+                level=data["extra_basil_qty"],
+            )
+        for custom_opt in custom_opts:
+            OrderItemOption.objects.create(order=order, opt=custom_opt, level=1)
+
+    return order
+
+
 def reorder_to_cart(user, session, order_id):
     try:
         order = Order.objects.get(pk=order_id, user=user)

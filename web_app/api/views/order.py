@@ -14,10 +14,16 @@ from web_app.api.serializers.order import (
     AcceptOrderSerializer,
     OrderStatusSerializer,
     ReorderSerializer,
+    StaffOrderCreateSerializer,
 )
-from web_app.api.utils import api_success
+from web_app.api.utils import api_error, api_success
 from web_app.models.order import Order
 from web_app.services import order as order_service
+from web_app.services.exceptions import (
+    EmptyCartError,
+    StaffCustomerPhoneRequired,
+    ValidationServiceError,
+)
 
 # ---------- 共用 inline schema ----------
 
@@ -352,3 +358,44 @@ class OrderCustomerStatusAPIView(APIView):
                 "pickup_code": order.pickup_code,
             }
         )
+
+
+class StaffOrderCreateAPIView(APIView):
+    permission_classes = [IsEmployee]
+
+    @extend_schema(
+        summary="員工代客建立訂單（直接接單）",
+        description="員工不經購物車直接建立代客訂單，自動設為備餐中（ACCEPTED）。",
+        tags=["訂單"],
+        request=StaffOrderCreateSerializer,
+        responses={
+            200: inline_serializer(
+                name="StaffOrderCreateResponse",
+                fields={
+                    "status": serializers.CharField(default="success"),
+                    "message": serializers.CharField(
+                        default="代客訂單已送出，已自動接單"
+                    ),
+                    "data": inline_serializer(
+                        name="StaffOrderCreateData",
+                        fields={"order_id": serializers.IntegerField()},
+                    ),
+                },
+            ),
+            400: OpenApiResponse(response=_ErrorResponse, description="缺少電話或品項"),
+        },
+    )
+    def post(self, request):
+        serializer = StaffOrderCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            order = order_service.create_staff_order_from_items(
+                request.user, serializer.validated_data
+            )
+        except StaffCustomerPhoneRequired as exc:
+            return api_error(exc.message)
+        except EmptyCartError as exc:
+            return api_error(exc.message)
+        except ValidationServiceError as exc:
+            return api_error(exc.message)
+        return api_success({"order_id": order.pk}, message="代客訂單已送出，已自動接單")
