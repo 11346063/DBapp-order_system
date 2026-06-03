@@ -1,9 +1,9 @@
 """
 Google OAuth 登入流程測試。
-外部 HTTP 呼叫（requests.post / requests.get）全部 mock，不需要網路。
+外部 HTTP 呼叫（httpx.AsyncClient）全部 mock，不需要網路。
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from django.test import TestCase
 from django.urls import reverse
@@ -27,6 +27,21 @@ def _make_userinfo_response(
     resp.json.return_value = {"sub": sub, "email": email, "name": name}
     resp.raise_for_status.return_value = None
     return resp
+
+
+def _mock_httpx_client(token_resp, info_resp=None):
+    """回傳一個可作為 async with httpx.AsyncClient() 使用的 mock。
+
+    用 MagicMock 作為 client，明確設定 __aenter__ 回傳自身，
+    確保 async with 拿到的 client 是我們設定好 post/get 的那個物件。
+    """
+    mock_client = MagicMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.post = AsyncMock(return_value=token_resp)
+    if info_resp is not None:
+        mock_client.get = AsyncMock(return_value=info_resp)
+    return mock_client
 
 
 class GoogleOAuthInitiateTest(TestCase):
@@ -95,13 +110,12 @@ class GoogleOAuthCallbackTest(TestCase):
             response, reverse("web_app:login"), fetch_redirect_response=False
         )
 
-    @patch("web_app.views.oauth_views.requests.get")
-    @patch("web_app.views.oauth_views.requests.post")
-    def test_new_google_user_created_and_redirected_to_phone_required(
-        self, mock_post, mock_get
-    ):
-        mock_post.return_value = _make_token_response()
-        mock_get.return_value = _make_userinfo_response(sub="newuser_sub_001")
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_new_google_user_created_and_redirected_to_phone_required(self, MockClient):
+        MockClient.return_value = _mock_httpx_client(
+            _make_token_response(),
+            _make_userinfo_response(sub="newuser_sub_001"),
+        )
 
         with self.settings(
             GOOGLE_OAUTH2_CLIENT_ID="cid",
@@ -119,11 +133,8 @@ class GoogleOAuthCallbackTest(TestCase):
             fetch_redirect_response=False,
         )
 
-    @patch("web_app.views.oauth_views.requests.get")
-    @patch("web_app.views.oauth_views.requests.post")
-    def test_existing_google_user_with_phone_logs_in_directly(
-        self, mock_post, mock_get
-    ):
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_existing_google_user_with_phone_logs_in_directly(self, MockClient):
         user = User.objects.create_user(
             account="google_existingsub",
             password=None,
@@ -133,8 +144,10 @@ class GoogleOAuthCallbackTest(TestCase):
             google_sub="existing_sub_999",
             identity=Identity.CUSTOMER,
         )
-        mock_post.return_value = _make_token_response()
-        mock_get.return_value = _make_userinfo_response(sub="existing_sub_999")
+        MockClient.return_value = _mock_httpx_client(
+            _make_token_response(),
+            _make_userinfo_response(sub="existing_sub_999"),
+        )
 
         with self.settings(
             GOOGLE_OAUTH2_CLIENT_ID="cid",
@@ -150,11 +163,17 @@ class GoogleOAuthCallbackTest(TestCase):
         )
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
-    @patch("web_app.views.oauth_views.requests.post")
-    def test_token_exchange_failure_redirects_to_login(self, mock_post):
-        import requests as req_lib
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_token_exchange_failure_redirects_to_login(self, MockClient):
+        import httpx as httpx_lib
 
-        mock_post.side_effect = req_lib.RequestException("network error")
+        mock_client = MagicMock()
+        mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_client.__aexit__ = AsyncMock(return_value=False)
+        mock_client.post = AsyncMock(
+            side_effect=httpx_lib.RequestError("network error")
+        )
+        MockClient.return_value = mock_client
 
         with self.settings(
             GOOGLE_OAUTH2_CLIENT_ID="cid",

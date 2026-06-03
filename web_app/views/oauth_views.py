@@ -1,7 +1,8 @@
 import secrets
 from urllib.parse import urlencode
 
-import requests
+import httpx
+from asgiref.sync import sync_to_async
 from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth import login
@@ -38,7 +39,10 @@ def google_oauth_initiate(request):
     return redirect(f"{_GOOGLE_AUTH_URL}?{params}")
 
 
-def google_oauth_callback(request):
+async def google_oauth_callback(request):
+    # Session 第一次存取會懶載入（sync DB），先在 thread 中強制載入，之後都是記憶體操作
+    await sync_to_async(lambda: request.session.keys())()
+
     state = request.GET.get("state")
     stored_state = request.session.pop("oauth_state", None)
 
@@ -55,34 +59,34 @@ def google_oauth_callback(request):
         messages.error(request, _("Google 登入失敗，請重試"))
         return redirect("web_app:login")
 
+    # 非同步 HTTP：兩個請求依序執行（token → userinfo），不阻塞 event loop
     try:
-        token_resp = requests.post(
-            _GOOGLE_TOKEN_URL,
-            data={
-                "code": code,
-                "client_id": django_settings.GOOGLE_OAUTH2_CLIENT_ID,
-                "client_secret": django_settings.GOOGLE_OAUTH2_CLIENT_SECRET,
-                "redirect_uri": django_settings.GOOGLE_OAUTH2_REDIRECT_URI,
-                "grant_type": "authorization_code",
-            },
-            timeout=10,
-        )
-        token_resp.raise_for_status()
-    except requests.RequestException:
+        async with httpx.AsyncClient() as client:
+            token_resp = await client.post(
+                _GOOGLE_TOKEN_URL,
+                data={
+                    "code": code,
+                    "client_id": django_settings.GOOGLE_OAUTH2_CLIENT_ID,
+                    "client_secret": django_settings.GOOGLE_OAUTH2_CLIENT_SECRET,
+                    "redirect_uri": django_settings.GOOGLE_OAUTH2_REDIRECT_URI,
+                    "grant_type": "authorization_code",
+                },
+                timeout=10,
+            )
+            token_resp.raise_for_status()
+            access_token = token_resp.json().get("access_token")
+
+            info_resp = await client.get(
+                _GOOGLE_USERINFO_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+                timeout=10,
+            )
+            info_resp.raise_for_status()
+    except httpx.HTTPStatusError:
         messages.error(request, _("Google 登入失敗，請重試"))
         return redirect("web_app:login")
-
-    access_token = token_resp.json().get("access_token")
-
-    try:
-        info_resp = requests.get(
-            _GOOGLE_USERINFO_URL,
-            headers={"Authorization": f"Bearer {access_token}"},
-            timeout=10,
-        )
-        info_resp.raise_for_status()
-    except requests.RequestException:
-        messages.error(request, _("無法取得 Google 帳號資料，請重試"))
+    except httpx.RequestError:
+        messages.error(request, _("Google 登入失敗，請重試"))
         return redirect("web_app:login")
 
     userinfo = info_resp.json()
@@ -91,9 +95,9 @@ def google_oauth_callback(request):
         messages.error(request, _("Google 帳號資料不完整，請重試"))
         return redirect("web_app:login")
 
-    user = User.objects.filter(google_sub=google_sub).first()
+    user = await User.objects.filter(google_sub=google_sub).afirst()
     if user is None:
-        user = _create_google_user(
+        user = await sync_to_async(_create_google_user)(
             google_sub=google_sub,
             email=userinfo.get("email") or None,
             name=userinfo.get("name") or "顧客",
@@ -103,7 +107,7 @@ def google_oauth_callback(request):
         request.session["oauth_pending_user_id"] = user.pk
         return redirect("web_app:oauth_phone_required")
 
-    _complete_google_login(request, user)
+    await sync_to_async(_complete_google_login)(request, user)
     next_url = request.GET.get("next", "")
     return redirect(next_url or "web_app:home")
 

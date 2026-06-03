@@ -216,6 +216,62 @@ def latest_item_snapshot(item):
     ) | {"id": item.get("id")}
 
 
+def batch_latest_snapshots(items):
+    """批量取得多個品項的最新快照，只需 2 次 DB 查詢（取代 N × (1+M) 次）。"""
+    if not items:
+        return []
+
+    # 1 次查詢取得所有 Menu
+    menu_ids = [item["menu_id"] for item in items]
+    menus = {m.pk: m for m in Menu.objects.filter(pk__in=menu_ids)}
+
+    # 1 次查詢取得所有 Options
+    all_opt_ids = [
+        opt["id"] for item in items for opt in item.get("options", []) if opt.get("id")
+    ]
+    options = (
+        {o.pk: o for o in Options.objects.filter(pk__in=all_opt_ids)}
+        if all_opt_ids
+        else {}
+    )
+
+    snapshots = []
+    for item in items:
+        menu = menus.get(item["menu_id"])
+        if menu is None:
+            raise NotFoundError("找不到此餐點")
+
+        latest_options = []
+        for option in item.get("options", []):
+            opt_id = option.get("id")
+            if not opt_id:
+                continue
+            opt = options.get(opt_id)
+            if opt is None:
+                raise NotFoundError("找不到此選項")
+            latest_options.append(
+                {
+                    "id": opt.pk,
+                    "name": opt.name,
+                    "price": opt.price,
+                    "level": int(option.get("level", 1)),
+                }
+            )
+
+        snapshots.append(
+            build_cart_item(
+                menu.pk,
+                menu.name,
+                menu.price,
+                item["quantity"],
+                latest_options,
+            )
+            | {"id": item.get("id")}
+        )
+
+    return snapshots
+
+
 def sync_prices(user):
     cart = get_or_create_user_cart(user)
     with transaction.atomic():

@@ -36,6 +36,8 @@ def login_view(request):
 
 
 def register_view(request):
+    # 注意：RegisterForm 含 captcha 欄位，render 時會觸發同步 DB 寫入，
+    # 因此本 view 保持同步（async view 會造成 SynchronousOnlyOperation）
     if request.user.is_authenticated:
         return redirect("web_app:home")
 

@@ -216,12 +216,22 @@ def merge_session_cart_to_db(user, session):
 
 def validate_prices(user, session):
     items = get_cart(user, session)
-    price_changes = []
+    if not items:
+        return {
+            "has_changes": False,
+            "old_total": 0,
+            "new_total": 0,
+            "price_changes": [],
+        }
+
     old_total = cart_total(items)
     new_total = 0
+    price_changes = []
 
-    for index, item in enumerate(items):
-        latest = cart_db.latest_item_snapshot(item)
+    # 批量取得所有品項的最新快照（2 次 DB 查詢取代 N × (1+M) 次）
+    latest_snapshots = cart_db.batch_latest_snapshots(items)
+
+    for index, (item, latest) in enumerate(zip(items, latest_snapshots)):
         new_total += latest["subtotal"]
         if _has_price_change(item, latest):
             price_changes.append(
@@ -251,7 +261,7 @@ def sync_prices(user, session):
         cart = cart_db.cart_items(user)
     else:
         cart = get_cart(user, session)
-        synced = [cart_db.latest_item_snapshot(item) for item in cart]
+        synced = cart_db.batch_latest_snapshots(cart)  # 批量取代逐筆查詢
         replace_cart(user, session, synced)
         cart = synced
 
