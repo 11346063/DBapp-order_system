@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.db import transaction
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from web_app.services.store_settings import get_settings
@@ -68,12 +69,37 @@ def generate_pickup_code(customer_phone: str) -> str:
 
 def order_status_counts():
     status = Order.OrderStatus
+    result = Order.objects.aggregate(
+        submitted=Count("pk", filter=Q(status=status.SUBMITTED)),
+        accepted=Count("pk", filter=Q(status=status.ACCEPTED)),
+        ready=Count("pk", filter=Q(status=status.READY)),
+        completed=Count("pk", filter=Q(status=status.COMPLETED)),
+        cancelled=Count("pk", filter=Q(status=status.CANCELLED)),
+    )
     return {
-        status.SUBMITTED: Order.objects.filter(status=status.SUBMITTED).count(),
-        status.ACCEPTED: Order.objects.filter(status=status.ACCEPTED).count(),
-        status.READY: Order.objects.filter(status=status.READY).count(),
-        status.COMPLETED: Order.objects.filter(status=status.COMPLETED).count(),
-        status.CANCELLED: Order.objects.filter(status=status.CANCELLED).count(),
+        status.SUBMITTED: result["submitted"],
+        status.ACCEPTED: result["accepted"],
+        status.READY: result["ready"],
+        status.COMPLETED: result["completed"],
+        status.CANCELLED: result["cancelled"],
+    }
+
+
+async def async_order_status_counts():
+    status = Order.OrderStatus
+    result = await Order.objects.aaggregate(
+        submitted=Count("pk", filter=Q(status=status.SUBMITTED)),
+        accepted=Count("pk", filter=Q(status=status.ACCEPTED)),
+        ready=Count("pk", filter=Q(status=status.READY)),
+        completed=Count("pk", filter=Q(status=status.COMPLETED)),
+        cancelled=Count("pk", filter=Q(status=status.CANCELLED)),
+    )
+    return {
+        status.SUBMITTED: result["submitted"],
+        status.ACCEPTED: result["accepted"],
+        status.READY: result["ready"],
+        status.COMPLETED: result["completed"],
+        status.CANCELLED: result["cancelled"],
     }
 
 
