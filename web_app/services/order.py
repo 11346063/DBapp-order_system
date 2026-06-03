@@ -153,64 +153,67 @@ def format_order_option_tags(raw_opts):
 
 
 def update_order_status(order_id, status):
-    try:
-        order = Order.objects.get(pk=order_id)
-    except Order.DoesNotExist as exc:
-        raise NotFoundError("找不到此訂單") from exc
+    with transaction.atomic():
+        try:
+            order = Order.objects.select_for_update().get(pk=order_id)
+        except Order.DoesNotExist as exc:
+            raise NotFoundError("找不到此訂單") from exc
 
-    order.status = status
-    order.save(update_fields=["status"])
+        order.status = status
+        order.save(update_fields=["status"])
     return {"status_counts": order_status_counts()}
 
 
 def mark_order_ready(order_id):
-    try:
-        order = Order.objects.get(pk=order_id)
-    except Order.DoesNotExist as exc:
-        raise NotFoundError("找不到此訂單") from exc
+    from web_app.services.exceptions import ValidationServiceError
 
-    if order.status != Order.OrderStatus.ACCEPTED:
-        from web_app.services.exceptions import ValidationServiceError
+    with transaction.atomic():
+        try:
+            order = Order.objects.select_for_update().get(pk=order_id)
+        except Order.DoesNotExist as exc:
+            raise NotFoundError("找不到此訂單") from exc
 
-        raise ValidationServiceError("只有備餐中的訂單才能通知取餐")
+        if order.status != Order.OrderStatus.ACCEPTED:
+            raise ValidationServiceError("只有備餐中的訂單才能通知取餐")
 
-    now = timezone.now()
-    order.status = Order.OrderStatus.READY
-    order.ready_at = now
-    order.ready_notified_at = now
-    order.save(update_fields=["status", "ready_at", "ready_notified_at"])
+        now = timezone.now()
+        order.status = Order.OrderStatus.READY
+        order.ready_at = now
+        order.ready_notified_at = now
+        order.save(update_fields=["status", "ready_at", "ready_notified_at"])
     return {"status_counts": order_status_counts()}
 
 
 def accept_order(order_id, staff_user, estimated_wait_minutes):
     from web_app.services.exceptions import ValidationServiceError
 
-    try:
-        order = Order.objects.get(pk=order_id)
-    except Order.DoesNotExist as exc:
-        raise NotFoundError("找不到此訂單") from exc
-
-    if order.status != Order.OrderStatus.SUBMITTED:
-        raise ValidationServiceError("只有等待接單的訂單才能接單")
-
     if not (1 <= estimated_wait_minutes <= 180):
         raise ValidationServiceError("等待時間必須在 1 到 180 分鐘之間")
 
-    now = timezone.now()
-    order.status = Order.OrderStatus.ACCEPTED
-    order.accepted_at = now
-    order.accepted_by = staff_user
-    order.estimated_wait_minutes = estimated_wait_minutes
-    order.pickup_code = generate_pickup_code(order.customer_phone)
-    order.save(
-        update_fields=[
-            "status",
-            "accepted_at",
-            "accepted_by",
-            "estimated_wait_minutes",
-            "pickup_code",
-        ]
-    )
+    with transaction.atomic():
+        try:
+            order = Order.objects.select_for_update().get(pk=order_id)
+        except Order.DoesNotExist as exc:
+            raise NotFoundError("找不到此訂單") from exc
+
+        if order.status != Order.OrderStatus.SUBMITTED:
+            raise ValidationServiceError("只有等待接單的訂單才能接單")
+
+        now = timezone.now()
+        order.status = Order.OrderStatus.ACCEPTED
+        order.accepted_at = now
+        order.accepted_by = staff_user
+        order.estimated_wait_minutes = estimated_wait_minutes
+        order.pickup_code = generate_pickup_code(order.customer_phone)
+        order.save(
+            update_fields=[
+                "status",
+                "accepted_at",
+                "accepted_by",
+                "estimated_wait_minutes",
+                "pickup_code",
+            ]
+        )
     return {
         "order_id": order.pk,
         "status": order.status,

@@ -85,8 +85,19 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": os.getenv("DB_HOST"),
         "PORT": os.getenv("DB_PORT"),
-    }
+    },
+    "replica": {
+        "ENGINE": os.getenv("DB_ENGINE"),
+        "NAME": os.getenv("DB_REPLICA_NAME", os.getenv("DB_NAME")),
+        "USER": os.getenv("DB_REPLICA_USER", os.getenv("DB_USER")),
+        "PASSWORD": os.getenv("DB_REPLICA_PASSWORD", os.getenv("DB_PASSWORD")),
+        "HOST": os.getenv("DB_REPLICA_HOST", os.getenv("DB_HOST")),
+        "PORT": os.getenv("DB_REPLICA_PORT", os.getenv("DB_PORT")),
+        "TEST": {"MIRROR": "default"},
+    },
 }
+
+DATABASE_ROUTERS = ["order_system.db_router.PrimaryReplicaRouter"]
 
 
 # Password validation
