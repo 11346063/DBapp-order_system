@@ -156,6 +156,15 @@ _ALLOWED_STATUS_UPDATE = frozenset(
     [Order.OrderStatus.COMPLETED, Order.OrderStatus.CANCELLED]
 )
 
+_VALID_TRANSITIONS = {
+    Order.OrderStatus.COMPLETED: {Order.OrderStatus.ACCEPTED, Order.OrderStatus.READY},
+    Order.OrderStatus.CANCELLED: {
+        Order.OrderStatus.SUBMITTED,
+        Order.OrderStatus.ACCEPTED,
+        Order.OrderStatus.READY,
+    },
+}
+
 
 def update_order_status(order_id, status):
     if status not in _ALLOWED_STATUS_UPDATE:
@@ -165,6 +174,11 @@ def update_order_status(order_id, status):
             order = Order.objects.select_for_update().get(pk=order_id)
         except Order.DoesNotExist as exc:
             raise NotFoundError("找不到此訂單") from exc
+
+        if order.status not in _VALID_TRANSITIONS.get(status, set()):
+            raise ValidationServiceError(
+                f"無法從目前狀態轉換至 {Order.OrderStatus(status).label}"
+            )
 
         order.status = status
         order.save(update_fields=["status"])

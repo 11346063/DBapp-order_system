@@ -13,6 +13,7 @@ from web_app.models import (
 )
 from web_app.services import cart as cart_service
 from web_app.services import order as order_service
+from web_app.services.exceptions import ValidationServiceError
 from web_app.services.exceptions import EmptyCartError, StaffCustomerPhoneRequired
 
 
@@ -169,6 +170,9 @@ class OrderServiceStatusAndReorderTest(TestCase):
         )
 
     def test_update_order_status_returns_refreshed_counts(self):
+        self.order.status = Order.OrderStatus.READY
+        self.order.save(update_fields=["status"])
+
         result = order_service.update_order_status(
             self.order.pk,
             Order.OrderStatus.COMPLETED,
@@ -178,6 +182,24 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertEqual(self.order.status, Order.OrderStatus.COMPLETED)
         self.assertEqual(result["status_counts"][Order.OrderStatus.SUBMITTED], 0)
         self.assertEqual(result["status_counts"][Order.OrderStatus.COMPLETED], 1)
+
+    def test_update_order_status_rejects_invalid_transition(self):
+        # SUBMITTED → COMPLETED is illegal (must go through ACCEPTED/READY first)
+        with self.assertRaises(ValidationServiceError):
+            order_service.update_order_status(
+                self.order.pk,
+                Order.OrderStatus.COMPLETED,
+            )
+
+    def test_update_order_status_cancelled_from_submitted(self):
+        # SUBMITTED → CANCELLED is a valid cancellation
+        result = order_service.update_order_status(
+            self.order.pk,
+            Order.OrderStatus.CANCELLED,
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.OrderStatus.CANCELLED)
+        self.assertIn("status_counts", result)
 
     def test_update_order_status_to_ready_via_accept_then_ready(self):
         # Must be ACCEPTED before marking READY

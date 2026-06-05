@@ -79,6 +79,9 @@ class StaffNavigationBadgeTest(TestCase):
     def test_status_update_to_completed_returns_refreshed_counts(self):
         self.client.login(username="staff_nav_employee", password="pass")
         order = Order.objects.filter(status=0).first()
+        # Must be READY before COMPLETED (state machine requires ACCEPTED or READY → COMPLETED)
+        order.status = Order.OrderStatus.READY
+        order.save(update_fields=["status"])
 
         response = self.client.post(
             reverse("web_app:api_order_status", kwargs={"pk": order.pk}),
