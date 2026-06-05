@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from web_app.forms.login_form import LoginForm
 from web_app.forms.register_form import RegisterForm
@@ -27,7 +28,11 @@ def login_view(request):
                 )
                 if user.identity in (Identity.ADMIN, Identity.EMPLOYEE):
                     return redirect("web_app:staff_orders")
-                next_url = request.GET.get("next", "web_app:home")
+                next_url = request.GET.get("next", "")
+                if not url_has_allowed_host_and_scheme(
+                    next_url, allowed_hosts={request.get_host()}
+                ):
+                    next_url = "web_app:home"
                 return redirect(next_url)
             else:
                 messages.error(request, _("手機號碼或密碼錯誤"))

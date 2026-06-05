@@ -4,6 +4,8 @@ import os
 from django.contrib.messages import constants as messages_constants
 from dotenv import load_dotenv
 
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,11 +15,9 @@ AUTH_USER_MODEL = "web_app.User"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-0gctfk#au@1l-&#&0u88hlc_fwpo3)(ly=o2&i*z6hw)u0)n8l"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-fallback-only-for-dev")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 CSRF_TRUSTED_ORIGINS = ["http://127.0.0.1", "http://localhost"]
@@ -73,8 +73,6 @@ ASGI_APPLICATION = "order_system.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-load_dotenv()
 
 DB_SETTING = os.getenv("DB_ACCOUNT")
 DATABASES = {

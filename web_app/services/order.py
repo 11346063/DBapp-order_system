@@ -152,7 +152,14 @@ def format_order_option_tags(raw_opts):
     return tags
 
 
+_ALLOWED_STATUS_UPDATE = frozenset(
+    [Order.OrderStatus.COMPLETED, Order.OrderStatus.CANCELLED]
+)
+
+
 def update_order_status(order_id, status):
+    if status not in _ALLOWED_STATUS_UPDATE:
+        raise ValidationServiceError("不允許此狀態轉換")
     with transaction.atomic():
         try:
             order = Order.objects.select_for_update().get(pk=order_id)
@@ -368,11 +375,11 @@ def create_staff_order_from_items(user, validated_data):
     menu_ids = [item["menu_id"] for item in items]
     menus_by_id = {m.pk: m for m in Menu.objects.filter(pk__in=menu_ids, status=True)}
 
-    menu_total = sum(
-        menus_by_id[item["menu_id"]].price * item["qty"]
-        for item in items
-        if item["menu_id"] in menus_by_id
-    )
+    missing = [mid for mid in menu_ids if mid not in menus_by_id]
+    if missing:
+        raise ValidationServiceError(f"以下品項不存在或已下架：{missing}")
+
+    menu_total = sum(menus_by_id[item["menu_id"]].price * item["qty"] for item in items)
     extra_cost = (
         data["extra_garlic_qty"] + data["extra_basil_qty"]
     ) * s.extra_ingredient_cost
@@ -403,9 +410,7 @@ def create_staff_order_from_items(user, validated_data):
         }
 
         for item_data in items:
-            menu = menus_by_id.get(item_data["menu_id"])
-            if not menu:
-                continue
+            menu = menus_by_id[item_data["menu_id"]]
             order_item = OrderItem.objects.create(
                 order=order,
                 menu=menu,

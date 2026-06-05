@@ -2,6 +2,8 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from captcha.fields import CaptchaField
 
+from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
+
 
 class LoginForm(forms.Form):
     account = forms.CharField(
@@ -29,5 +31,8 @@ class LoginForm(forms.Form):
     captcha = CaptchaField(label=_("驗證碼"))
 
     def clean_account(self):
-        account = self.cleaned_data["account"]
-        return account.replace(" ", "").replace("-", "")
+        account = self.cleaned_data["account"].strip()
+        try:
+            return normalize_tw_mobile(account)
+        except PhoneValidationError:
+            return account

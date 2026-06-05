@@ -34,7 +34,7 @@ class StaffOrderItemOptionSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     level = serializers.IntegerField(default=1)
     name = serializers.CharField(required=False, default="")
-    price = serializers.IntegerField(required=False, default=0)
+    price = serializers.IntegerField(required=False, default=0, min_value=0)
 
 
 class StaffOrderItemSerializer(serializers.Serializer):

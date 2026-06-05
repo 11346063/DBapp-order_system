@@ -7,6 +7,7 @@ from django.conf import settings as django_settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 
 from web_app.models import Identity, User
@@ -109,6 +110,10 @@ async def google_oauth_callback(request):
 
     await sync_to_async(_complete_google_login)(request, user)
     next_url = request.GET.get("next", "")
+    if not url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}
+    ):
+        next_url = ""
     return redirect(next_url or "web_app:home")
 
 
