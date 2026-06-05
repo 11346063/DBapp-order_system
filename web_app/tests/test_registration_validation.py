@@ -83,3 +83,39 @@ class PhoneLoginFormLabelTest(TestCase):
             form.fields["account"].widget.attrs["placeholder"],
             "請輸入手機號碼",
         )
+
+
+class LoginFormCleanAccountTest(TestCase):
+    def _make_form(self, account):
+        return LoginForm(
+            data={
+                "account": account,
+                "password": "pass",
+                "captcha_0": "x",
+                "captcha_1": "x",
+            },
+        )
+
+    def test_valid_phone_normalised(self):
+        from web_app.forms.login_form import LoginForm as LF
+
+        class _Stub(LF):
+            def __init__(self, account_val):
+                self.cleaned_data = {"account": account_val}
+
+        stub = _Stub("0912-345-678")
+        result = stub.clean_account()
+        self.assertEqual(result, "0912345678")
+
+    def test_invalid_phone_raises_validation_error(self):
+        from web_app.forms.login_form import LoginForm as LF
+        import django.forms as df
+
+        class _Stub(LF):
+            def __init__(self, account_val):
+                self.cleaned_data = {"account": account_val}
+
+        stub = _Stub("not-a-phone")
+        with self.assertRaises(df.ValidationError) as ctx:
+            stub.clean_account()
+        self.assertIn("台灣手機號碼", str(ctx.exception))

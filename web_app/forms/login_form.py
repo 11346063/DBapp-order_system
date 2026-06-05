@@ -35,4 +35,6 @@ class LoginForm(forms.Form):
         try:
             return normalize_tw_mobile(account)
         except PhoneValidationError:
-            return account
+            raise forms.ValidationError(
+                _("請輸入有效的台灣手機號碼（例如 0912345678）")
+            )
