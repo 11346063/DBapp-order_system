@@ -53,3 +53,14 @@ class StaffOrderCreateSerializer(serializers.Serializer):
     )
     remark = serializers.CharField(allow_blank=True, default="")
     items = StaffOrderItemSerializer(many=True)
+
+    def validate_items(self, value):
+        seen = set()
+        for item in value:
+            mid = item["menu_id"]
+            if mid in seen:
+                raise serializers.ValidationError(
+                    f"menu_id {mid} 重複，請合併數量後再送出"
+                )
+            seen.add(mid)
+        return value

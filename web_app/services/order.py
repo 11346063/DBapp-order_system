@@ -387,18 +387,6 @@ def create_staff_order_from_items(user, validated_data):
     custom_cost = sum(opt.price for opt in custom_opts)
 
     menu_ids = [item["menu_id"] for item in items]
-    menus_by_id = {m.pk: m for m in Menu.objects.filter(pk__in=menu_ids, status=True)}
-
-    missing = [mid for mid in menu_ids if mid not in menus_by_id]
-    if missing:
-        raise ValidationServiceError(f"以下品項不存在或已下架：{missing}")
-
-    menu_total = sum(menus_by_id[item["menu_id"]].price * item["qty"] for item in items)
-    extra_cost = (
-        data["extra_garlic_qty"] + data["extra_basil_qty"]
-    ) * s.extra_ingredient_cost
-    price_total = menu_total + extra_cost + custom_cost
-
     pickup_code = generate_pickup_code(data["customer_phone"])
     system_option_names = [
         s.option_name_spicy,
@@ -407,6 +395,25 @@ def create_staff_order_from_items(user, validated_data):
     ]
 
     with transaction.atomic():
+        menus_by_id = {
+            m.pk: m
+            for m in Menu.objects.select_for_update().filter(
+                pk__in=menu_ids, status=True
+            )
+        }
+
+        missing = [mid for mid in menu_ids if mid not in menus_by_id]
+        if missing:
+            raise ValidationServiceError(f"以下品項不存在或已下架：{missing}")
+
+        menu_total = sum(
+            menus_by_id[item["menu_id"]].price * item["qty"] for item in items
+        )
+        extra_cost = (
+            data["extra_garlic_qty"] + data["extra_basil_qty"]
+        ) * s.extra_ingredient_cost
+        price_total = menu_total + extra_cost + custom_cost
+
         order = Order.objects.create(
             user=user,
             status=Order.OrderStatus.ACCEPTED,
