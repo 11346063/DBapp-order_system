@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import TruncDate, TruncMonth
 from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
@@ -18,19 +18,38 @@ from web_app.services import store_settings as settings_service
 ORDER_PAGE_SIZE = 10
 
 
-def _attach_order_details(orders):
-    """附加品項與 order-level 選項至每筆 order。"""
+def _prefetch_order_details(queryset):
+    """在 queryset 層一次 prefetch 訂單品項與選項，避免 N+1。"""
+    return queryset.prefetch_related(
+        Prefetch(
+            "orderitem_set",
+            queryset=OrderItem.objects.select_related("menu").prefetch_related(
+                Prefetch(
+                    "orderitemoption_set",
+                    queryset=OrderItemOption.objects.select_related("opt"),
+                )
+            ),
+        ),
+        Prefetch(
+            "orderitemoption_set",
+            queryset=OrderItemOption.objects.filter(order_item=None).select_related(
+                "opt"
+            ),
+            to_attr="order_level_opts",
+        ),
+    )
+
+
+def _attach_order_details(orders, store_settings=None):
+    """從已 prefetch 的 queryset 附加品項與 order-level 選項（不發額外 DB 查詢）。"""
+    if not orders:
+        return
+    s = store_settings or settings_service.get_settings()
     for order in orders:
-        order.items = (
-            OrderItem.objects.filter(order=order)
-            .select_related("menu")
-            .prefetch_related("orderitemoption_set__opt")
-        )
-        raw_opts = OrderItemOption.objects.filter(
-            order=order, order_item=None
-        ).select_related("opt")
-        order.order_opts = order_service.format_order_options(raw_opts)
-        order.order_opts_tags = order_service.format_order_option_tags(raw_opts)
+        order.items = order.orderitem_set.all()
+        raw_opts = order.order_level_opts
+        order.order_opts = order_service.format_order_options(raw_opts, s)
+        order.order_opts_tags = order_service.format_order_option_tags(raw_opts, s)
 
 
 @employee_required
@@ -39,14 +58,17 @@ def staff_order_list(request):
     status_counts = order_service.order_status_counts()
 
     if view_mode == "kanban":
+        store_settings = settings_service.get_settings()
         kanban_groups = {}
         for sv in [0, 1, 2]:
             group = list(
-                Order.objects.filter(status=sv)
-                .select_related("user")
-                .order_by("-created_at")[:20]
+                _prefetch_order_details(
+                    Order.objects.filter(status=sv)
+                    .select_related("user")
+                    .order_by("-created_at")
+                )[:20]
             )
-            _attach_order_details(group)
+            _attach_order_details(group, store_settings)
             kanban_groups[sv] = group
 
         kanban_cols = [
@@ -97,7 +119,8 @@ def staff_order_list(request):
     except (ValueError, TypeError):
         status_val = 0
 
-    orders = (
+    store_settings = settings_service.get_settings()
+    orders = _prefetch_order_details(
         Order.objects.filter(status=status_val)
         .select_related("user")
         .order_by("-created_at")
@@ -106,7 +129,7 @@ def staff_order_list(request):
     paginator = Paginator(orders, ORDER_PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
     paged_orders = list(page_obj.object_list)
-    _attach_order_details(paged_orders)
+    _attach_order_details(paged_orders, store_settings)
 
     return render(
         request,
