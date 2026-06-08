@@ -219,13 +219,11 @@ class OrderAcceptAPITest(TestCase):
 class CreateOrderInitialStatusTest(TestCase):
     """Verify new orders start as SUBMITTED; staff orders start as ACCEPTED."""
 
-    _FAKE_CART = [{"menu_id": 1, "quantity": 1, "subtotal": 100, "options": []}]
-
-    def _patch_cart(self):
+    def _patch_cart(self, cart):
         return patch.multiple(
             "web_app.services.order.cart_service",
             ensure_prices_current=lambda *a, **k: None,
-            get_cart=lambda *a, **k: self._FAKE_CART,
+            get_cart=lambda *a, **k: cart,
             cart_total=lambda *a, **k: 100,
             clear_cart=lambda *a, **k: None,
         )
@@ -235,14 +233,12 @@ class CreateOrderInitialStatusTest(TestCase):
 
         menu_type = Type.objects.create(type_name="主餐")
         menu = Menu.objects.create(type=menu_type, name="測試品項", price=100)
+        cart = [{"menu_id": menu.pk, "quantity": 1, "subtotal": 100, "options": []}]
 
         customer = _make_user(Identity.CUSTOMER)
         session = {}
 
-        with (
-            self._patch_cart(),
-            patch("web_app.models.Menu.objects.get", return_value=menu),
-        ):
+        with self._patch_cart(cart):
             order = order_service.create_order_from_cart(
                 customer, session, {"customer_phone": "0912345678"}
             )
@@ -254,14 +250,12 @@ class CreateOrderInitialStatusTest(TestCase):
 
         menu_type = Type.objects.create(type_name="主餐")
         menu = Menu.objects.create(type=menu_type, name="測試品項2", price=100)
+        cart = [{"menu_id": menu.pk, "quantity": 1, "subtotal": 100, "options": []}]
 
         staff = _make_user(Identity.EMPLOYEE, phone="0922222222")
         session = {}
 
-        with (
-            self._patch_cart(),
-            patch("web_app.models.Menu.objects.get", return_value=menu),
-        ):
+        with self._patch_cart(cart):
             order = order_service.create_order_from_cart(
                 staff, session, {"customer_phone": "0933333333"}
             )

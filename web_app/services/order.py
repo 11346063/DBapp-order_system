@@ -103,8 +103,8 @@ async def async_order_status_counts():
     }
 
 
-def format_order_options(raw_opts):
-    s = get_settings()
+def format_order_options(raw_opts, settings=None):
+    s = settings or get_settings()
     parts = []
     for option_link in raw_opts:
         name = option_link.opt.name
@@ -120,8 +120,8 @@ def format_order_options(raw_opts):
     return "｜".join(parts)
 
 
-def format_order_option_tags(raw_opts):
-    s = get_settings()
+def format_order_option_tags(raw_opts, settings=None):
+    s = settings or get_settings()
     tags = []
     for option_link in raw_opts:
         name = option_link.opt.name
@@ -290,7 +290,19 @@ def create_order_from_cart(user, session, checkout_data):
         s.option_name_basil,
         s.option_name_cut,
     ]
+    menu_ids = [item["menu_id"] for item in cart]
     with transaction.atomic():
+        # 一次批量鎖定並濾除已下架餐點（取代迴圈內逐筆 Menu.get 的 N+1），
+        # 顧客結帳不得寫入已下架或不存在的餐點。
+        menus_by_id = {
+            m.pk: m
+            for m in Menu.objects.select_for_update().filter(
+                pk__in=menu_ids, status=True
+            )
+        }
+        if any(mid not in menus_by_id for mid in menu_ids):
+            raise NotFoundError("購物車中有餐點已下架或不存在，請重新整理購物車")
+
         order = Order.objects.create(
             user=user if user.is_authenticated else None,
             status=initial_status,
@@ -305,12 +317,7 @@ def create_order_from_cart(user, session, checkout_data):
         }
 
         for item in cart:
-            try:
-                menu = Menu.objects.get(pk=item["menu_id"])
-            except Menu.DoesNotExist as exc:
-                raise NotFoundError(
-                    "購物車中有餐點已下架或不存在，請重新整理購物車"
-                ) from exc
+            menu = menus_by_id[item["menu_id"]]
 
             order_item = OrderItem.objects.create(
                 order=order,
