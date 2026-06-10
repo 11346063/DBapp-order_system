@@ -1,6 +1,8 @@
 import logging
 from datetime import date
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -19,6 +21,19 @@ from web_app.services.exceptions import (
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 logger = logging.getLogger(__name__)
+
+
+def _notify_staff(payload: dict) -> None:
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        async_to_sync(channel_layer.group_send)(
+            "staff_logs",
+            {"type": "order_notification", **payload},
+        )
+    except Exception:
+        pass
 
 
 def is_staff_order_user(user):
@@ -190,6 +205,7 @@ def update_order_status(order_id, status):
             "order_status_changed",
             extra={"order_id": order.pk, "from": old_status, "to": status},
         )
+    _notify_staff({"event": "order_status_changed", "order_id": order_id, "status": status})
     return {"status_counts": order_status_counts()}
 
 
@@ -209,6 +225,7 @@ def mark_order_ready(order_id):
         order.ready_notified_at = now
         order.save(update_fields=["status", "ready_at", "ready_notified_at"])
         logger.info("order_ready_notified", extra={"order_id": order.pk})
+    _notify_staff({"event": "order_ready", "order_id": order_id})
     return {"status_counts": order_status_counts()}
 
 
@@ -248,6 +265,7 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
                 "wait_minutes": estimated_wait_minutes,
             },
         )
+    _notify_staff({"event": "order_accepted", "order_id": order.pk, "pickup_code": order.pickup_code})
     return {
         "order_id": order.pk,
         "status": order.status,
@@ -374,6 +392,14 @@ def create_order_from_cart(user, session, checkout_data):
 
         cart_service.clear_cart(user, session)
 
+    if not is_staff_order:
+        _notify_staff(
+            {
+                "event": "new_order",
+                "order_id": order.pk,
+                "customer_phone": order.customer_phone,
+            }
+        )
     return order
 
 

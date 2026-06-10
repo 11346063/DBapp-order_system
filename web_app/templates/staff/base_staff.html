@@ -60,7 +60,21 @@
 </div>
 {% endblock %}
 
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+  <div id="staffWsToast" class="toast align-items-center border-0" role="alert"
+       style="background-color: var(--card-bg); border: 1px solid var(--border-color) !important;">
+    <div class="d-flex">
+      <div class="toast-body" style="color: var(--text-primary);">
+        <i class="bi bi-bell-fill text-warning me-1"></i>
+        <span id="staffWsToastMsg"></span>
+      </div>
+      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
 {% block extra_js %}
 <script src="{% static 'js/staff.js' %}?v=9"></script>
+<script src="{% static 'js/staff_websocket.js' %}?v=1"></script>
 {% block staff_js %}{% endblock %}
 {% endblock %}
