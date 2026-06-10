@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -7,6 +9,8 @@ from web_app.forms.login_form import LoginForm
 from web_app.forms.register_form import RegisterForm
 from web_app.models import Identity
 from web_app.services import cart as cart_service
+
+logger = logging.getLogger(__name__)
 
 
 def login_view(request):
@@ -23,6 +27,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 cart_service.merge_session_cart_to_db(user, request.session)
+                logger.info("login_success", extra={"user_id": user.pk})
                 messages.success(
                     request, _("歡迎回來，{name}！").format(name=user.name)
                 )
@@ -35,6 +40,7 @@ def login_view(request):
                     next_url = "web_app:home"
                 return redirect(next_url)
             else:
+                logger.warning("login_failed", extra={"account": account})
                 messages.error(request, _("手機號碼或密碼錯誤"))
 
     return render(request, "auth/login.html", {"form": form})

@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from django.db import transaction
@@ -16,6 +17,8 @@ from web_app.services.exceptions import (
     ValidationServiceError,
 )
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
+
+logger = logging.getLogger(__name__)
 
 
 def is_staff_order_user(user):
@@ -180,8 +183,13 @@ def update_order_status(order_id, status):
                 f"無法從目前狀態轉換至 {Order.OrderStatus(status).label}"
             )
 
+        old_status = order.status
         order.status = status
         order.save(update_fields=["status"])
+        logger.info(
+            "order_status_changed",
+            extra={"order_id": order.pk, "from": old_status, "to": status},
+        )
     return {"status_counts": order_status_counts()}
 
 
@@ -200,6 +208,7 @@ def mark_order_ready(order_id):
         order.ready_at = now
         order.ready_notified_at = now
         order.save(update_fields=["status", "ready_at", "ready_notified_at"])
+        logger.info("order_ready_notified", extra={"order_id": order.pk})
     return {"status_counts": order_status_counts()}
 
 
@@ -230,6 +239,14 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
                 "estimated_wait_minutes",
                 "pickup_code",
             ]
+        )
+        logger.info(
+            "order_accepted",
+            extra={
+                "order_id": order.pk,
+                "by": staff_user.pk,
+                "wait_minutes": estimated_wait_minutes,
+            },
         )
     return {
         "order_id": order.pk,
@@ -473,6 +490,10 @@ def create_staff_order_from_items(user, validated_data):
         for custom_opt in custom_opts:
             OrderItemOption.objects.create(order=order, opt=custom_opt, level=1)
 
+    logger.info(
+        "staff_order_created",
+        extra={"order_id": order.pk, "by": user.pk, "total": price_total},
+    )
     return order
 
 

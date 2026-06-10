@@ -47,9 +47,12 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "web_app.middleware.request_logging.RequestLoggingMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+ENABLE_REQUEST_LOGGING = os.getenv("ENABLE_REQUEST_LOGGING", "False") == "True"
 
 ROOT_URLCONF = "order_system.urls"
 
@@ -236,4 +239,59 @@ SPECTACULAR_SETTINGS = {
         "filter": True,
     },
     "ENUM_GENERATE_CHOICE_DESCRIPTION": False,
+}
+
+# --- Logging ---
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file_app": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "app.log",
+            "when": "midnight",
+            "backupCount": 30,
+            "encoding": "utf-8",
+            "formatter": "verbose",
+        },
+        "file_error": {
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "filename": BASE_DIR / "logs" / "error.log",
+            "when": "midnight",
+            "backupCount": 30,
+            "encoding": "utf-8",
+            "formatter": "verbose",
+            "level": "ERROR",
+        },
+    },
+    "root": {
+        "handlers": ["console"] if DEBUG else ["console", "file_app", "file_error"],
+        "level": "WARNING",
+    },
+    "loggers": {
+        "web_app": {
+            "handlers": ["console"] if DEBUG else ["console", "file_app", "file_error"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"] if DEBUG else ["file_error"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
 }

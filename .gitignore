@@ -14,3 +14,4 @@ docs/progress.md
 .claude/
 scripts/harness/
 scripts/
+logs/

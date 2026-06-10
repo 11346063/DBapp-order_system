@@ -1,3 +1,5 @@
+import logging
+
 from django.http import Http404
 from rest_framework import status
 from rest_framework.exceptions import (
@@ -15,6 +17,8 @@ from web_app.services.exceptions import (
     ServiceError,
     ValidationServiceError,
 )
+
+logger = logging.getLogger(__name__)
 
 _SERVICE_STATUS_MAP = {
     ValidationServiceError: status.HTTP_400_BAD_REQUEST,
@@ -64,4 +68,7 @@ def custom_exception_handler(exc, context):
         return _error_response(exc.message, http_status)
 
     # --- 其餘例外交給 DRF 預設處理 ---
-    return drf_exception_handler(exc, context)
+    response = drf_exception_handler(exc, context)
+    if response is None:
+        logger.error("unhandled_api_exception", exc_info=exc)
+    return response
