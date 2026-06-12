@@ -3,6 +3,7 @@
 
   var RECONNECT_DELAY_MS = 3000;
   var ws = null;
+  var retries = 0;
 
   function connect() {
     var protocol = location.protocol === "https:" ? "wss" : "ws";
@@ -10,10 +11,16 @@
 
     ws.onopen = function () {
       console.debug("[WS-Staff] connected");
+      // 重連後補拉最新狀態，避免連線期間丟失的通知
+      var grid = document.getElementById("staffOrderGrid") || document.getElementById("kanbanBoard");
+      if (grid && retries > 0) {
+        location.reload();
+      }
     };
 
     ws.onclose = function () {
-      console.debug("[WS-Staff] disconnected — retry in " + RECONNECT_DELAY_MS + "ms");
+      retries++;
+      console.debug("[WS-Staff] disconnected — retry " + retries + " in " + RECONNECT_DELAY_MS + "ms");
       setTimeout(connect, RECONNECT_DELAY_MS);
     };
 

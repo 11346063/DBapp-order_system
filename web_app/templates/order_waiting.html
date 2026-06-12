@@ -69,12 +69,12 @@
 <script>
 (function () {
     const ORDER_ID = {{ order_id }};
-    const API_URL = `/api/orders/${ORDER_ID}/customer-status/`;
-    const POLL_INTERVAL = 3000;
-    const MAX_ERRORS = 3;
+    const MAX_RETRIES = 5;
+    const RECONNECT_DELAY_MS = 3000;
 
-    let errorCount = 0;
-    let timerId = null;
+    let retries = 0;
+    let resolved = false;
+    let ws = null;
 
     function showAccepted(data) {
         document.getElementById('waitingSection').classList.add('d-none');
@@ -90,31 +90,59 @@
         document.getElementById('cancelledSection').classList.remove('d-none');
     }
 
-    async function poll() {
-        try {
-            const res = await fetch(API_URL, { credentials: 'same-origin' });
-            if (!res.ok) { throw new Error(`HTTP ${res.status}`); }
-            const json = await res.json();
-            errorCount = 0;
-            const status = json.data?.order_status;
-            if (status === 1) {
-                clearInterval(timerId);
-                showAccepted(json.data);
-            } else if (status === 4) {
-                clearInterval(timerId);
-                showCancelled();
-            }
-        } catch (_) {
-            errorCount++;
-            if (errorCount >= MAX_ERRORS) {
-                clearInterval(timerId);
-                document.getElementById('errorHint').classList.remove('d-none');
-            }
-        }
+    function showError() {
+        document.getElementById('errorHint').classList.remove('d-none');
     }
 
-    poll();
-    timerId = setInterval(poll, POLL_INTERVAL);
+    // 初始 HTTP fallback：頁面載入時訂單可能已被接單（例如重新整理頁面）
+    fetch(`/api/orders/${ORDER_ID}/customer-status/`, { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+            var status = json.data && json.data.order_status;
+            if (status === 1) { resolved = true; showAccepted(json.data); }
+            else if (status === 4) { resolved = true; showCancelled(); }
+        })
+        .catch(function () {})
+        .finally(function () { if (!resolved) connectWs(); });
+
+    function connectWs() {
+        var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+        var url = protocol + '://' + location.host + '/ws/order/' + ORDER_ID + '/';
+        console.debug('[WS-Order] connecting to', url);
+        ws = new WebSocket(url);
+
+        ws.onopen = function () {
+            console.debug('[WS-Order] connected (retry=' + retries + ')');
+        };
+
+        ws.onmessage = function (e) {
+            var data;
+            try { data = JSON.parse(e.data); } catch (_) { return; }
+            console.debug('[WS-Order] message', data);
+            if (data.event === 'order_accepted') {
+                resolved = true;
+                showAccepted({ pickup_code: data.pickup_code, estimated_wait_minutes: data.estimated_wait_minutes });
+            } else if (data.event === 'order_cancelled') {
+                resolved = true;
+                showCancelled();
+            }
+        };
+
+        ws.onerror = function (e) {
+            console.error('[WS-Order] error', e);
+        };
+
+        ws.onclose = function (e) {
+            console.warn('[WS-Order] closed code=' + e.code + ' reason=' + e.reason + ' retry=' + retries);
+            if (resolved) return;
+            if (retries < MAX_RETRIES) {
+                retries++;
+                setTimeout(connectWs, RECONNECT_DELAY_MS);
+            } else {
+                showError();
+            }
+        };
+    }
 })();
 </script>
 {% endblock %}

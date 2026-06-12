@@ -23,6 +23,19 @@ from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 logger = logging.getLogger(__name__)
 
 
+def _notify_customer(order_id: int, payload: dict) -> None:
+    try:
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+        async_to_sync(channel_layer.group_send)(
+            f"order_{order_id}",
+            {"type": "order_status_update", **payload},
+        )
+    except Exception:
+        pass
+
+
 def _notify_staff(payload: dict) -> None:
     try:
         channel_layer = get_channel_layer()
@@ -205,7 +218,11 @@ def update_order_status(order_id, status):
             "order_status_changed",
             extra={"order_id": order.pk, "from": old_status, "to": status},
         )
-    _notify_staff({"event": "order_status_changed", "order_id": order_id, "status": status})
+    _notify_staff(
+        {"event": "order_status_changed", "order_id": order_id, "status": status}
+    )
+    if status == Order.OrderStatus.CANCELLED:
+        _notify_customer(order_id, {"event": "order_cancelled"})
     return {"status_counts": order_status_counts()}
 
 
@@ -226,6 +243,7 @@ def mark_order_ready(order_id):
         order.save(update_fields=["status", "ready_at", "ready_notified_at"])
         logger.info("order_ready_notified", extra={"order_id": order.pk})
     _notify_staff({"event": "order_ready", "order_id": order_id})
+    _notify_customer(order_id, {"event": "order_ready"})
     return {"status_counts": order_status_counts()}
 
 
@@ -265,7 +283,21 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
                 "wait_minutes": estimated_wait_minutes,
             },
         )
-    _notify_staff({"event": "order_accepted", "order_id": order.pk, "pickup_code": order.pickup_code})
+    _notify_staff(
+        {
+            "event": "order_accepted",
+            "order_id": order.pk,
+            "pickup_code": order.pickup_code,
+        }
+    )
+    _notify_customer(
+        order.pk,
+        {
+            "event": "order_accepted",
+            "pickup_code": order.pickup_code,
+            "estimated_wait_minutes": estimated_wait_minutes,
+        },
+    )
     return {
         "order_id": order.pk,
         "status": order.status,
