@@ -16,14 +16,9 @@ from web_app.api.serializers.order import (
     ReorderSerializer,
     StaffOrderCreateSerializer,
 )
-from web_app.api.utils import api_error, api_success
+from web_app.api.utils import api_success
 from web_app.models.order import Order
 from web_app.services import order as order_service
-from web_app.services.exceptions import (
-    EmptyCartError,
-    StaffCustomerPhoneRequired,
-    ValidationServiceError,
-)
 
 # ---------- 共用 inline schema ----------
 
@@ -388,14 +383,7 @@ class StaffOrderCreateAPIView(APIView):
     def post(self, request):
         serializer = StaffOrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        try:
-            order = order_service.create_staff_order_from_items(
-                request.user, serializer.validated_data
-            )
-        except StaffCustomerPhoneRequired as exc:
-            return api_error(exc.message)
-        except EmptyCartError as exc:
-            return api_error(exc.message)
-        except ValidationServiceError as exc:
-            return api_error(exc.message)
+        order = order_service.create_staff_order_from_items(
+            request.user, serializer.validated_data
+        )
         return api_success({"order_id": order.pk}, message="代客訂單已送出，已自動接單")

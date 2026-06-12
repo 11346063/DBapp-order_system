@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 import os
 
@@ -15,9 +16,26 @@ AUTH_USER_MODEL = "web_app.User"
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-fallback-only-for-dev")
+_secret_key = os.getenv("DJANGO_SECRET_KEY", "")
+_debug = os.getenv("DEBUG", "False") == "True"
 
-DEBUG = os.getenv("DEBUG", "False") == "True"
+if not _secret_key:
+    if _debug:
+        _secret_key = "django-insecure-fallback-only-for-dev"
+    else:
+        raise RuntimeError("DJANGO_SECRET_KEY must be set in production (DEBUG=False)")
+
+SECRET_KEY = _secret_key
+DEBUG = _debug
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 CSRF_TRUSTED_ORIGINS = os.getenv(
@@ -201,8 +219,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": __import__("datetime").timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": __import__("datetime").timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "USER_ID_FIELD": "pk",
     "USER_ID_CLAIM": "user_id",

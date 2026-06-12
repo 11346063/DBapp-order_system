@@ -91,9 +91,12 @@ def generate_pickup_code(customer_phone: str) -> str:
     """
     digits = "".join(c for c in customer_phone if c.isdigit())
     today = date.today()
+    used_codes = set(
+        Order.objects.filter(created_at__date=today).values_list("pickup_code", flat=True)
+    )
     for length in range(3, len(digits) + 1):
         code = digits[-length:]
-        if not Order.objects.filter(created_at__date=today, pickup_code=code).exists():
+        if code not in used_codes:
             return code
     return digits  # fallback：完整電話數字，極不可能到達
 

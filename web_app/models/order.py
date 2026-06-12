@@ -32,4 +32,7 @@ class Order(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["customer_phone"], name="order_customer_phone_idx"),
+            models.Index(
+                fields=["status", "created_at"], name="order_status_created_idx"
+            ),
         ]

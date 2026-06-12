@@ -151,7 +151,8 @@ class NavigationVisibilityTest(TestCase):
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
-    def test_admin_mobile_cart_summary_shows_cart_count(self):
+    def test_admin_mobile_cart_summary_shows_zero_count(self):
+        # Admin/staff 短路：不計算購物車，始終回傳 0，避免不必要的 DB 查詢
         self.client.login(username="admin_nav", password="pass")
         session = self.client.session
         session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
@@ -160,7 +161,7 @@ class NavigationVisibilityTest(TestCase):
         response = self.client.get(reverse("web_app:home"))
 
         self.assertContains(response, 'id="mobileCartSummary"')
-        self.assertContains(response, 'id="mobileCartSummaryCount">2</span>')
+        self.assertContains(response, 'id="mobileCartSummaryCount">0</span>')
 
 
 class SuccessMessageAutoDismissTest(TestCase):

@@ -15,8 +15,6 @@ from order_system import routing
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "order_system.settings")
 
-application = get_asgi_application()
-
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
