@@ -15,6 +15,7 @@ from web_app.services.exceptions import (
     CheckoutPhoneRequired,
     EmptyCartError,
     NotFoundError,
+    PermissionBusinessError,
     StaffCustomerPhoneRequired,
     ValidationServiceError,
 )
@@ -92,7 +93,9 @@ def generate_pickup_code(customer_phone: str) -> str:
     digits = "".join(c for c in customer_phone if c.isdigit())
     today = date.today()
     used_codes = set(
-        Order.objects.filter(created_at__date=today).values_list("pickup_code", flat=True)
+        Order.objects.filter(created_at__date=today).values_list(
+            "pickup_code", flat=True
+        )
     )
     for length in range(3, len(digits) + 1):
         code = digits[-length:]
@@ -200,7 +203,7 @@ _VALID_TRANSITIONS = {
 }
 
 
-def update_order_status(order_id, status):
+def update_order_status(order_id, status, cancel_reason=""):
     if status not in _ALLOWED_STATUS_UPDATE:
         raise ValidationServiceError("不允許此狀態轉換")
     with transaction.atomic():
@@ -216,7 +219,11 @@ def update_order_status(order_id, status):
 
         old_status = order.status
         order.status = status
-        order.save(update_fields=["status"])
+        update_fields = ["status"]
+        if status == Order.OrderStatus.CANCELLED and cancel_reason:
+            order.cancel_reason = cancel_reason
+            update_fields.append("cancel_reason")
+        order.save(update_fields=update_fields)
         logger.info(
             "order_status_changed",
             extra={"order_id": order.pk, "from": old_status, "to": status},
@@ -225,7 +232,48 @@ def update_order_status(order_id, status):
         {"event": "order_status_changed", "order_id": order_id, "status": status}
     )
     if status == Order.OrderStatus.CANCELLED:
-        _notify_customer(order_id, {"event": "order_cancelled"})
+        _notify_customer(
+            order_id,
+            {"event": "order_cancelled", "cancel_reason": cancel_reason},
+        )
+    return {"status_counts": order_status_counts()}
+
+
+def customer_cancel_order(order_id, user, session):
+    """顧客主動取消尚未接單（SUBMITTED）的訂單。"""
+    with transaction.atomic():
+        try:
+            order = Order.objects.select_for_update().get(pk=order_id)
+        except Order.DoesNotExist as exc:
+            raise NotFoundError("找不到此訂單") from exc
+
+        if user.is_authenticated:
+            if order.user_id != user.pk:
+                raise PermissionBusinessError("無權限操作此訂單")
+        else:
+            if session.get("last_order_id") != order_id:
+                raise PermissionBusinessError("無權限操作此訂單")
+
+        if order.status != Order.OrderStatus.SUBMITTED:
+            raise ValidationServiceError("只能取消尚未接單的訂單")
+
+        order.status = Order.OrderStatus.CANCELLED
+        order.cancel_reason = "顧客主動取消"
+        order.save(update_fields=["status", "cancel_reason"])
+        logger.info(
+            "order_customer_cancelled",
+            extra={"order_id": order.pk},
+        )
+    _notify_staff(
+        {
+            "event": "order_status_changed",
+            "order_id": order_id,
+            "status": Order.OrderStatus.CANCELLED,
+        }
+    )
+    _notify_customer(
+        order_id, {"event": "order_cancelled", "cancel_reason": "顧客主動取消"}
+    )
     return {"status_counts": order_status_counts()}
 
 
@@ -372,6 +420,9 @@ def create_order_from_cart(user, session, checkout_data):
         }
         if any(mid not in menus_by_id for mid in menu_ids):
             raise NotFoundError("購物車中有餐點已下架或不存在，請重新整理購物車")
+        sold_out = [m.name for m in menus_by_id.values() if m.is_sold_out_today]
+        if sold_out:
+            raise ValidationServiceError(f"以下餐點今日已售完：{'、'.join(sold_out)}")
 
         order = Order.objects.create(
             user=user if user.is_authenticated else None,
@@ -490,6 +541,9 @@ def create_staff_order_from_items(user, validated_data):
         missing = [mid for mid in menu_ids if mid not in menus_by_id]
         if missing:
             raise ValidationServiceError(f"以下品項不存在或已下架：{missing}")
+        sold_out = [m.name for m in menus_by_id.values() if m.is_sold_out_today]
+        if sold_out:
+            raise ValidationServiceError(f"以下餐點今日已售完：{'、'.join(sold_out)}")
 
         menu_total = sum(
             menus_by_id[item["menu_id"]].price * item["qty"] for item in items

@@ -13,6 +13,13 @@ class OrderStatusSerializer(serializers.Serializer):
         help_text="訂單狀態：3=已完成、4=已取消",
         default=Order.OrderStatus.COMPLETED,
     )
+    cancel_reason = serializers.CharField(
+        max_length=200,
+        required=False,
+        allow_blank=True,
+        default="",
+        help_text="取消/拒單原因（status=4 時選填）",
+    )
 
 
 class AcceptOrderSerializer(serializers.Serializer):

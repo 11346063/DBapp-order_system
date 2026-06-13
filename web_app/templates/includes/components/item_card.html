@@ -1,7 +1,7 @@
 {% comment %}
 Component: ItemCard
 Props:
-  - item (required): Menu instance，需要 .id .name .price .file_path .status .type_id
+  - item (required): Menu instance，需要 .id .name .price .file_path .status .type_id .is_sold_out_today
   - is_staff (optional, default false): bool，員工模式才會顯示「已下架」badge 與灰階樣式
   - on_click_fn (optional, default 'openItemDetail'): JS 函式名，點擊卡片時呼叫並傳入 item.id
 Usage:
@@ -10,14 +10,16 @@ Usage:
 {% endcomment %}
 {% load i18n %}
 <div class="col-6 col-md-4 col-lg-3 menu-item" data-type-id="{{ item.type_id }}">
-    <div class="card card-dark h-100 item-card{% if is_staff and not item.status %} item-card-inactive{% endif %}" role="button" onclick="{{ on_click_fn|default:'openItemDetail' }}({{ item.id }})">
+    <div class="card card-dark h-100 item-card{% if is_staff and not item.status %} item-card-inactive{% endif %}{% if item.is_sold_out_today %} item-card-inactive{% endif %}" role="button" onclick="{{ on_click_fn|default:'openItemDetail' }}({{ item.id }})">
         <div class="card-img-top-placeholder d-flex align-items-center justify-content-center position-relative">
             {% if item.file_path %}
             <img src="{{ item.file_path.url }}" alt="{{ item.name }}" class="menu-card-image">
             {% else %}
             <i class="bi bi-egg-fried fs-1 text-secondary"></i>
             {% endif %}
-            {% if is_staff and not item.status %}
+            {% if item.is_sold_out_today %}
+            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-2">{% trans "今日售完" %}</span>
+            {% elif is_staff and not item.status %}
             <span class="badge bg-danger position-absolute top-0 start-0 m-2">{% trans "已下架" %}</span>
             {% endif %}
         </div>

@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 
 
@@ -9,7 +11,12 @@ class Menu(models.Model):
     remark = models.CharField(max_length=100, blank=True, null=True)
     file_path = models.ImageField(upload_to="image/", blank=True, null=True)
     status = models.BooleanField(default=True)
+    today_sold_out = models.DateField(null=True, blank=True, default=None)
     options = models.ManyToManyField("Options", through="OptGroup")
+
+    @property
+    def is_sold_out_today(self):
+        return self.today_sold_out == date.today()
 
     class Meta:
         indexes = [

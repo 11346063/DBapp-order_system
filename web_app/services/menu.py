@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db.models import Q
 
 from web_app.models import Identity, Menu, Type
@@ -50,6 +52,18 @@ def toggle_menu_status(menu_id):
     menu.status = not menu.status
     menu.save(update_fields=["status"])
     return {"status": menu.status, "name": menu.name}
+
+
+def toggle_menu_sold_out_today(menu_id):
+    try:
+        menu = Menu.objects.get(pk=menu_id)
+    except Menu.DoesNotExist as exc:
+        raise NotFoundError("找不到此商品") from exc
+
+    today = date.today()
+    menu.today_sold_out = today if menu.today_sold_out != today else None
+    menu.save(update_fields=["today_sold_out"])
+    return {"sold_out_today": menu.today_sold_out == today, "name": menu.name}
 
 
 def _clean_required_menu_fields(data, *, require_type):

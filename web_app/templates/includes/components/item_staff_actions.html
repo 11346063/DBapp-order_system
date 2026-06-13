@@ -10,6 +10,9 @@ Props:
         <span id="{{ badge_id }}" class="badge fs-6 px-3 py-2"></span>
     </div>
     <div class="d-grid gap-2">
+        <button class="btn btn-outline-warning fw-bold" onclick="toggleSoldOutToday()" id="soldOutTodayBtn">
+            <i class="bi bi-calendar-x me-1"></i> <span id="soldOutTodayBtnText">{% trans "今日售完" %}</span>
+        </button>
         <button class="btn btn-outline-light fw-bold" onclick="toggleItemStatus()">
             <i class="bi bi-arrow-repeat"></i> {% trans "切換上下架" %}
         </button>

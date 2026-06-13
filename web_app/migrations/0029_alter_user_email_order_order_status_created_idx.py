@@ -4,19 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0028_storesettings_seed'),
+        ("web_app", "0028_storesettings_seed"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='email',
+            model_name="user",
+            name="email",
             field=models.EmailField(blank=True, max_length=254, null=True),
         ),
         migrations.AddIndex(
-            model_name='order',
-            index=models.Index(fields=['status', 'created_at'], name='order_status_created_idx'),
+            model_name="order",
+            index=models.Index(
+                fields=["status", "created_at"], name="order_status_created_idx"
+            ),
         ),
     ]

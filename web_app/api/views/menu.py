@@ -374,3 +374,36 @@ class MenuCreateAPIView(APIView):
             request.FILES.get("file_path"),
         )
         return api_success(MenuSerializer(menu).data, status=201)
+
+
+class MenuSoldOutTodayAPIView(APIView):
+    permission_classes = [IsEmployee]
+
+    @extend_schema(
+        summary="切換今日售完狀態",
+        description="將餐點標記為今日售完（或取消）。今日售完不影響永久上下架，隔天自動解除。",
+        tags=["菜單"],
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="MenuSoldOutTodayResponse",
+                fields={
+                    "status": serializers.CharField(default="success"),
+                    "data": inline_serializer(
+                        name="MenuSoldOutTodayData",
+                        fields={
+                            "sold_out_today": serializers.BooleanField(),
+                            "name": serializers.CharField(),
+                        },
+                    ),
+                },
+            ),
+            403: OpenApiResponse(
+                response=_ErrorResponse, description="需員工或管理員身份"
+            ),
+            404: OpenApiResponse(response=_ErrorResponse, description="餐點不存在"),
+        },
+    )
+    def post(self, request, pk):
+        result = menu_service.toggle_menu_sold_out_today(pk)
+        return api_success(result)

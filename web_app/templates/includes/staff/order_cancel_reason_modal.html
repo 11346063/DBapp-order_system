@@ -1,0 +1,37 @@
+{% comment %}
+Component: OrderCancelReasonModal
+Props: none. IDs are used by staff.js.
+{% endcomment %}
+{% load i18n %}
+<div class="modal fade" id="orderCancelReasonModal" tabindex="-1" aria-labelledby="orderCancelReasonTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-dark order-status-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-white" id="orderCancelReasonTitle">
+                    <i class="bi bi-x-circle text-danger"></i> {% trans "取消／拒絕訂單" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans '關閉' %}"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-white mb-3" id="orderCancelReasonMessage">{% trans "確定要取消此訂單嗎？" %}</p>
+                <div class="mb-1">
+                    <label for="cancelReasonInput" class="form-label text-secondary small">
+                        {% trans "取消原因（選填，顧客可見）" %}
+                    </label>
+                    <input type="text"
+                           class="form-control bg-dark text-white border-secondary"
+                           id="cancelReasonInput"
+                           maxlength="200"
+                           placeholder="{% trans '例如：食材售完、打烊等' %}">
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans "返回" %}</button>
+                <button type="button" class="btn btn-outline-danger fw-bold" id="orderCancelConfirmBtn"
+                        onclick="submitCancelOrder()">
+                    <i class="bi bi-x-lg"></i> {% trans "確認取消" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

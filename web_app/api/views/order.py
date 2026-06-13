@@ -149,6 +149,7 @@ class OrderStatusAPIView(APIView):
             order_service.update_order_status(
                 pk,
                 serializer.validated_data["status"],
+                serializer.validated_data.get("cancel_reason", ""),
             )
         )
 
@@ -351,8 +352,42 @@ class OrderCustomerStatusAPIView(APIView):
                 "order_status": order.status,
                 "estimated_wait_minutes": order.estimated_wait_minutes,
                 "pickup_code": order.pickup_code,
+                "cancel_reason": order.cancel_reason,
             }
         )
+
+
+class CustomerCancelOrderAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="顧客取消訂單（僅限尚未接單）",
+        description=(
+            "顧客（含訪客）取消尚未接單（SUBMITTED）的訂單。\n\n"
+            "登入顧客需為訂單擁有者；訪客需在 session 中持有此訂單 ID。"
+        ),
+        tags=["訂單"],
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="CustomerCancelOrderResponse",
+                fields={
+                    "status": serializers.CharField(default="success"),
+                    "message": serializers.CharField(default="訂單已取消"),
+                },
+            ),
+            400: OpenApiResponse(
+                response=_ErrorResponse, description="訂單已被接單，無法取消"
+            ),
+            403: OpenApiResponse(
+                response=_ErrorResponse, description="無權限操作此訂單"
+            ),
+            404: OpenApiResponse(response=_ErrorResponse, description="訂單不存在"),
+        },
+    )
+    def post(self, request, pk):
+        order_service.customer_cancel_order(pk, request.user, request.session)
+        return api_success({}, message="訂單已取消")
 
 
 class StaffOrderCreateAPIView(APIView):

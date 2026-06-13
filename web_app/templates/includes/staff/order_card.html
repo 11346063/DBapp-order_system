@@ -67,21 +67,21 @@ Props:
                     <button class="btn btn-sm btn-success" onclick="acceptOrder({{ order.pk }})">
                         <i class="bi bi-check2-circle"></i> {% trans "接單" %}
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
+                    <button class="btn btn-sm btn-outline-danger" onclick="cancelOrder({{ order.pk }})">
                         <i class="bi bi-x-lg"></i> {% trans "拒單" %}
                     </button>
                     {% elif current_status == 1 %}
                     <button class="btn btn-sm btn-success" onclick="notifyReady({{ order.pk }})">
                         <i class="bi bi-bell"></i> {% trans "通知取餐" %}
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
+                    <button class="btn btn-sm btn-outline-danger" onclick="cancelOrder({{ order.pk }})">
                         <i class="bi bi-x-lg"></i> {% trans "取消" %}
                     </button>
                     {% elif current_status == 2 %}
                     <button class="btn btn-sm btn-success" onclick="updateOrderStatus({{ order.pk }}, 3)">
                         <i class="bi bi-check-lg"></i> {% trans "完成" %}
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="updateOrderStatus({{ order.pk }}, 4)">
+                    <button class="btn btn-sm btn-outline-danger" onclick="cancelOrder({{ order.pk }})">
                         <i class="bi bi-x-lg"></i> {% trans "取消" %}
                     </button>
                     {% endif %}

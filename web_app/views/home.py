@@ -29,6 +29,9 @@ def home_view(request):
             "/0/", "/{id}/"
         ),
         "menuCreate": reverse("web_app:menu_create"),
+        "menuSoldOutToday": reverse(
+            "web_app:menu_sold_out_today", kwargs={"pk": 0}
+        ).replace("/0/", "/{id}/"),
     }
 
     return render(

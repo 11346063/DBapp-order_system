@@ -1,5 +1,6 @@
 let pendingStatusUpdate = null;
 let pendingAcceptOrderId = null;
+let pendingCancelOrderId = null;
 
 function updateOrderStatus(orderId, newStatus) {
     const statusLabels = { 3: '已完成', 4: '已取消' };
@@ -126,6 +127,39 @@ function submitAcceptOrder() {
         .finally(() => {
             if (confirmBtn) confirmBtn.disabled = false;
             pendingAcceptOrderId = null;
+        });
+}
+
+function cancelOrder(orderId) {
+    pendingCancelOrderId = orderId;
+    const modalEl = document.getElementById('orderCancelReasonModal');
+    if (!modalEl) { submitCancelOrder(); return; }
+    const msgEl = document.getElementById('orderCancelReasonMessage');
+    if (msgEl) msgEl.textContent = `確定要取消訂單 #${orderId} 嗎？`;
+    const input = document.getElementById('cancelReasonInput');
+    if (input) input.value = '';
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+
+function submitCancelOrder() {
+    const orderId = pendingCancelOrderId;
+    if (!orderId) return;
+    const reason = (document.getElementById('cancelReasonInput')?.value || '').trim();
+    const confirmBtn = document.getElementById('orderCancelConfirmBtn');
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    postJSON(`/api/orders/${orderId}/status/`, { status: 4, cancel_reason: reason }, 'PATCH')
+        .then(data => {
+            if (data.status === 'success') {
+                bootstrap.Modal.getInstance(document.getElementById('orderCancelReasonModal'))?.hide();
+                updateStatusBadges(data.data.status_counts);
+                removeOrderCard(orderId);
+            }
+        })
+        .catch(errMsg => { alert(errMsg || '取消失敗，請重試'); })
+        .finally(() => {
+            if (confirmBtn) confirmBtn.disabled = false;
+            pendingCancelOrderId = null;
         });
 }
 
