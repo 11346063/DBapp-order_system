@@ -53,6 +53,10 @@
         break;
       case "order_status_changed":
         showToast("訂單 #" + data.order_id + " 狀態已更新");
+        if (typeof removeOrderCard === "function") {
+          removeOrderCard(data.order_id);
+        }
+        setTimeout(function () { location.reload(); }, 1500);
         break;
     }
   }
@@ -67,10 +71,11 @@
   }
 
   function refreshOrderListIfPresent(orderId) {
-    var grid =
-      document.getElementById("staffOrderGrid") ||
-      document.getElementById("kanbanBoard");
-    if (!grid) return;
+    var isOrderListPage =
+      document.getElementById("staffOrderGrid") !== null ||
+      document.getElementById("kanbanBoard") !== null ||
+      document.getElementById("staffOrderEmptyTemplate") !== null;
+    if (!isOrderListPage) return;
     if (document.getElementById("order-" + orderId)) return;
     location.reload();
   }

@@ -21,6 +21,13 @@
                 <a href="javascript:location.reload()" class="text-warning">{% trans "重新整理" %}</a>
                 {% trans "後再試" %}
             </p>
+            <div class="mt-4">
+                <button id="customerCancelBtn" class="btn btn-outline-secondary btn-sm"
+                        onclick="customerCancelOrder()">
+                    <i class="bi bi-x-circle me-1"></i>{% trans "取消訂單" %}
+                </button>
+                <p class="text-secondary small mt-2 mb-0">{% trans "僅限店家接單前可取消" %}</p>
+            </div>
         </div>
 
         {% comment %} 已接單畫面（初始隱藏） {% endcomment %}
@@ -55,6 +62,7 @@
                 <i class="bi bi-x-circle-fill text-danger" style="font-size:3.5rem;"></i>
             </div>
             <h4 class="fw-bold mb-2">{% trans "訂單已取消" %}</h4>
+            <p id="cancelReasonText" class="text-secondary mb-2 d-none"></p>
             <p class="text-secondary mb-4">{% trans "如有疑問請聯繫店家" %}</p>
             <a href="{% url 'web_app:home' %}" class="btn btn-outline-secondary px-5">
                 <i class="bi bi-house me-2"></i>{% trans "返回主頁" %}
@@ -85,9 +93,14 @@
             mins ? `${mins} 分鐘` : '—';
     }
 
-    function showCancelled() {
+    function showCancelled(reason) {
         document.getElementById('waitingSection').classList.add('d-none');
         document.getElementById('cancelledSection').classList.remove('d-none');
+        var reasonEl = document.getElementById('cancelReasonText');
+        if (reasonEl && reason) {
+            reasonEl.textContent = reason;
+            reasonEl.classList.remove('d-none');
+        }
     }
 
     function showError() {
@@ -98,12 +111,44 @@
     fetch(`/api/orders/${ORDER_ID}/customer-status/`, { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (json) {
-            var status = json.data && json.data.order_status;
-            if (status === 1) { resolved = true; showAccepted(json.data); }
-            else if (status === 4) { resolved = true; showCancelled(); }
+            var d = json.data;
+            var status = d && d.order_status;
+            if (status === 1) { resolved = true; showAccepted(d); }
+            else if (status === 4) { resolved = true; showCancelled(d && d.cancel_reason); }
         })
         .catch(function () {})
         .finally(function () { if (!resolved) connectWs(); });
+
+    window.customerCancelOrder = function customerCancelOrder() {
+        if (!confirm('{% trans "確定要取消這筆訂單嗎？" %}')) return;
+        var btn = document.getElementById('customerCancelBtn');
+        if (btn) btn.disabled = true;
+        fetch(`/api/orders/${ORDER_ID}/customer-cancel/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            credentials: 'same-origin',
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (json) {
+            if (json.status === 'success') {
+                resolved = true;
+                if (ws) ws.close();
+                showCancelled('顧客主動取消');
+            } else {
+                alert(json.message || '取消失敗，請重試');
+                if (btn) btn.disabled = false;
+            }
+        })
+        .catch(function () {
+            alert('操作失敗，請重試');
+            if (btn) btn.disabled = false;
+        });
+    }
+
+    function getCookie(name) {
+        var v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+        return v ? v[2] : null;
+    }
 
     function connectWs() {
         var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -124,7 +169,7 @@
                 showAccepted({ pickup_code: data.pickup_code, estimated_wait_minutes: data.estimated_wait_minutes });
             } else if (data.event === 'order_cancelled') {
                 resolved = true;
-                showCancelled();
+                showCancelled(data.cancel_reason);
             }
         };
 

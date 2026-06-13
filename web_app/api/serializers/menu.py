@@ -25,6 +25,7 @@ class MenuSerializer(serializers.ModelSerializer):
             "type_id",
             "type_name",
             "status",
+            "today_sold_out",
             "image_url",
         ]
         extra_kwargs = {
@@ -39,6 +40,11 @@ class MenuSerializer(serializers.ModelSerializer):
             },
             "type_id": {"help_text": "分類 ID，對應 Type 資料表。範例：1"},
             "status": {"help_text": "上下架狀態：true=上架、false=下架"},
+            "today_sold_out": {
+                "read_only": True,
+                "allow_null": True,
+                "help_text": "今日售完標記日期（null=未售完，等於今天=售完）",
+            },
         }
 
     @extend_schema_field(serializers.CharField(allow_blank=True))

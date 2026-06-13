@@ -13,10 +13,12 @@ from web_app.api.views.cart import (
 from web_app.api.views.menu import (
     MenuCreateAPIView,
     MenuDetailAPIView,
+    MenuSoldOutTodayAPIView,
     MenuToggleAPIView,
     MenuUpdateAPIView,
 )
 from web_app.api.views.order import (
+    CustomerCancelOrderAPIView,
     OrderAcceptAPIView,
     OrderCustomerStatusAPIView,
     OrderReadyAPIView,
@@ -30,6 +32,11 @@ urlpatterns = [
     path("menu/<int:pk>/", MenuDetailAPIView.as_view(), name="menu_detail_api"),
     path("menu/<int:pk>/toggle/", MenuToggleAPIView.as_view(), name="menu_toggle"),
     path("menu/<int:pk>/edit/", MenuUpdateAPIView.as_view(), name="menu_edit"),
+    path(
+        "menu/<int:pk>/sold-out-today/",
+        MenuSoldOutTodayAPIView.as_view(),
+        name="menu_sold_out_today",
+    ),
     path("menu/create/", MenuCreateAPIView.as_view(), name="menu_create"),
     # Cart
     path("cart/", CartDetailAPIView.as_view(), name="cart_detail_api"),
@@ -79,6 +86,11 @@ urlpatterns = [
         "orders/<int:pk>/customer-status/",
         OrderCustomerStatusAPIView.as_view(),
         name="api_order_customer_status",
+    ),
+    path(
+        "orders/<int:pk>/customer-cancel/",
+        CustomerCancelOrderAPIView.as_view(),
+        name="api_order_customer_cancel",
     ),
     # Staff assisted ordering (direct, no cart)
     path(
