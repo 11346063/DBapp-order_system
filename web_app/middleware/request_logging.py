@@ -5,8 +5,6 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-ENABLE_REQUEST_LOGGING = getattr(settings, "ENABLE_REQUEST_LOGGING", False)
-
 
 class RequestLoggingMiddleware:
     def __init__(self, get_response):
@@ -15,7 +13,8 @@ class RequestLoggingMiddleware:
     def __call__(self, request):
         start = time.monotonic()
         response = self.get_response(request)
-        if ENABLE_REQUEST_LOGGING:
+        # 於 request 期間讀取設定，使開關可在 runtime / 測試中切換
+        if getattr(settings, "ENABLE_REQUEST_LOGGING", False):
             logger.info(
                 "request",
                 extra={
