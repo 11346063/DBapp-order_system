@@ -5,25 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0030_menu_today_sold_out'),
+        ("web_app", "0030_menu_today_sold_out"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='storesettings',
-            name='business_hours_enabled',
+            model_name="storesettings",
+            name="business_hours_enabled",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='close_time',
+            model_name="storesettings",
+            name="close_time",
             field=models.TimeField(default=datetime.time(21, 0)),
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='open_time',
+            model_name="storesettings",
+            name="open_time",
             field=models.TimeField(default=datetime.time(10, 0)),
         ),
     ]

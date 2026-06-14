@@ -1,18 +1,21 @@
 import asyncio
+import csv
 import json
 from datetime import datetime, timedelta
 from asgiref.sync import sync_to_async
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db.models import Count, Prefetch, Q, Sum
-from django.db.models.functions import TruncDate, TruncMonth
+from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
 from web_app.models import Identity, Order, OrderItem, OrderItemOption, User
 from web_app.decorators import employee_required, admin_required
 from web_app.services import order as order_service
+from web_app.services import report as report_service
 from web_app.services import store_settings as settings_service
 
 ORDER_PAGE_SIZE = 10
@@ -147,18 +150,12 @@ def staff_order_list(request):
 @admin_required
 async def staff_report(request):
     now = timezone.now()
-    thirty_days_ago = now - timedelta(days=30)
     one_year_ago = now - timedelta(days=365)
 
-    daily_qs = (
-        Order.objects.filter(
-            status=Order.OrderStatus.COMPLETED, created_at__gte=thirty_days_ago
-        )
-        .annotate(date=TruncDate("created_at"))
-        .values("date")
-        .annotate(count=Count("id"), revenue=Sum("price_total"))
-        .order_by("date")
+    start_date, end_date = report_service.parse_date_range(
+        request.GET.get("start", ""), request.GET.get("end", "")
     )
+
     monthly_qs = (
         Order.objects.filter(
             status=Order.OrderStatus.COMPLETED, created_at__gte=one_year_ago
@@ -169,9 +166,10 @@ async def staff_report(request):
         .order_by("month")
     )
 
-    # 三個查詢並行發出
-    daily, monthly, status_counts = await asyncio.gather(
-        sync_to_async(list)(daily_qs),
+    # 並行發出查詢
+    daily, top_items, monthly, status_counts = await asyncio.gather(
+        sync_to_async(report_service.daily_sales)(start_date, end_date),
+        sync_to_async(report_service.top_selling_items)(start_date, end_date),
         sync_to_async(list)(monthly_qs),
         order_service.async_order_status_counts(),
     )
@@ -193,10 +191,33 @@ async def staff_report(request):
         {
             "daily_data": json.dumps(daily_data),
             "monthly_data": json.dumps(monthly_data),
+            "top_items": top_items,
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
             "status_counts": status_counts,
             "current_status": None,
         },
     )
+
+
+@admin_required
+def staff_report_export(request):
+    """匯出選定區間每日銷售為 CSV（Excel 相容，含 UTF-8 BOM）。"""
+    start_date, end_date = report_service.parse_date_range(
+        request.GET.get("start", ""), request.GET.get("end", "")
+    )
+    rows = report_service.daily_sales(start_date, end_date)
+
+    response = HttpResponse(content_type="text/csv; charset=utf-8")
+    response["Content-Disposition"] = (
+        f'attachment; filename="report_{start_date}_{end_date}.csv"'
+    )
+    response.write("﻿")  # BOM，讓 Excel 正確辨識 UTF-8 中文
+    writer = csv.writer(response)
+    writer.writerow(["日期", "訂單數", "營業額"])
+    for r in rows:
+        writer.writerow([r["date"].strftime("%Y-%m-%d"), r["count"], r["revenue"] or 0])
+    return response
 
 
 @admin_required

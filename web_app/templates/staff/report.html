@@ -6,10 +6,71 @@
 {% block staff_content %}
 <h4 class="text-yellow mb-4"><i class="bi bi-bar-chart-line"></i> {% trans "營運報表" %}</h4>
 
-{% trans "日報表（近 30 天）" as daily_title %}
+<form method="get" class="row g-2 align-items-end mb-4">
+    <div class="col-auto">
+        <label for="start" class="form-label text-secondary small mb-1">{% trans "開始日期" %}</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary"
+               id="start" name="start" value="{{ start_date }}">
+    </div>
+    <div class="col-auto">
+        <label for="end" class="form-label text-secondary small mb-1">{% trans "結束日期" %}</label>
+        <input type="date" class="form-control bg-dark text-white border-secondary"
+               id="end" name="end" value="{{ end_date }}">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-yellow fw-bold">
+            <i class="bi bi-funnel me-1"></i>{% trans "套用" %}
+        </button>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'web_app:staff_report_export' %}?start={{ start_date }}&end={{ end_date }}"
+           class="btn btn-outline-success">
+            <i class="bi bi-download me-1"></i>{% trans "匯出 CSV" %}
+        </a>
+    </div>
+</form>
+
+{% blocktrans with s=start_date e=end_date asvar daily_title %}日報表（{{ s }} ～ {{ e }}）{% endblocktrans %}
 {% trans "月報表（近 12 個月）" as monthly_title %}
 {% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-day' title=daily_title canvas_id='dailyChart' %}
 {% include 'includes/staff/report_chart_card.html' with icon='bi-calendar-month' title=monthly_title canvas_id='monthlyChart' %}
+
+<div class="card card-dark mb-4">
+    <div class="card-header border-bottom border-secondary">
+        <h5 class="mb-0" style="color: var(--text-primary);">
+            <i class="bi bi-trophy"></i> {% trans "熱銷品項排行" %}
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if top_items %}
+        <div class="table-responsive">
+            <table class="table table-dark table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% trans "品項" %}</th>
+                        <th class="text-end">{% trans "銷售數量" %}</th>
+                        <th class="text-end">{% trans "營業額" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_items %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.menu__name }}</td>
+                        <td class="text-end">{{ item.qty }}</td>
+                        <td class="text-end">${{ item.revenue }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        {% trans "此區間尚無已完成訂單" as empty_top_message %}
+        {% include 'includes/components/empty_state.html' with icon='bi-inbox' message=empty_top_message %}
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_css %}

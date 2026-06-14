@@ -52,7 +52,9 @@ def update_settings(new_data: dict) -> StoreSettings:
                 k: v
                 for k, v in new_data.items()
                 if k
-                in {"extra_ingredient_cost"} | set(_OPTION_FIELDS) | set(_BUSINESS_FIELDS)
+                in {"extra_ingredient_cost"}
+                | set(_OPTION_FIELDS)
+                | set(_BUSINESS_FIELDS)
             }
         )
 

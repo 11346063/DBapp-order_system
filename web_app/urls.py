@@ -20,6 +20,7 @@ from web_app.views.staff import (
     account_management,
     staff_order_list,
     staff_report,
+    staff_report_export,
     staff_settings_view,
 )
 from web_app.views.views import typeCreate
@@ -84,6 +85,7 @@ urlpatterns = [
     # 員工 / 管理員頁面
     path("staff/orders/", staff_order_list, name="staff_orders"),
     path("staff/report/", staff_report, name="staff_report"),
+    path("staff/report/export/", staff_report_export, name="staff_report_export"),
     path("staff/accounts/", account_management, name="account_management"),
     path("staff/settings/", staff_settings_view, name="staff_settings"),
     path("type/create/", typeCreate, name="type_create"),
