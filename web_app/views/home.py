@@ -21,6 +21,8 @@ def home_view(request):
     can_manage_menu = user.is_authenticated and user.identity == Identity.ADMIN
     menus = menu_service.visible_menus_for_user(user, search_query)
 
+    s = settings_service.get_settings()
+
     page_urls = {
         "menuToggle": reverse("web_app:menu_toggle", kwargs={"pk": 0}).replace(
             "/0/", "/{id}/"
@@ -45,6 +47,10 @@ def home_view(request):
             "can_manage_menu": can_manage_menu,
             "show_customer_ordering": not is_staff,
             "page_urls": page_urls,
+            "store_is_open": settings_service.is_store_open(s),
+            "business_hours_enabled": s.business_hours_enabled,
+            "store_open_time": s.open_time,
+            "store_close_time": s.close_time,
         },
     )
 

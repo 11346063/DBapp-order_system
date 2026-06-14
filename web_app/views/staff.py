@@ -1,6 +1,6 @@
 import asyncio
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 from asgiref.sync import sync_to_async
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
@@ -309,6 +309,23 @@ def staff_settings_view(request):
             if key != "extra_ingredient_cost" and not val:
                 messages.error(request, _("選項名稱不可為空"))
                 return redirect("web_app:staff_settings")
+
+        try:
+            open_time = datetime.strptime(
+                request.POST.get("open_time", "").strip(), "%H:%M"
+            ).time()
+            close_time = datetime.strptime(
+                request.POST.get("close_time", "").strip(), "%H:%M"
+            ).time()
+        except ValueError:
+            messages.error(request, _("營業時間格式錯誤（需為 HH:MM）"))
+            return redirect("web_app:staff_settings")
+
+        new_data["business_hours_enabled"] = (
+            request.POST.get("business_hours_enabled") == "on"
+        )
+        new_data["open_time"] = open_time
+        new_data["close_time"] = close_time
 
         settings_service.update_settings(new_data)
         messages.success(request, _("系統設定已更新"))

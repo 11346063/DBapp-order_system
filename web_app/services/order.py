@@ -7,7 +7,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from web_app.services.store_settings import get_settings
+from web_app.services.store_settings import get_settings, is_store_open
 from web_app.enums import SpicyLevel
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
@@ -376,6 +376,8 @@ def create_order_from_cart(user, session, checkout_data):
         raise CheckoutPhoneRequired("結帳需要填寫聯絡電話")
 
     s = get_settings()
+    if not is_staff_order and not is_store_open(s):
+        raise ValidationServiceError("目前非營業時間，暫停接單")
 
     # 解析勾選的自定義加料選項 IDs
     selected_custom_ids = [

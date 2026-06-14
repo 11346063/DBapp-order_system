@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 
 from web_app.constants import (
     EXTRA_INGREDIENT_COST,
@@ -25,6 +26,8 @@ _OPTION_FIELDS = [
     "option_name_cut",
 ]
 
+_BUSINESS_FIELDS = ["business_hours_enabled", "open_time", "close_time"]
+
 
 def get_settings() -> StoreSettings:
     try:
@@ -48,11 +51,29 @@ def update_settings(new_data: dict) -> StoreSettings:
             **{
                 k: v
                 for k, v in new_data.items()
-                if k in {"extra_ingredient_cost"} | set(_OPTION_FIELDS)
+                if k
+                in {"extra_ingredient_cost"} | set(_OPTION_FIELDS) | set(_BUSINESS_FIELDS)
             }
         )
 
     return get_settings()
+
+
+def is_store_open(settings=None, now=None) -> bool:
+    """目前是否在營業時間內。未啟用營業時間限制時一律視為營業中。"""
+    s = settings or get_settings()
+    if not s.business_hours_enabled:
+        return True
+    if now is None:
+        now = timezone.now()
+        # USE_TZ=True 時 now() 為 aware，轉成本地時間；USE_TZ=False 時為 naive，直接用。
+        if timezone.is_aware(now):
+            now = timezone.localtime(now)
+    current = now.time()
+    if s.open_time <= s.close_time:
+        return s.open_time <= current <= s.close_time
+    # 跨午夜營業（例：18:00–02:00）
+    return current >= s.open_time or current <= s.close_time
 
 
 # ---------- 自定義加料選項 CRUD ----------

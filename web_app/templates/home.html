@@ -9,6 +9,17 @@
 {% endblock %}
 
 {% block content %}
+{% if show_customer_ordering and not store_is_open %}
+<div class="alert alert-warning d-flex align-items-center" role="alert">
+    <i class="bi bi-clock-history me-2 fs-5"></i>
+    <div>
+        {% trans "目前非營業時間，暫停接單。" %}
+        {% if business_hours_enabled %}
+        <span class="fw-semibold">{% trans "營業時間：" %}{{ store_open_time|time:'H:i' }}–{{ store_close_time|time:'H:i' }}</span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% include 'includes/components/menu_search.html' with search_query=search_query %}
 {% include 'includes/components/category_tabs.html' with types=types %}
 
