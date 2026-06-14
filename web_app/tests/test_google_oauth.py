@@ -189,6 +189,119 @@ class GoogleOAuthCallbackTest(TestCase):
         )
 
 
+class GoogleOAuthCallbackEdgeCaseTest(TestCase):
+    def setUp(self):
+        session = self.client.session
+        session["oauth_state"] = "valid_state"
+        session.save()
+
+    def _callback_url(self, **params):
+        base = reverse("web_app:google_oauth_callback")
+        query = "&".join(f"{k}={v}" for k, v in params.items())
+        return f"{base}?{query}"
+
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_userinfo_without_sub_redirects_to_login(self, MockClient):
+        MockClient.return_value = _mock_httpx_client(
+            _make_token_response(),
+            _make_userinfo_response(sub=""),
+        )
+        with self.settings(
+            GOOGLE_OAUTH2_CLIENT_ID="cid",
+            GOOGLE_OAUTH2_CLIENT_SECRET="csec",
+            GOOGLE_OAUTH2_REDIRECT_URI="http://localhost/cb/",
+        ):
+            response = self.client.get(
+                self._callback_url(state="valid_state", code="authcode")
+            )
+        self.assertRedirects(
+            response, reverse("web_app:login"), fetch_redirect_response=False
+        )
+
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_open_redirect_next_is_ignored(self, MockClient):
+        User.objects.create_user(
+            account="google_redirsub",
+            password=None,
+            name="Redir",
+            phone_number="0912000111",
+            auth_provider="google",
+            google_sub="redir_sub_001",
+            identity=Identity.CUSTOMER,
+        )
+        MockClient.return_value = _mock_httpx_client(
+            _make_token_response(),
+            _make_userinfo_response(sub="redir_sub_001"),
+        )
+        with self.settings(
+            GOOGLE_OAUTH2_CLIENT_ID="cid",
+            GOOGLE_OAUTH2_CLIENT_SECRET="csec",
+            GOOGLE_OAUTH2_REDIRECT_URI="http://localhost/cb/",
+        ):
+            response = self.client.get(
+                self._callback_url(
+                    state="valid_state", code="authcode", next="http://evil.com"
+                )
+            )
+        self.assertNotIn("evil.com", response["Location"])
+        self.assertRedirects(
+            response, reverse("web_app:home"), fetch_redirect_response=False
+        )
+
+    @patch("web_app.views.oauth_views.httpx.AsyncClient")
+    def test_state_cannot_be_replayed(self, MockClient):
+        User.objects.create_user(
+            account="google_replaysub",
+            password=None,
+            name="Replay",
+            phone_number="0912000222",
+            auth_provider="google",
+            google_sub="replay_sub_001",
+            identity=Identity.CUSTOMER,
+        )
+        MockClient.return_value = _mock_httpx_client(
+            _make_token_response(),
+            _make_userinfo_response(sub="replay_sub_001"),
+        )
+        settings_ctx = self.settings(
+            GOOGLE_OAUTH2_CLIENT_ID="cid",
+            GOOGLE_OAUTH2_CLIENT_SECRET="csec",
+            GOOGLE_OAUTH2_REDIRECT_URI="http://localhost/cb/",
+        )
+        with settings_ctx:
+            first = self.client.get(
+                self._callback_url(state="valid_state", code="authcode")
+            )
+            self.assertRedirects(
+                first, reverse("web_app:home"), fetch_redirect_response=False
+            )
+            # state 已於第一次 callback 後 pop，重放應失敗
+            second = self.client.get(
+                self._callback_url(state="valid_state", code="authcode")
+            )
+        self.assertRedirects(
+            second, reverse("web_app:login"), fetch_redirect_response=False
+        )
+
+
+class CreateGoogleUserTest(TestCase):
+    def test_account_collision_appends_suffix(self):
+        from web_app.views.oauth_views import _create_google_user
+
+        google_sub = "1234567890123"
+        User.objects.create_user(
+            account="google_1234567890123",
+            password=None,
+            name="Existing",
+            identity=Identity.CUSTOMER,
+        )
+
+        user = _create_google_user(google_sub=google_sub, email=None, name="New")
+
+        self.assertEqual(user.google_sub, google_sub)
+        self.assertEqual(user.account, "google_1234567890_1")
+
+
 class OAuthPhoneRequiredTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

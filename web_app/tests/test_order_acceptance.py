@@ -261,3 +261,95 @@ class CreateOrderInitialStatusTest(TestCase):
             )
 
         self.assertEqual(order.status, Order.OrderStatus.ACCEPTED)
+
+
+class UpdateOrderStatusServiceTest(TestCase):
+    """功能 21：拒單原因 + update_order_status 狀態機白名單與合法轉換。"""
+
+    def test_complete_from_ready(self):
+        order = _make_order(Order.OrderStatus.READY)
+        order_service.update_order_status(order.pk, Order.OrderStatus.COMPLETED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.COMPLETED)
+
+    def test_cancel_from_submitted_stores_reason(self):
+        order = _make_order(Order.OrderStatus.SUBMITTED)
+        order_service.update_order_status(
+            order.pk, Order.OrderStatus.CANCELLED, cancel_reason="食材售完"
+        )
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.CANCELLED)
+        self.assertEqual(order.cancel_reason, "食材售完")
+
+    def test_cancel_with_blank_reason_does_not_overwrite_existing(self):
+        order = _make_order(Order.OrderStatus.SUBMITTED)
+        order.cancel_reason = "舊原因"
+        order.save(update_fields=["cancel_reason"])
+        order_service.update_order_status(
+            order.pk, Order.OrderStatus.CANCELLED, cancel_reason=""
+        )
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.CANCELLED)
+        self.assertEqual(order.cancel_reason, "舊原因")
+
+    def test_cancel_from_ready_is_allowed(self):
+        order = _make_order(Order.OrderStatus.READY)
+        order_service.update_order_status(order.pk, Order.OrderStatus.CANCELLED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.CANCELLED)
+
+    def test_submitted_to_completed_is_rejected(self):
+        order = _make_order(Order.OrderStatus.SUBMITTED)
+        with self.assertRaises(ValidationServiceError):
+            order_service.update_order_status(order.pk, Order.OrderStatus.COMPLETED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.SUBMITTED)
+
+    def test_completed_to_cancelled_is_rejected(self):
+        order = _make_order(Order.OrderStatus.COMPLETED)
+        with self.assertRaises(ValidationServiceError):
+            order_service.update_order_status(order.pk, Order.OrderStatus.CANCELLED)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.COMPLETED)
+
+    def test_completed_to_completed_is_rejected(self):
+        order = _make_order(Order.OrderStatus.COMPLETED)
+        with self.assertRaises(ValidationServiceError):
+            order_service.update_order_status(order.pk, Order.OrderStatus.COMPLETED)
+
+    def test_non_terminal_target_status_rejected_by_whitelist(self):
+        for target in (
+            Order.OrderStatus.SUBMITTED,
+            Order.OrderStatus.ACCEPTED,
+            Order.OrderStatus.READY,
+        ):
+            order = _make_order(Order.OrderStatus.ACCEPTED)
+            with self.assertRaisesMessage(ValidationServiceError, "不允許此狀態轉換"):
+                order_service.update_order_status(order.pk, target)
+
+    def test_missing_order_raises_not_found(self):
+        with self.assertRaises(NotFoundError):
+            order_service.update_order_status(999999, Order.OrderStatus.CANCELLED)
+
+
+class UpdateOrderStatusAPITest(TestCase):
+    def setUp(self):
+        self.staff = _make_user(Identity.EMPLOYEE)
+        from rest_framework_simplejwt.tokens import AccessToken
+
+        token = AccessToken.for_user(self.staff)
+        self.auth_header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+
+    def test_reject_with_reason_persists(self):
+        order = _make_order(Order.OrderStatus.SUBMITTED)
+        resp = self.client.patch(
+            f"/api/orders/{order.pk}/status/",
+            {"status": 4, "cancel_reason": "打烊了"},
+            content_type="application/json",
+            **self.auth_header,
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["status"], "success")
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.OrderStatus.CANCELLED)
+        self.assertEqual(order.cancel_reason, "打烊了")
