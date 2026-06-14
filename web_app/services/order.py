@@ -140,20 +140,43 @@ async def async_order_status_counts():
     }
 
 
+def _describe_order_option(option_link, s):
+    """將單一 order-level 選項分類為顯示資訊 {label, css, style}；無法辨識回傳 None。
+
+    此為 order-level 選項表現層的單一事實來源，供字串版（format_order_options）
+    與標籤版（format_order_option_tags）共用，避免分類/標籤邏輯重複。
+    """
+    name = option_link.opt.name
+    level = option_link.level
+    if name == s.option_name_spicy:
+        label = SpicyLevel.display(level)
+        if level == SpicyLevel.NONE:
+            return {
+                "label": label,
+                "css": "text-white",
+                "style": "background-color:#9a7200;",
+            }
+        return {"label": label, "css": "bg-danger text-white", "style": ""}
+    if name == s.option_name_garlic:
+        return {"label": f"加蒜頭x{level}", "css": "bg-primary text-white", "style": ""}
+    if name == s.option_name_basil:
+        return {
+            "label": f"加九層塔x{level}",
+            "css": "bg-primary text-white",
+            "style": "",
+        }
+    if option_link.opt.is_custom_extra:
+        return {"label": name, "css": "bg-success text-white", "style": ""}
+    return None
+
+
 def format_order_options(raw_opts, settings=None):
     s = settings or get_settings()
     parts = []
     for option_link in raw_opts:
-        name = option_link.opt.name
-        level = option_link.level
-        if name == s.option_name_spicy:
-            parts.append(SpicyLevel.display(level))
-        elif name == s.option_name_garlic:
-            parts.append(f"加蒜頭x{level}")
-        elif name == s.option_name_basil:
-            parts.append(f"加九層塔x{level}")
-        elif option_link.opt.is_custom_extra:
-            parts.append(name)
+        info = _describe_order_option(option_link, s)
+        if info:
+            parts.append(info["label"])
     return "｜".join(parts)
 
 
@@ -161,31 +184,9 @@ def format_order_option_tags(raw_opts, settings=None):
     s = settings or get_settings()
     tags = []
     for option_link in raw_opts:
-        name = option_link.opt.name
-        level = option_link.level
-        if name == s.option_name_spicy:
-            label = SpicyLevel.display(level)
-            if level == SpicyLevel.NONE:
-                css = "text-white"
-                style = "background-color:#9a7200;"
-            else:
-                css = "bg-danger text-white"
-                style = ""
-        elif name == s.option_name_garlic:
-            label = f"加蒜頭x{level}"
-            css = "bg-primary text-white"
-            style = ""
-        elif name == s.option_name_basil:
-            label = f"加九層塔x{level}"
-            css = "bg-primary text-white"
-            style = ""
-        elif option_link.opt.is_custom_extra:
-            label = name
-            css = "bg-success text-white"
-            style = ""
-        else:
-            continue
-        tags.append({"label": label, "css": css, "style": style})
+        info = _describe_order_option(option_link, s)
+        if info:
+            tags.append(info)
     return tags
 
 
