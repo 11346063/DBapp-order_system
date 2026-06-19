@@ -2,6 +2,16 @@ let pendingStatusUpdate = null;
 let pendingAcceptOrderId = null;
 let pendingCancelOrderId = null;
 
+function reprintOrder(orderId) {
+    postJSON(`/api/orders/${orderId}/reprint/`, {}, 'POST')
+        .then(data => {
+            if (data.status === 'success') {
+                alert('已加入列印佇列');
+            }
+        })
+        .catch(errMsg => { alert(errMsg || '重印失敗，請重試'); });
+}
+
 function updateOrderStatus(orderId, newStatus) {
     const statusLabels = { 3: '已完成', 4: '已取消' };
     pendingStatusUpdate = { orderId, newStatus };

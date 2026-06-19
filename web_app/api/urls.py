@@ -26,6 +26,11 @@ from web_app.api.views.order import (
     ReorderAPIView,
     StaffOrderCreateAPIView,
 )
+from web_app.api.views.print import (
+    OrderReprintAPIView,
+    PrintAckAPIView,
+    PrintPendingAPIView,
+)
 
 urlpatterns = [
     # Menu
@@ -92,10 +97,18 @@ urlpatterns = [
         CustomerCancelOrderAPIView.as_view(),
         name="api_order_customer_cancel",
     ),
+    path(
+        "orders/<int:pk>/reprint/",
+        OrderReprintAPIView.as_view(),
+        name="api_order_reprint",
+    ),
     # Staff assisted ordering (direct, no cart)
     path(
         "v1/orders/staff/",
         StaffOrderCreateAPIView.as_view(),
         name="v1_staff_order_create",
     ),
+    # 出單機列印代理
+    path("print/pending/", PrintPendingAPIView.as_view(), name="api_print_pending"),
+    path("print/<int:pk>/ack/", PrintAckAPIView.as_view(), name="api_print_ack"),
 ]

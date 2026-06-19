@@ -11,6 +11,7 @@ from web_app.services.store_settings import get_settings, is_store_open
 from web_app.enums import SpicyLevel
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
+from web_app.services import printing as printing_service
 from web_app.services.exceptions import (
     CheckoutPhoneRequired,
     EmptyCartError,
@@ -350,6 +351,8 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
             "estimated_wait_minutes": estimated_wait_minutes,
         },
     )
+    # 接單時資料最完整（含取餐號），建立出單列印工作供店內代理列印
+    printing_service.enqueue_print_job(order)
     return {
         "order_id": order.pk,
         "status": order.status,

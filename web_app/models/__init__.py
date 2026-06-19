@@ -11,3 +11,4 @@ from .user import Identity as Identity
 from .user import User as User
 from .order import Order as Order
 from .store_settings import StoreSettings as StoreSettings
+from .print_job import PrintJob as PrintJob

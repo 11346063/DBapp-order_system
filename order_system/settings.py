@@ -77,6 +77,9 @@ MIDDLEWARE = [
 
 ENABLE_REQUEST_LOGGING = os.getenv("ENABLE_REQUEST_LOGGING", "False") == "True"
 
+# 出單機列印代理驗證 token（店內代理以 X-Print-Token header 帶入）
+PRINT_AGENT_TOKEN = os.getenv("PRINT_AGENT_TOKEN", "")
+
 ROOT_URLCONF = "order_system.urls"
 
 TEMPLATES = [

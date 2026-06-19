@@ -1,7 +1,8 @@
 .staff-sidebar {
     position: sticky;
     top: 72px;
-    min-height: calc(100vh - 120px);
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
     border-radius: 12px;
 }
 
