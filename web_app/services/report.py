@@ -49,6 +49,18 @@ def daily_sales(start_date, end_date):
     )
 
 
+def completed_summary(start_date, end_date):
+    """區間內已完成訂單的筆數與總營業額（已完成 = 已收款）。"""
+    from django.db.models import Count, Sum
+
+    row = Order.objects.filter(
+        status=Order.OrderStatus.COMPLETED,
+        created_at__date__gte=start_date,
+        created_at__date__lte=end_date,
+    ).aggregate(count=Count("id"), revenue=Sum("price_total"))
+    return {"count": row["count"] or 0, "revenue": row["revenue"] or 0}
+
+
 def top_selling_items(start_date, end_date, limit=10):
     """區間內已完成訂單的熱銷品項排行（依數量遞減）。"""
     return list(

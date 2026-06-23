@@ -38,6 +38,25 @@
 <div class="card card-dark mb-4">
     <div class="card-header border-bottom border-secondary">
         <h5 class="mb-0" style="color: var(--text-primary);">
+            <i class="bi bi-cash-coin"></i> {% trans "日結概覽" %}
+            <small class="text-secondary fw-normal ms-2">（{% trans "區間內已完成訂單" %}）</small>
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-6 col-md-4">
+                <div class="p-3 rounded text-center" style="background:rgba(25,135,84,.15); border:1px solid rgba(25,135,84,.4);">
+                    <div class="text-success fw-bold fs-5">${{ completed_summary.revenue }}</div>
+                    <div class="text-secondary small mt-1">{% trans "已完成" %} · {{ completed_summary.count }} {% trans "筆" %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card card-dark mb-4">
+    <div class="card-header border-bottom border-secondary">
+        <h5 class="mb-0" style="color: var(--text-primary);">
             <i class="bi bi-trophy"></i> {% trans "熱銷品項排行" %}
         </h5>
     </div>

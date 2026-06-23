@@ -173,6 +173,7 @@ function submitCancelOrder() {
         });
 }
 
+
 function updateStatusBadges(statusCounts) {
     if (!statusCounts) return;
     Object.entries(statusCounts).forEach(([status, count]) => {

@@ -167,11 +167,12 @@ async def staff_report(request):
     )
 
     # 並行發出查詢
-    daily, top_items, monthly, status_counts = await asyncio.gather(
+    daily, top_items, monthly, status_counts, completed = await asyncio.gather(
         sync_to_async(report_service.daily_sales)(start_date, end_date),
         sync_to_async(report_service.top_selling_items)(start_date, end_date),
         sync_to_async(list)(monthly_qs),
         order_service.async_order_status_counts(),
+        sync_to_async(report_service.completed_summary)(start_date, end_date),
     )
 
     daily_data = {
@@ -195,6 +196,7 @@ async def staff_report(request):
             "start_date": start_date.isoformat(),
             "end_date": end_date.isoformat(),
             "status_counts": status_counts,
+            "completed_summary": completed,
             "current_status": None,
         },
     )
