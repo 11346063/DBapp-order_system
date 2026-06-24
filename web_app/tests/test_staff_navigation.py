@@ -1,5 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
+from datetime import datetime
+
 from django.utils import timezone
 import json
 
@@ -65,6 +67,21 @@ class StaffNavigationBadgeTest(TestCase):
         self.assertContains(response, "確認更新訂單")
         self.assertContains(response, 'id="orderAcceptModal"')
         self.assertContains(response, "同意接單")
+
+    def test_staff_order_time_uses_session_timezone(self):
+        self.client.login(username="staff_nav_employee", password="pass")
+        session = self.client.session
+        session["timezone"] = "Asia/Tokyo"
+        session.save()
+        order = Order.objects.filter(status=0).first()
+        Order.objects.filter(pk=order.pk).update(
+            created_at=datetime(2026, 6, 24, 12, 0)
+        )
+
+        response = self.client.get(reverse("web_app:staff_orders"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "06/24 13:00")
 
     def test_staff_report_keeps_badge_structure_and_no_status_active(self):
         self.client.login(username="staff_nav_admin", password="pass")

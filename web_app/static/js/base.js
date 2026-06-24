@@ -16,6 +16,35 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
+function syncBrowserTimezone() {
+    if (!window.Intl || !Intl.DateTimeFormat) return;
+
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timezone) return;
+    if (
+        localStorage.getItem('dbapp_timezone') === timezone &&
+        sessionStorage.getItem('dbapp_timezone_synced') === timezone
+    ) {
+        return;
+    }
+
+    fetch('/api/v1/preferences/timezone/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+        },
+        body: JSON.stringify({ timezone: timezone }),
+    }).then(function (res) {
+        if (res.ok) {
+            localStorage.setItem('dbapp_timezone', timezone);
+            sessionStorage.setItem('dbapp_timezone_synced', timezone);
+        }
+    }).catch(function () {
+        // Timezone sync should never block page usage.
+    });
+}
+
 function postJSON(url, data, method = 'POST') {
     return fetch(url, {
         method: method,
@@ -72,6 +101,7 @@ function applyTheme(theme) {
 // When DOM is ready: apply theme icons + bind toggle button
 document.addEventListener('DOMContentLoaded', function () {
     applyTheme(getStoredTheme());
+    syncBrowserTimezone();
 
     // Bind theme toggle button click
     var btn = document.getElementById('themeToggle');

@@ -3,7 +3,7 @@ Component: AccountTableRow
 Props:
   - account (required): user account row
 {% endcomment %}
-{% load i18n %}
+{% load i18n timezone_tags %}
 <tr>
     <td class="fw-semibold">{{ account.account }}</td>
     <td>{{ account.name }}</td>
@@ -19,5 +19,5 @@ Props:
         {% endif %}
     </td>
     <td class="text-secondary">{{ account.email|default:"-" }}</td>
-    <td class="text-secondary small">{{ account.created_at|date:"Y/m/d H:i" }}</td>
+    <td class="text-secondary small">{% local_user_time account.created_at "Y/m/d H:i" %}</td>
 </tr>

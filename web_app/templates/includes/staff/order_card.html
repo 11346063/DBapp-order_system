@@ -5,7 +5,7 @@ Props:
   - current_status (required): current status filter
   - card_mode (optional): 'kanban' changes outer wrapper class
 {% endcomment %}
-{% load i18n %}
+{% load i18n timezone_tags %}
 <div class="{% if card_mode == 'kanban' %}kanban-card-wrapper{% else %}col-12 col-md-6{% endif %}" id="order-{{ order.pk }}" data-order-id="{{ order.pk }}">
     <div class="card card-dark h-100">
         <div class="card-header d-flex justify-content-between align-items-center border-bottom border-secondary card-collapse-trigger"
@@ -14,7 +14,7 @@ Props:
                 {% if order.pickup_code %}
                 <span class="text-white fw-bold fs-5">{{ order.pickup_code }}</span>
                 {% endif %}
-                <small class="text-secondary text-truncate">{{ order.created_at|date:"m/d H:i" }}</small>
+                <small class="text-secondary text-truncate">{% local_user_time order.created_at "m/d H:i" %}</small>
             </div>
             <i class="bi bi-chevron-up card-collapse-icon" id="collapse-icon-{{ order.pk }}"></i>
         </div>
@@ -43,7 +43,7 @@ Props:
             {% endif %}
             {% if order.ready_notified_at %}
             <div class="mb-2 px-2 py-1 rounded" style="background:rgba(13,202,240,.10); border-left:3px solid #0dcaf0;">
-                <small class="text-info"><i class="bi bi-bell"></i> {% trans "已通知取餐：" %}{{ order.ready_notified_at|date:"m/d H:i" }}</small>
+                <small class="text-info"><i class="bi bi-bell"></i> {% trans "已通知取餐：" %}{% local_user_time order.ready_notified_at "m/d H:i" %}</small>
             </div>
             {% endif %}
             <div class="mb-3">

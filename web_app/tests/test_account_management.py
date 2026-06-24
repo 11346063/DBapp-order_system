@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.test import Client, TestCase
 from django.urls import reverse
 
@@ -38,6 +40,20 @@ class AccountManagementTest(TestCase):
         self.assertContains(response, "account_employee")
         self.assertContains(response, "account_customer")
         self.assertContains(response, "建立帳號")
+
+    def test_account_created_at_uses_session_timezone(self):
+        self.client.login(username="account_admin", password="pass")
+        session = self.client.session
+        session["timezone"] = "Asia/Tokyo"
+        session.save()
+        User.objects.filter(pk=self.admin.pk).update(
+            created_at=datetime(2026, 6, 24, 12, 0)
+        )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "2026/06/24 13:00")
 
     def test_employee_cannot_view_account_management(self):
         self.client.login(username="account_employee", password="pass")

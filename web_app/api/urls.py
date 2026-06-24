@@ -20,6 +20,7 @@ from web_app.api.views.order import (
     ReorderAPIView,
     StaffOrderCreateAPIView,
 )
+from web_app.api.views.preferences import TimezonePreferenceAPIView
 from web_app.api.views.print import (
     OrderReprintAPIView,
     PrintAckAPIView,
@@ -58,6 +59,12 @@ urlpatterns = [
         "v1/cart/sync-prices/",
         CartSyncPricesAPIView.as_view(),
         name="v1_cart_sync_prices_api",
+    ),
+    # Preferences
+    path(
+        "v1/preferences/timezone/",
+        TimezonePreferenceAPIView.as_view(),
+        name="v1_preferences_timezone",
     ),
     # Orders
     path(
