@@ -35,14 +35,6 @@ function money(value) {
     return '$' + value;
 }
 
-function _escHtml(str) {
-    return String(str == null ? '' : str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
-
 function setSubmitLoading(button, isLoading) {
     if (!button) return;
     button.disabled = isLoading;
@@ -64,45 +56,101 @@ function renderPriceChanges(data) {
     const totalEl = document.getElementById('paymentPriceChangeTotal');
     if (!listEl || !totalEl) return;
 
-    listEl.innerHTML = (data.price_changes || []).map(change =>
-        '<div class="price-change-row">' +
-        '<div>' +
-        '<span class="text-white">' + _escHtml(change.name) + '</span>' +
-        '<span class="text-secondary small ms-2">x' + parseInt(change.quantity) + '</span>' +
-        '</div>' +
-        '<div class="price-change-values">' +
-        '<span class="text-secondary">' + _escHtml(money(change.old_unit_price)) + '</span>' +
-        '<i class="bi bi-arrow-right-short"></i>' +
-        '<span class="text-yellow fw-bold">' + _escHtml(money(change.new_unit_price)) + '</span>' +
-        '</div>' +
-        '</div>'
-    ).join('');
+    listEl.innerHTML = '';
+    (data.price_changes || []).forEach(function (change) {
+        const row = document.createElement('div');
+        row.className = 'price-change-row';
+
+        const leftDiv = document.createElement('div');
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-white';
+        nameSpan.textContent = change.name;
+        leftDiv.appendChild(nameSpan);
+        const qtySpan = document.createElement('span');
+        qtySpan.className = 'text-secondary small ms-2';
+        qtySpan.textContent = 'x' + parseInt(change.quantity);
+        leftDiv.appendChild(qtySpan);
+        row.appendChild(leftDiv);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'price-change-values';
+        const oldSpan = document.createElement('span');
+        oldSpan.className = 'text-secondary';
+        oldSpan.textContent = money(change.old_unit_price);
+        rightDiv.appendChild(oldSpan);
+        const arrowI = document.createElement('i');
+        arrowI.className = 'bi bi-arrow-right-short';
+        rightDiv.appendChild(arrowI);
+        const newSpan = document.createElement('span');
+        newSpan.className = 'text-yellow fw-bold';
+        newSpan.textContent = money(change.new_unit_price);
+        rightDiv.appendChild(newSpan);
+        row.appendChild(rightDiv);
+
+        listEl.appendChild(row);
+    });
+
     totalEl.textContent = money(data.new_total);
 }
 
 function _renderOrderSummary(cart) {
-    if (!cart || !cart.length) return '';
-    const rows = cart.map(function (item, i) {
-        const opts = (item.options || []).map(o =>
-            '<span class="me-2">+ ' + _escHtml(o.name) + '</span>'
-        ).join('');
-        const optsHtml = opts ? '<div class="text-secondary small">' + opts + '</div>' : '';
+    if (!cart || !cart.length) return null;
+
+    const card = document.createElement('div');
+    card.className = 'card card-dark';
+
+    const header = document.createElement('div');
+    header.className = 'card-header border-bottom border-secondary';
+    const headerTitle = document.createElement('h6');
+    headerTitle.className = 'text-white mb-0';
+    headerTitle.textContent = '訂單明細';
+    header.appendChild(headerTitle);
+    card.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+
+    cart.forEach(function (item, i) {
         const isLast = i === cart.length - 1;
-        return (
-            '<div class="d-flex justify-content-between align-items-start mb-3' +
-            (isLast ? '' : ' pb-3 border-bottom border-secondary') + '">' +
-            '<div><span class="text-white">' + _escHtml(item.name) + '</span>' +
-            '<span class="text-secondary small ms-2">x' + parseInt(item.quantity) + '</span>' +
-            optsHtml + '</div>' +
-            '<span class="text-yellow fw-bold">$' + parseInt(item.subtotal) + '</span>' +
-            '</div>'
-        );
-    }).join('');
-    return (
-        '<div class="card card-dark"><div class="card-header border-bottom border-secondary">' +
-        '<h6 class="text-white mb-0">訂單明細</h6></div>' +
-        '<div class="card-body">' + rows + '</div></div>'
-    );
+        const row = document.createElement('div');
+        row.className = 'd-flex justify-content-between align-items-start mb-3' +
+            (isLast ? '' : ' pb-3 border-bottom border-secondary');
+
+        const leftDiv = document.createElement('div');
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'text-white';
+        nameSpan.textContent = item.name;
+        leftDiv.appendChild(nameSpan);
+
+        const qtySpan = document.createElement('span');
+        qtySpan.className = 'text-secondary small ms-2';
+        qtySpan.textContent = 'x' + parseInt(item.quantity);
+        leftDiv.appendChild(qtySpan);
+
+        if (item.options && item.options.length) {
+            const optsDiv = document.createElement('div');
+            optsDiv.className = 'text-secondary small';
+            item.options.forEach(function (o) {
+                const span = document.createElement('span');
+                span.className = 'me-2';
+                span.textContent = '+ ' + o.name;
+                optsDiv.appendChild(span);
+            });
+            leftDiv.appendChild(optsDiv);
+        }
+
+        row.appendChild(leftDiv);
+
+        const subtotalSpan = document.createElement('span');
+        subtotalSpan.className = 'text-yellow fw-bold';
+        subtotalSpan.textContent = '$' + parseInt(item.subtotal);
+        row.appendChild(subtotalSpan);
+
+        body.appendChild(row);
+    });
+
+    card.appendChild(body);
+    return card;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -115,7 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 渲染訂單摘要
     const summaryEl = document.getElementById('paymentCartSummary');
-    if (summaryEl) summaryEl.innerHTML = _renderOrderSummary(cart);
+    if (summaryEl) {
+        const summaryNode = _renderOrderSummary(cart);
+        if (summaryNode) summaryEl.appendChild(summaryNode);
+    }
 
     // 設定總金額基準
     window.BASE_TOTAL = window.cartTotal ? window.cartTotal() : 0;
@@ -170,10 +221,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     setSubmitValidating(btn, false);
                     if (modal) modal.show();
                 })
-                .catch(() => {
-                    bypassPriceValidation = true;
-                    setSubmitLoading(btn, true);
-                    form.submit();
+                .catch(errMsg => {
+                    isSubmitting = false;
+                    setSubmitValidating(btn, false);
+                    showToast(typeof errMsg === 'string' ? errMsg : '驗證價格失敗，請稍後再試');
                 });
         });
 
@@ -198,10 +249,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         setSubmitLoading(btn, true);
                         form.submit();
                     })
-                    .catch(() => {
+                    .catch((errMsg) => {
                         isSubmitting = false;
                         acceptBtn.disabled = false;
                         acceptBtn.innerHTML = '<i class="bi bi-check2-circle"></i> 接受最新價格並送出';
+                        showToast(typeof errMsg === 'string' ? errMsg : '價格同步失敗，請稍後再試');
                     });
             });
         }

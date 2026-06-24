@@ -126,3 +126,47 @@ function escapeHtml(value) {
     div.textContent = value == null ? '' : String(value);
     return div.innerHTML;
 }
+
+/**
+ * 顯示 Bootstrap Toast 彈出通知。
+ * @param {string} message - 要顯示的訊息
+ * @param {'danger'|'warning'|'success'} type - Toast 顏色類型，預設 danger（紅色）
+ */
+function showToast(message, type) {
+    const safeType = ['danger', 'warning', 'success'].includes(type) ? type : 'danger';
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const iconMap = { danger: 'bi-x-circle-fill', warning: 'bi-exclamation-triangle-fill', success: 'bi-check-circle-fill' };
+
+    const toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center text-bg-' + safeType + ' border-0 shadow';
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+
+    const row = document.createElement('div');
+    row.className = 'd-flex';
+
+    const body = document.createElement('div');
+    body.className = 'toast-body fw-semibold';
+    const iconEl = document.createElement('i');
+    iconEl.className = 'bi ' + iconMap[safeType] + ' me-2';
+    body.appendChild(iconEl);
+    body.appendChild(document.createTextNode(String(message || '發生錯誤，請稍後再試')));
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close btn-close-white me-2 m-auto';
+    closeBtn.setAttribute('data-bs-dismiss', 'toast');
+    closeBtn.setAttribute('aria-label', 'Close');
+
+    row.appendChild(body);
+    row.appendChild(closeBtn);
+    toastEl.appendChild(row);
+    container.appendChild(toastEl);
+
+    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
+}

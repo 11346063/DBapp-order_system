@@ -44,14 +44,25 @@ class CartPriceFrontendJsTest(SimpleTestCase):
         let syncCalls = 0;
         let reloadCalls = 0;
 
-        const listEl = {{
-            _html: '',
-            set innerHTML(v) {{ this._html = v; }},
-            get innerHTML() {{ return this._html; }},
-            firstChild: null,
-            insertBefore(child, ref) {{ /* no-op */ }},
-        }};
-        const footerEl = {{ innerHTML: '' }};
+        function _mkEl() {{
+            return {{
+                className: '', id: '', type: '', href: '',
+                _ownText: '', _children: [], _ownHtml: null,
+                dataset: {{}}, style: {{}},
+                get textContent() {{ return this._ownText + this._children.map(function(c) {{ return c.textContent || ''; }}).join(''); }},
+                set textContent(v) {{ this._ownText = String(v == null ? '' : v); }},
+                get innerHTML() {{ if (this._ownHtml !== null) return this._ownHtml; return this._children.map(function(c) {{ return c.textContent || ''; }}).join(''); }},
+                set innerHTML(v) {{ this._ownHtml = v; this._children = []; }},
+                get firstChild() {{ return this._children[0] || null; }},
+                appendChild(child) {{ this._children.push(child); this._ownHtml = null; return child; }},
+                insertBefore(child, ref) {{ this._children.unshift(child); this._ownHtml = null; return child; }},
+                addEventListener() {{}},
+                setAttribute() {{}},
+            }};
+        }}
+
+        const listEl = _mkEl();
+        const footerEl = _mkEl();
         const acceptBtn = {{
             disabled: false,
             innerHTML: '',
@@ -76,14 +87,7 @@ class CartPriceFrontendJsTest(SimpleTestCase):
                 }};
                 return map.hasOwnProperty(id) ? map[id] : null;
             }},
-            createElement(tag) {{
-                const el = {{
-                    _html: '',
-                    set innerHTML(v) {{ this._html = v; }},
-                    get firstChild() {{ return {{ nodeType: 1 }}; }},
-                }};
-                return el;
-            }},
+            createElement(tag) {{ return _mkEl(); }},
         }};
         global.window = {{}};
         global.postJSON = (url, payload) => {{
@@ -159,7 +163,24 @@ class CartPriceFrontendJsTest(SimpleTestCase):
           listeners: {{}},
           addEventListener(event, handler) {{ this.listeners[event] = handler; }},
         }};
-        const listEl = {{ innerHTML: '' }};
+        function _mkEl() {{
+            return {{
+                className: '', id: '', type: '', href: '',
+                _ownText: '', _children: [], _ownHtml: null,
+                dataset: {{}}, style: {{}},
+                get textContent() {{ return this._ownText + this._children.map(function(c) {{ return c.textContent || ''; }}).join(''); }},
+                set textContent(v) {{ this._ownText = String(v == null ? '' : v); }},
+                get innerHTML() {{ if (this._ownHtml !== null) return this._ownHtml; return this._children.map(function(c) {{ return c.textContent || ''; }}).join(''); }},
+                set innerHTML(v) {{ this._ownHtml = v; this._children = []; }},
+                get firstChild() {{ return this._children[0] || null; }},
+                appendChild(child) {{ this._children.push(child); this._ownHtml = null; return child; }},
+                insertBefore(child, ref) {{ this._children.unshift(child); this._ownHtml = null; return child; }},
+                addEventListener() {{}},
+                setAttribute() {{}},
+            }};
+        }}
+
+        const listEl = _mkEl();
         const totalEl = {{ textContent: '' }};
         let modalShown = 0;
         let modalHidden = 0;
@@ -195,11 +216,12 @@ class CartPriceFrontendJsTest(SimpleTestCase):
               extra_garlic_qty: {{ value: '0' }},
               extra_basil_qty: {{ value: '0' }},
               displayTotal: {{ textContent: '' }},
-              paymentCartSummary: {{ innerHTML: '' }},
+              paymentCartSummary: {{ innerHTML: '', appendChild() {{}} }},
               cartJsonInput: {{ value: '' }},
             }}[id] || null;
           }},
           querySelectorAll() {{ return []; }},
+          createElement(tag) {{ return _mkEl(); }},
         }};
         global.postJSON = (url, payload) => {{
           calls.push(url);

@@ -43,11 +43,14 @@
 
     {% block modals %}{% endblock %}
 
+    <!-- Toast 通知容器（JS showToast() 使用） -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer" style="z-index:1100"></div>
+
     {% include 'includes/bottom_nav.html' %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/base.js' %}?v=7"></script>
-    <script src="{% static 'js/cart.js' %}?v=6"></script>
+    <script src="{% static 'js/base.js' %}?v=8"></script>
+    <script src="{% static 'js/cart.js' %}?v=8"></script>
     {% block extra_js %}{% endblock %}
 
 </body>

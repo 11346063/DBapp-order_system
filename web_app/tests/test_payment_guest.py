@@ -63,7 +63,7 @@ class GuestCheckoutTest(TestCase):
         self.assertContains(response, 'id="cartPriceChangeModal"')
         self.assertContains(response, 'id="acceptPaymentPriceChanges"')
         self.assertContains(response, "js/payment.js")
-        self.assertContains(response, "?v=5")
+        self.assertContains(response, "?v=7")
         self.assertContains(response, "聯絡電話")
         self.assertContains(response, 'name="customer_phone"')
 
