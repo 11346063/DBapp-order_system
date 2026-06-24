@@ -8,6 +8,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from web_app.api.utils import api_success
@@ -104,7 +105,11 @@ class CartValidatePricesAPIView(APIView):
         },
     )
     def post(self, request):
-        cart = request.data.get("cart", [])
+        cart = request.data.get("cart")
+        if not isinstance(cart, list):
+            return Response(
+                {"status": "error", "message": "cart 格式不正確"}, status=400
+            )
         return api_success(cart_service.validate_prices_for_cart(cart))
 
 
@@ -187,7 +192,11 @@ class CartSyncPricesAPIView(APIView):
         },
     )
     def post(self, request):
-        cart = request.data.get("cart", [])
+        cart = request.data.get("cart")
+        if not isinstance(cart, list):
+            return Response(
+                {"status": "error", "message": "cart 格式不正確"}, status=400
+            )
         updated = cart_service.sync_prices_for_cart(cart)
         return api_success(
             {
