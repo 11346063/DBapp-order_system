@@ -96,10 +96,79 @@ _status_update_responses = {
     401: OpenApiResponse(
         response=_ErrorResponse,
         description="未提供有效的 JWT Token 或 Token 已過期",
+        examples=[
+            OpenApiExample(
+                "401 範例",
+                value={"status": "error", "message": "請先登入"},
+            )
+        ],
     ),
     403: OpenApiResponse(
         response=_ErrorResponse,
         description="身份不符（需員工或管理員身份，`identity=E` 或 `identity=A`）",
+        examples=[
+            OpenApiExample(
+                "403 範例",
+                value={"status": "error", "message": "您沒有執行此操作的權限"},
+            )
+        ],
+    ),
+    404: OpenApiResponse(
+        response=_ErrorResponse,
+        description="找不到指定 ID 的訂單",
+        examples=[
+            OpenApiExample(
+                "404 範例",
+                value={"status": "error", "message": "找不到此訂單"},
+            )
+        ],
+    ),
+}
+
+_order_ready_responses = {
+    200: OpenApiResponse(
+        response=_OrderStatusSuccessResponse,
+        description="通知成功，回傳各狀態的訂單數量統計",
+        examples=[
+            OpenApiExample(
+                "成功範例",
+                value={
+                    "status": "success",
+                    "message": "操作成功",
+                    "data": {"status_counts": {"0": 1, "1": 0, "2": 2, "3": 5, "4": 1}},
+                },
+            )
+        ],
+    ),
+    400: OpenApiResponse(
+        response=_ErrorResponse,
+        description="訂單目前不在備餐中（ACCEPTED）狀態，無法標記可取餐",
+        examples=[
+            OpenApiExample(
+                "狀態錯誤",
+                value={"status": "error", "message": "訂單狀態不允許此操作"},
+            )
+        ],
+    ),
+    401: OpenApiResponse(
+        response=_ErrorResponse,
+        description="未提供有效的 JWT Token 或 Token 已過期",
+        examples=[
+            OpenApiExample(
+                "401 範例",
+                value={"status": "error", "message": "請先登入"},
+            )
+        ],
+    ),
+    403: OpenApiResponse(
+        response=_ErrorResponse,
+        description="身份不符（需員工或管理員身份）",
+        examples=[
+            OpenApiExample(
+                "403 範例",
+                value={"status": "error", "message": "您沒有執行此操作的權限"},
+            )
+        ],
     ),
     404: OpenApiResponse(
         response=_ErrorResponse,
@@ -160,11 +229,12 @@ class OrderReadyAPIView(APIView):
     @extend_schema(
         summary="通知顧客取餐",
         description=(
-            "將備餐中（ACCEPTED）的訂單標記為可取餐，寫入 `ready_at` 與 `ready_notified_at`。"
+            "將備餐中（ACCEPTED）的訂單標記為可取餐（READY），寫入 `ready_at` 與 `ready_notified_at`。\n\n"
+            "**權限**：需員工（`identity=E`）或管理員（`identity=A`）身份。"
         ),
         tags=["訂單"],
         request=None,
-        responses=_status_update_responses,
+        responses=_order_ready_responses,
     )
     def post(self, request, pk):
         return api_success(order_service.mark_order_ready(pk))
@@ -215,12 +285,48 @@ class OrderAcceptAPIView(APIView):
                 response=_AcceptSuccessResponse, description="接單成功"
             ),
             400: OpenApiResponse(
-                response=_ErrorResponse, description="驗證失敗或訂單非等待接單狀態"
+                response=_ErrorResponse,
+                description="驗證失敗或訂單非等待接單（SUBMITTED）狀態",
+                examples=[
+                    OpenApiExample(
+                        "400 範例",
+                        value={
+                            "status": "error",
+                            "message": "訂單目前不是等待接單狀態",
+                        },
+                    )
+                ],
+            ),
+            401: OpenApiResponse(
+                response=_ErrorResponse,
+                description="未提供有效的 JWT Token 或 Token 已過期",
+                examples=[
+                    OpenApiExample(
+                        "401 範例",
+                        value={"status": "error", "message": "請先登入"},
+                    )
+                ],
             ),
             403: OpenApiResponse(
-                response=_ErrorResponse, description="需員工或管理員身份"
+                response=_ErrorResponse,
+                description="身份不符（需員工或管理員身份）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                    )
+                ],
             ),
-            404: OpenApiResponse(response=_ErrorResponse, description="找不到訂單"),
+            404: OpenApiResponse(
+                response=_ErrorResponse,
+                description="找不到指定 ID 的訂單",
+                examples=[
+                    OpenApiExample(
+                        "404 範例",
+                        value={"status": "error", "message": "找不到此訂單"},
+                    )
+                ],
+            ),
         },
     )
     def post(self, request, pk):
@@ -276,13 +382,35 @@ class ReorderAPIView(APIView):
                     )
                 ],
             ),
+            401: OpenApiResponse(
+                response=_ErrorResponse,
+                description="未登入（需顧客帳號，訪客或未登入無法使用）",
+                examples=[
+                    OpenApiExample(
+                        "401 範例",
+                        value={"status": "error", "message": "請先登入"},
+                    )
+                ],
+            ),
             403: OpenApiResponse(
                 response=_ErrorResponse,
-                description="未登入或非顧客帳號（員工／管理員）",
+                description="身份不符（員工／管理員帳號不可使用此功能）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                    )
+                ],
             ),
             404: OpenApiResponse(
                 response=_ErrorResponse,
                 description="訂單不存在，或該訂單不屬於目前登入的使用者",
+                examples=[
+                    OpenApiExample(
+                        "404 範例",
+                        value={"status": "error", "message": "找不到此訂單"},
+                    )
+                ],
             ),
         },
     )
@@ -324,9 +452,25 @@ class OrderCustomerStatusAPIView(APIView):
                 },
             ),
             403: OpenApiResponse(
-                response=_ErrorResponse, description="無權限查詢此訂單"
+                response=_ErrorResponse,
+                description="無權限查詢此訂單（非訂單擁有者，或訪客 session 不符）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "無權限查詢此訂單"},
+                    )
+                ],
             ),
-            404: OpenApiResponse(response=_ErrorResponse, description="訂單不存在"),
+            404: OpenApiResponse(
+                response=_ErrorResponse,
+                description="訂單不存在",
+                examples=[
+                    OpenApiExample(
+                        "404 範例",
+                        value={"status": "error", "message": "找不到此訂單"},
+                    )
+                ],
+            ),
         },
     )
     def get(self, request, pk):
@@ -376,12 +520,35 @@ class CustomerCancelOrderAPIView(APIView):
                 },
             ),
             400: OpenApiResponse(
-                response=_ErrorResponse, description="訂單已被接單，無法取消"
+                response=_ErrorResponse,
+                description="訂單已被接單（ACCEPTED 以後），無法取消",
+                examples=[
+                    OpenApiExample(
+                        "400 範例",
+                        value={"status": "error", "message": "訂單已被接單，無法取消"},
+                    )
+                ],
             ),
             403: OpenApiResponse(
-                response=_ErrorResponse, description="無權限操作此訂單"
+                response=_ErrorResponse,
+                description="無權限操作此訂單（非訂單擁有者或訪客 session 不符）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "無權限操作此訂單"},
+                    )
+                ],
             ),
-            404: OpenApiResponse(response=_ErrorResponse, description="訂單不存在"),
+            404: OpenApiResponse(
+                response=_ErrorResponse,
+                description="訂單不存在",
+                examples=[
+                    OpenApiExample(
+                        "404 範例",
+                        value={"status": "error", "message": "找不到此訂單"},
+                    )
+                ],
+            ),
         },
     )
     def post(self, request, pk):
@@ -398,20 +565,62 @@ class StaffOrderCreateAPIView(APIView):
         tags=["訂單"],
         request=StaffOrderCreateSerializer,
         responses={
-            200: inline_serializer(
-                name="StaffOrderCreateResponse",
-                fields={
-                    "status": serializers.CharField(default="success"),
-                    "message": serializers.CharField(
-                        default="代客訂單已送出，已自動接單"
-                    ),
-                    "data": inline_serializer(
-                        name="StaffOrderCreateData",
-                        fields={"order_id": serializers.IntegerField()},
-                    ),
-                },
+            201: OpenApiResponse(
+                response=inline_serializer(
+                    name="StaffOrderCreateResponse",
+                    fields={
+                        "status": serializers.CharField(default="success"),
+                        "message": serializers.CharField(
+                            default="代客訂單已送出，已自動接單"
+                        ),
+                        "data": inline_serializer(
+                            name="StaffOrderCreateData",
+                            fields={"order_id": serializers.IntegerField()},
+                        ),
+                    },
+                ),
+                description="代客訂單建立成功，已自動設為備餐中（ACCEPTED）",
+                examples=[
+                    OpenApiExample(
+                        "建立成功",
+                        value={
+                            "status": "success",
+                            "message": "代客訂單已送出，已自動接單",
+                            "data": {"order_id": 42},
+                        },
+                    )
+                ],
             ),
-            400: OpenApiResponse(response=_ErrorResponse, description="缺少電話或品項"),
+            400: OpenApiResponse(
+                response=_ErrorResponse,
+                description="缺少電話或品項，或品項 ID 不存在",
+                examples=[
+                    OpenApiExample(
+                        "缺少必填",
+                        value={"status": "error", "message": "電話與品項為必填"},
+                    )
+                ],
+            ),
+            401: OpenApiResponse(
+                response=_ErrorResponse,
+                description="未提供有效的 JWT Token 或 Token 已過期",
+                examples=[
+                    OpenApiExample(
+                        "401 範例",
+                        value={"status": "error", "message": "請先登入"},
+                    )
+                ],
+            ),
+            403: OpenApiResponse(
+                response=_ErrorResponse,
+                description="身份不符（需員工或管理員身份）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                    )
+                ],
+            ),
         },
     )
     def post(self, request):
@@ -420,4 +629,6 @@ class StaffOrderCreateAPIView(APIView):
         order = order_service.create_staff_order_from_items(
             request.user, serializer.validated_data
         )
-        return api_success({"order_id": order.pk}, message="代客訂單已送出，已自動接單")
+        return api_success(
+            {"order_id": order.pk}, message="代客訂單已送出，已自動接單", status=201
+        )

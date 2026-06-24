@@ -141,10 +141,22 @@ class MenuToggleAPIView(APIView):
             401: OpenApiResponse(
                 response=_ErrorResponse,
                 description="未提供有效的 JWT Token，或 Token 已過期",
+                examples=[
+                    OpenApiExample(
+                        "401 範例",
+                        value={"status": "error", "message": "請先登入"},
+                    )
+                ],
             ),
             403: OpenApiResponse(
                 response=_ErrorResponse,
                 description="身份不符（非員工或管理員，如一般顧客）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                    )
+                ],
             ),
             404: OpenApiResponse(
                 response=_ErrorResponse,
@@ -235,9 +247,25 @@ _edit_responses = {
         description="請求資料有誤（名稱/價格未填、價格非整數、分類不存在、圖片格式錯誤）",
         examples=_edit_error_examples,
     ),
-    401: OpenApiResponse(response=_ErrorResponse, description="未提供有效的 JWT Token"),
+    401: OpenApiResponse(
+        response=_ErrorResponse,
+        description="未提供有效的 JWT Token",
+        examples=[
+            OpenApiExample(
+                "401 範例",
+                value={"status": "error", "message": "請先登入"},
+            )
+        ],
+    ),
     403: OpenApiResponse(
-        response=_ErrorResponse, description="身份不符（需管理員身份）"
+        response=_ErrorResponse,
+        description="身份不符（需管理員身份）",
+        examples=[
+            OpenApiExample(
+                "403 範例",
+                value={"status": "error", "message": "您沒有執行此操作的權限"},
+            )
+        ],
     ),
     404: OpenApiResponse(
         response=_ErrorResponse,
@@ -398,10 +426,36 @@ class MenuSoldOutTodayAPIView(APIView):
                     ),
                 },
             ),
-            403: OpenApiResponse(
-                response=_ErrorResponse, description="需員工或管理員身份"
+            401: OpenApiResponse(
+                response=_ErrorResponse,
+                description="未提供有效的 JWT Token 或 Token 已過期",
+                examples=[
+                    OpenApiExample(
+                        "401 範例",
+                        value={"status": "error", "message": "請先登入"},
+                    )
+                ],
             ),
-            404: OpenApiResponse(response=_ErrorResponse, description="餐點不存在"),
+            403: OpenApiResponse(
+                response=_ErrorResponse,
+                description="身份不符（需員工或管理員身份）",
+                examples=[
+                    OpenApiExample(
+                        "403 範例",
+                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                    )
+                ],
+            ),
+            404: OpenApiResponse(
+                response=_ErrorResponse,
+                description="餐點不存在",
+                examples=[
+                    OpenApiExample(
+                        "404 範例",
+                        value={"status": "error", "message": "找不到此商品"},
+                    )
+                ],
+            ),
         },
     )
     def post(self, request, pk):
