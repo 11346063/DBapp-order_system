@@ -394,11 +394,11 @@ class ReorderAPIView(APIView):
             ),
             403: OpenApiResponse(
                 response=_ErrorResponse,
-                description="身份不符（員工／管理員帳號不可使用此功能）",
+                description="身份不符（員工／管理員帳號不可使用此功能，需顧客身份）",
                 examples=[
                     OpenApiExample(
                         "403 範例",
-                        value={"status": "error", "message": "您沒有執行此操作的權限"},
+                        value={"status": "error", "message": "僅限顧客帳號使用"},
                     )
                 ],
             ),

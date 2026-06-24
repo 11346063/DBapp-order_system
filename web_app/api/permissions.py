@@ -5,6 +5,8 @@ from rest_framework.permissions import BasePermission
 class IsPrintAgent(BasePermission):
     """店內列印代理：以 X-Print-Token header 比對 settings.PRINT_AGENT_TOKEN。"""
 
+    message = "X-Print-Token 無效"
+
     def has_permission(self, request, view):
         token = getattr(django_settings, "PRINT_AGENT_TOKEN", "")
         provided = request.headers.get("X-Print-Token", "")
@@ -13,6 +15,8 @@ class IsPrintAgent(BasePermission):
 
 class IsEmployee(BasePermission):
     """員工或管理員（identity in A, E）"""
+
+    message = "您沒有執行此操作的權限"
 
     def has_permission(self, request, view):
         return bool(
@@ -25,6 +29,8 @@ class IsEmployee(BasePermission):
 class IsAdmin(BasePermission):
     """管理員（identity == A）"""
 
+    message = "需管理員身份"
+
     def has_permission(self, request, view):
         return bool(
             request.user
@@ -35,6 +41,8 @@ class IsAdmin(BasePermission):
 
 class IsCustomer(BasePermission):
     """一般顧客（identity == C，排除訪客與員工）"""
+
+    message = "僅限顧客帳號使用"
 
     def has_permission(self, request, view):
         return bool(

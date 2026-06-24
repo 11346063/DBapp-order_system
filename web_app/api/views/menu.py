@@ -263,7 +263,7 @@ _edit_responses = {
         examples=[
             OpenApiExample(
                 "403 範例",
-                value={"status": "error", "message": "您沒有執行此操作的權限"},
+                value={"status": "error", "message": "需管理員身份"},
             )
         ],
     ),
