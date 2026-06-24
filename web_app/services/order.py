@@ -316,14 +316,12 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
         now = timezone.now()
         order.status = Order.OrderStatus.ACCEPTED
         order.accepted_at = now
-        order.accepted_by = staff_user
         order.estimated_wait_minutes = estimated_wait_minutes
         order.pickup_code = generate_pickup_code(order.customer_phone)
         order.save(
             update_fields=[
                 "status",
                 "accepted_at",
-                "accepted_by",
                 "estimated_wait_minutes",
                 "pickup_code",
             ]
@@ -563,7 +561,6 @@ def create_staff_order_from_items(user, validated_data):
             remark=data["remark"],
             customer_phone=data["customer_phone"],
             accepted_at=timezone.now(),
-            accepted_by=user,
             pickup_code=pickup_code,
         )
 

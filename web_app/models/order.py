@@ -18,13 +18,6 @@ class Order(models.Model):
     ready_at = models.DateTimeField(null=True, blank=True)
     ready_notified_at = models.DateTimeField(null=True, blank=True)
     accepted_at = models.DateTimeField(null=True, blank=True)
-    accepted_by = models.ForeignKey(
-        "User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="accepted_orders",
-    )
     estimated_wait_minutes = models.PositiveSmallIntegerField(null=True, blank=True)
     cancel_reason = models.CharField(max_length=200, blank=True, default="")
     pickup_code = models.CharField(max_length=12, blank=True, default="")

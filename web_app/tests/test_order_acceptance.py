@@ -59,7 +59,6 @@ class AcceptOrderServiceTest(TestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, Order.OrderStatus.ACCEPTED)
         self.assertEqual(order.estimated_wait_minutes, 20)
-        self.assertEqual(order.accepted_by, self.staff)
         self.assertIsNotNone(order.accepted_at)
         self.assertTrue(order.pickup_code)
         self.assertEqual(result["estimated_wait_minutes"], 20)
