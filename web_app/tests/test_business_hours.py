@@ -60,17 +60,21 @@ class IsStoreOpenTest(SimpleTestCase):
 class CheckoutBusinessHoursGuardTest(TestCase):
     def setUp(self):
         self.type = Type.objects.create(type_name="主餐")
-        self.menu = Menu.objects.create(type=self.type, name="雞排", price=80, status=True)
-        self.cart = [{
-            "menu_id": self.menu.pk,
-            "name": "雞排",
-            "base_price": 80,
-            "options": [],
-            "options_price": 0,
-            "unit_price": 80,
-            "quantity": 1,
-            "subtotal": 80,
-        }]
+        self.menu = Menu.objects.create(
+            type=self.type, name="雞排", price=80, status=True
+        )
+        self.cart = [
+            {
+                "menu_id": self.menu.pk,
+                "name": "雞排",
+                "base_price": 80,
+                "options": [],
+                "options_price": 0,
+                "unit_price": 80,
+                "quantity": 1,
+                "subtotal": 80,
+            }
+        ]
 
     @patch("web_app.services.order.cart_service.ensure_prices_current")
     @patch("web_app.services.order.is_store_open", return_value=False)

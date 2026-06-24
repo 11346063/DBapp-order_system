@@ -626,15 +626,17 @@ def reorder_to_cart(user, order_id):
         if not oi.menu.status:
             continue
         unit_price = oi.menu.price
-        cart_items.append({
-            "menu_id": oi.menu.pk,
-            "name": oi.menu.name,
-            "base_price": unit_price,
-            "options": [],
-            "options_price": 0,
-            "unit_price": unit_price,
-            "quantity": oi.amount,
-            "subtotal": unit_price * oi.amount,
-        })
+        cart_items.append(
+            {
+                "menu_id": oi.menu.pk,
+                "name": oi.menu.name,
+                "base_price": unit_price,
+                "options": [],
+                "options_price": 0,
+                "unit_price": unit_price,
+                "quantity": oi.amount,
+                "subtotal": unit_price * oi.amount,
+            }
+        )
 
     return {"items": cart_items, "added": sum(i["quantity"] for i in cart_items)}

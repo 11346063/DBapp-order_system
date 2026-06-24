@@ -47,18 +47,20 @@ class OrderServiceCreateOrderTest(TestCase):
         )
 
     def _cart(self):
-        return [{
-            "menu_id": self.menu.pk,
-            "name": self.menu.name,
-            "base_price": self.menu.price,
-            "options": [
-                {"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}
-            ],
-            "options_price": 0,
-            "unit_price": self.menu.price,
-            "quantity": 2,
-            "subtotal": self.menu.price * 2,
-        }]
+        return [
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "base_price": self.menu.price,
+                "options": [
+                    {"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}
+                ],
+                "options_price": 0,
+                "unit_price": self.menu.price,
+                "quantity": 2,
+                "subtotal": self.menu.price * 2,
+            }
+        ]
 
     def test_create_order_from_cart_persists_items_and_options(self):
         cart = self._cart()
@@ -109,16 +111,18 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(Order.objects.count(), 0)
 
     def test_staff_order_saves_customer_phone(self):
-        cart = [{
-            "menu_id": self.menu.pk,
-            "name": self.menu.name,
-            "base_price": 80,
-            "options": [],
-            "options_price": 0,
-            "unit_price": 80,
-            "quantity": 2,
-            "subtotal": 160,
-        }]
+        cart = [
+            {
+                "menu_id": self.menu.pk,
+                "name": self.menu.name,
+                "base_price": 80,
+                "options": [],
+                "options_price": 0,
+                "unit_price": 80,
+                "quantity": 2,
+                "subtotal": 160,
+            }
+        ]
 
         order = order_service.create_order_from_cart(
             self.employee,

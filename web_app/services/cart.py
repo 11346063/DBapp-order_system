@@ -35,7 +35,12 @@ def _coerce_cart_item(item):
 def validate_prices_for_cart(cart_items):
     """批量驗證購物車品項價格是否與目前 DB 相符（2 次 DB 查詢）。"""
     if not cart_items:
-        return {"has_changes": False, "old_total": 0, "new_total": 0, "price_changes": []}
+        return {
+            "has_changes": False,
+            "old_total": 0,
+            "new_total": 0,
+            "price_changes": [],
+        }
 
     snapshots = _batch_latest_snapshots(cart_items)
     old_total = cart_total(cart_items)
@@ -117,7 +122,9 @@ def _batch_latest_snapshots(items):
             )
 
         snapshots.append(
-            build_cart_item(menu.pk, menu.name, menu.price, item["quantity"], latest_opts)
+            build_cart_item(
+                menu.pk, menu.name, menu.price, item["quantity"], latest_opts
+            )
         )
 
     return snapshots

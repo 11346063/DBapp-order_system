@@ -28,7 +28,10 @@ class CartPureHelpersTest(SimpleTestCase):
         self.assertEqual(cart_service.cart_total(cart), 120)
 
     def test_summarize_cart(self):
-        cart = [self._item(quantity=2, subtotal=160), self._item(quantity=1, subtotal=40)]
+        cart = [
+            self._item(quantity=2, subtotal=160),
+            self._item(quantity=1, subtotal=40),
+        ]
         result = cart_service.summarize_cart(cart)
         self.assertEqual(result["total"], 200)
         self.assertEqual(result["cart_count"], 3)

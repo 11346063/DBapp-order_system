@@ -30,16 +30,20 @@ class GuestCheckoutTest(TestCase):
         )
 
     def _cart_json(self):
-        return json.dumps([{
-            "menu_id": self.menu.pk,
-            "name": self.menu.name,
-            "base_price": self.menu.price,
-            "options": [],
-            "options_price": 0,
-            "unit_price": self.menu.price,
-            "quantity": 1,
-            "subtotal": self.menu.price,
-        }])
+        return json.dumps(
+            [
+                {
+                    "menu_id": self.menu.pk,
+                    "name": self.menu.name,
+                    "base_price": self.menu.price,
+                    "options": [],
+                    "options_price": 0,
+                    "unit_price": self.menu.price,
+                    "quantity": 1,
+                    "subtotal": self.menu.price,
+                }
+            ]
+        )
 
     # --- payment_view ---
 
@@ -130,6 +134,7 @@ class GuestCheckoutTest(TestCase):
             },
         )
         from web_app.models import OrderItem
+
         self.assertEqual(OrderItem.objects.count(), 1)
         item = OrderItem.objects.first()
         self.assertEqual(item.amount, 1)
