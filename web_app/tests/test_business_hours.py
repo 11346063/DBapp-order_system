@@ -60,45 +60,43 @@ class IsStoreOpenTest(SimpleTestCase):
 class CheckoutBusinessHoursGuardTest(TestCase):
     def setUp(self):
         self.type = Type.objects.create(type_name="主餐")
-        self.menu = Menu.objects.create(type=self.type, name="雞排", price=80)
-        self.cart = [
-            {"menu_id": self.menu.pk, "quantity": 1, "subtotal": 80, "options": []}
-        ]
+        self.menu = Menu.objects.create(type=self.type, name="雞排", price=80, status=True)
+        self.cart = [{
+            "menu_id": self.menu.pk,
+            "name": "雞排",
+            "base_price": 80,
+            "options": [],
+            "options_price": 0,
+            "unit_price": 80,
+            "quantity": 1,
+            "subtotal": 80,
+        }]
 
-    def _patch_cart(self):
-        return patch.multiple(
-            "web_app.services.order.cart_service",
-            ensure_prices_current=lambda *a, **k: None,
-            get_cart=lambda *a, **k: self.cart,
-            cart_total=lambda *a, **k: 80,
-            clear_cart=lambda *a, **k: None,
-        )
-
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
     @patch("web_app.services.order.is_store_open", return_value=False)
-    def test_customer_blocked_outside_hours(self, _mock):
+    def test_customer_blocked_outside_hours(self, _mock_hours, _mock_prices):
         customer = _make_user(Identity.CUSTOMER)
-        with self._patch_cart():
-            with self.assertRaisesMessage(ValidationServiceError, "非營業時間"):
-                order_service.create_order_from_cart(
-                    customer, {}, {"customer_phone": "0912345678"}
-                )
-
-    @patch("web_app.services.order.is_store_open", return_value=False)
-    def test_staff_can_order_outside_hours(self, _mock):
-        staff = _make_user(Identity.EMPLOYEE, phone="0922222222")
-        with self._patch_cart():
-            order = order_service.create_order_from_cart(
-                staff, {}, {"customer_phone": "0933333333"}
+        with self.assertRaisesMessage(ValidationServiceError, "非營業時間"):
+            order_service.create_order_from_cart(
+                customer, self.cart, {"customer_phone": "0912345678"}
             )
+
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
+    @patch("web_app.services.order.is_store_open", return_value=False)
+    def test_staff_can_order_outside_hours(self, _mock_hours, _mock_prices):
+        staff = _make_user(Identity.EMPLOYEE, phone="0922222222")
+        order = order_service.create_order_from_cart(
+            staff, self.cart, {"customer_phone": "0933333333"}
+        )
         self.assertEqual(order.status, order_service.Order.OrderStatus.ACCEPTED)
 
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
     @patch("web_app.services.order.is_store_open", return_value=True)
-    def test_customer_allowed_within_hours(self, _mock):
+    def test_customer_allowed_within_hours(self, _mock_hours, _mock_prices):
         customer = _make_user(Identity.CUSTOMER)
-        with self._patch_cart():
-            order = order_service.create_order_from_cart(
-                customer, {}, {"customer_phone": "0912345678"}
-            )
+        order = order_service.create_order_from_cart(
+            customer, self.cart, {"customer_phone": "0912345678"}
+        )
         self.assertEqual(order.status, order_service.Order.OrderStatus.SUBMITTED)
 
 

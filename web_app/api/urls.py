@@ -1,13 +1,7 @@
 from django.urls import path
 
 from web_app.api.views.cart import (
-    CartAddAPIView,
-    CartAdjustAPIView,
-    CartDetailAPIView,
-    CartRemoveAPIView,
-    CartRemoveByMenuAPIView,
     CartSyncPricesAPIView,
-    CartUpdateAPIView,
     CartValidatePricesAPIView,
 )
 from web_app.api.views.menu import (
@@ -43,19 +37,7 @@ urlpatterns = [
         name="menu_sold_out_today",
     ),
     path("menu/create/", MenuCreateAPIView.as_view(), name="menu_create"),
-    # Cart
-    path("cart/", CartDetailAPIView.as_view(), name="cart_detail_api"),
-    path("cart/add/", CartAddAPIView.as_view(), name="cart_add_api"),
-    # adjust: 菜單頁用，以 menu_id 定位、delta 相對增減（不含選項品項）
-    path("cart/adjust/", CartAdjustAPIView.as_view(), name="cart_adjust_api"),
-    # update: 購物車頁用，以陣列 index 定位、直接設定絕對數量
-    path("cart/update/", CartUpdateAPIView.as_view(), name="cart_update_api"),
-    path("cart/remove/", CartRemoveAPIView.as_view(), name="cart_remove_api"),
-    path(
-        "cart/remove-by-menu/",
-        CartRemoveByMenuAPIView.as_view(),
-        name="cart_remove_by_menu_api",
-    ),
+    # Cart — validate & sync only (CRUD 由前端 localStorage 處理)
     path(
         "cart/validate-prices/",
         CartValidatePricesAPIView.as_view(),
@@ -67,7 +49,6 @@ urlpatterns = [
         name="cart_sync_prices_api",
     ),
     # Cart v1 aliases
-    path("v1/cart/", CartDetailAPIView.as_view(), name="v1_cart_detail_api"),
     path(
         "v1/cart/validate-prices/",
         CartValidatePricesAPIView.as_view(),

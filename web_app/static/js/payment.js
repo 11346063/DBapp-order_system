@@ -35,6 +35,14 @@ function money(value) {
     return '$' + value;
 }
 
+function _escHtml(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function setSubmitLoading(button, isLoading) {
     if (!button) return;
     button.disabled = isLoading;
@@ -56,23 +64,63 @@ function renderPriceChanges(data) {
     const totalEl = document.getElementById('paymentPriceChangeTotal');
     if (!listEl || !totalEl) return;
 
-    listEl.innerHTML = (data.price_changes || []).map(change => `
-        <div class="price-change-row">
-            <div>
-                <span class="text-white">${escapeHtml(change.name)}</span>
-                <span class="text-secondary small ms-2">x${escapeHtml(change.quantity)}</span>
-            </div>
-            <div class="price-change-values">
-                <span class="text-secondary">${escapeHtml(money(change.old_unit_price))}</span>
-                <i class="bi bi-arrow-right-short"></i>
-                <span class="text-yellow fw-bold">${escapeHtml(money(change.new_unit_price))}</span>
-            </div>
-        </div>
-    `).join('');
+    listEl.innerHTML = (data.price_changes || []).map(change =>
+        '<div class="price-change-row">' +
+        '<div>' +
+        '<span class="text-white">' + _escHtml(change.name) + '</span>' +
+        '<span class="text-secondary small ms-2">x' + parseInt(change.quantity) + '</span>' +
+        '</div>' +
+        '<div class="price-change-values">' +
+        '<span class="text-secondary">' + _escHtml(money(change.old_unit_price)) + '</span>' +
+        '<i class="bi bi-arrow-right-short"></i>' +
+        '<span class="text-yellow fw-bold">' + _escHtml(money(change.new_unit_price)) + '</span>' +
+        '</div>' +
+        '</div>'
+    ).join('');
     totalEl.textContent = money(data.new_total);
 }
 
+function _renderOrderSummary(cart) {
+    if (!cart || !cart.length) return '';
+    const rows = cart.map(function (item, i) {
+        const opts = (item.options || []).map(o =>
+            '<span class="me-2">+ ' + _escHtml(o.name) + '</span>'
+        ).join('');
+        const optsHtml = opts ? '<div class="text-secondary small">' + opts + '</div>' : '';
+        const isLast = i === cart.length - 1;
+        return (
+            '<div class="d-flex justify-content-between align-items-start mb-3' +
+            (isLast ? '' : ' pb-3 border-bottom border-secondary') + '">' +
+            '<div><span class="text-white">' + _escHtml(item.name) + '</span>' +
+            '<span class="text-secondary small ms-2">x' + parseInt(item.quantity) + '</span>' +
+            optsHtml + '</div>' +
+            '<span class="text-yellow fw-bold">$' + parseInt(item.subtotal) + '</span>' +
+            '</div>'
+        );
+    }).join('');
+    return (
+        '<div class="card card-dark"><div class="card-header border-bottom border-secondary">' +
+        '<h6 class="text-white mb-0">訂單明細</h6></div>' +
+        '<div class="card-body">' + rows + '</div></div>'
+    );
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+    // 讀購物車
+    const cart = window.getCart ? window.getCart() : [];
+    if (!cart.length) {
+        window.location.href = '/';
+        return;
+    }
+
+    // 渲染訂單摘要
+    const summaryEl = document.getElementById('paymentCartSummary');
+    if (summaryEl) summaryEl.innerHTML = _renderOrderSummary(cart);
+
+    // 設定總金額基準
+    window.BASE_TOTAL = window.cartTotal ? window.cartTotal() : 0;
+    updateTotal();
+
     document.querySelectorAll('.custom-extra-check').forEach(cb => {
         cb.addEventListener('change', updateTotal);
     });
@@ -89,6 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const acceptBtn = document.getElementById('acceptPaymentPriceChanges');
 
         form.addEventListener('submit', function (event) {
+            // 填入 cart_json
+            const cartInput = document.getElementById('cartJsonInput');
+            if (cartInput) cartInput.value = JSON.stringify(window.getCart ? window.getCart() : []);
+
             if (isSubmitting) {
                 event.preventDefault();
                 return;
@@ -103,7 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
             event.preventDefault();
             isSubmitting = true;
             setSubmitValidating(btn, true);
-            postJSON('/api/v1/cart/validate-prices/', {})
+            const currentCart = window.getCart ? window.getCart() : [];
+            postJSON('/api/v1/cart/validate-prices/', { cart: currentCart })
                 .then(response => {
                     const data = response.data || {};
                     if (!data.has_changes) {
@@ -129,9 +182,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 acceptBtn.disabled = true;
                 acceptBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>更新中...';
 
-                postJSON('/api/v1/cart/sync-prices/', {})
+                const currentCart = window.getCart ? window.getCart() : [];
+                postJSON('/api/v1/cart/sync-prices/', { cart: currentCart })
                     .then(response => {
                         const data = response.data || {};
+                        if (data.cart && window.saveCart) {
+                            window.saveCart(data.cart);
+                        }
                         if (typeof data.total !== 'undefined') {
                             window.BASE_TOTAL = data.total;
                             updateTotal();

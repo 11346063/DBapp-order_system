@@ -363,11 +363,10 @@ def accept_order(order_id, staff_user, estimated_wait_minutes):
     }
 
 
-def create_order_from_cart(user, session, checkout_data):
-    cart_service.ensure_prices_current(user, session)
-    cart = cart_service.get_cart(user, session)
+def create_order_from_cart(user, cart, checkout_data):
     if not cart:
         raise EmptyCartError("購物車是空的")
+    cart_service.ensure_prices_current(cart)
 
     data = normalize_checkout_data(checkout_data)
     is_staff_order = is_staff_order_user(user)
@@ -481,8 +480,6 @@ def create_order_from_cart(user, session, checkout_data):
 
         for custom_opt in custom_opts:
             OrderItemOption.objects.create(order=order, opt=custom_opt, level=1)
-
-        cart_service.clear_cart(user, session)
 
     if not is_staff_order:
         _notify_staff(
@@ -618,27 +615,26 @@ def create_staff_order_from_items(user, validated_data):
     return order
 
 
-def reorder_to_cart(user, session, order_id):
+def reorder_to_cart(user, order_id):
     try:
         order = Order.objects.get(pk=order_id, user=user)
     except Order.DoesNotExist as exc:
         raise NotFoundError("找不到此訂單") from exc
 
-    items = OrderItem.objects.filter(order=order).select_related("menu")
-    added = 0
-
-    for item in items:
-        try:
-            added += cart_service.append_menu_item_to_cart(
-                user,
-                session,
-                item.menu,
-                item.amount,
-            )
-        except Menu.DoesNotExist:
+    cart_items = []
+    for oi in OrderItem.objects.filter(order=order).select_related("menu"):
+        if not oi.menu.status:
             continue
+        unit_price = oi.menu.price
+        cart_items.append({
+            "menu_id": oi.menu.pk,
+            "name": oi.menu.name,
+            "base_price": unit_price,
+            "options": [],
+            "options_price": 0,
+            "unit_price": unit_price,
+            "quantity": oi.amount,
+            "subtotal": unit_price * oi.amount,
+        })
 
-    return {
-        "added": added,
-        "cart_count": cart_service.cart_count(cart_service.get_cart(user, session)),
-    }
+    return {"items": cart_items, "added": sum(i["quantity"] for i in cart_items)}

@@ -11,7 +11,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 
 from web_app.models import Identity, User
-from web_app.services import cart as cart_service
 from web_app.utils.phone import PhoneValidationError, normalize_tw_mobile
 
 _GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -164,5 +163,4 @@ def _create_google_user(*, google_sub, email, name):
 
 def _complete_google_login(request, user):
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-    cart_service.merge_session_cart_to_db(user, request.session)
     messages.success(request, _("歡迎，{name}！").format(name=user.name))

@@ -8,7 +8,6 @@ from django.utils.translation import gettext as _
 from web_app.forms.login_form import LoginForm
 from web_app.forms.register_form import RegisterForm
 from web_app.models import Identity
-from web_app.services import cart as cart_service
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,6 @@ def login_view(request):
             user = authenticate(request, username=account, password=password)
             if user is not None:
                 login(request, user)
-                cart_service.merge_session_cart_to_db(user, request.session)
                 logger.info("login_success", extra={"user_id": user.pk})
                 messages.success(
                     request, _("歡迎回來，{name}！").format(name=user.name)

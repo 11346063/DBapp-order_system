@@ -5,25 +5,26 @@ function reorder(orderId, btn) {
     postJSON(window.URLS.reorder, { order_id: orderId })
         .then(data => {
             if (data.status === 'success') {
-                const badge = document.querySelector('.navbar .badge');
+                const items = (data.data && data.data.items) || [];
+                items.forEach(item => {
+                    if (window.cartAddItem) window.cartAddItem(item);
+                });
+
+                const cartCount = window.cartCount ? window.cartCount() : items.length;
+                const badge = document.querySelector('.navbar a[href="/cart/"] .badge');
                 if (badge) {
-                    badge.textContent = data.data.cart_count;
-                    badge.style.display = '';
-                } else {
-                    const cartLink = document.querySelector('.nav-icon-link');
-                    if (cartLink) {
-                        const newBadge = document.createElement('span');
-                        newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill';
-                        newBadge.style.cssText = 'background-color: var(--primary-yellow); color: #000;';
-                        newBadge.textContent = data.data.cart_count;
-                        cartLink.appendChild(newBadge);
-                    }
+                    badge.textContent = cartCount;
+                    badge.style.display = cartCount > 0 ? '' : 'none';
                 }
+                const mobileCount = document.getElementById('mobileCartSummaryCount');
+                if (mobileCount) mobileCount.textContent = cartCount;
+                const mobileSummary = document.getElementById('mobileCartSummary');
+                if (mobileSummary) mobileSummary.classList.toggle('d-none', cartCount <= 0);
 
                 const toastMsg = document.getElementById('reorderToastMsg');
-                toastMsg.textContent = `已將 ${data.data.added} 項商品加入購物車`;
-                const toast = new bootstrap.Toast(document.getElementById('reorderToast'));
-                toast.show();
+                if (toastMsg) toastMsg.textContent = `已將 ${data.data.added} 項商品加入購物車`;
+                const toastEl = document.getElementById('reorderToast');
+                if (toastEl) new bootstrap.Toast(toastEl).show();
 
                 btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>已加入';
                 setTimeout(() => {

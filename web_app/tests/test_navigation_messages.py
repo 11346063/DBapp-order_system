@@ -2,7 +2,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from web_app.models import Identity, Menu, Type, User
-from web_app.services import cart as cart_service
 
 
 class NavigationVisibilityTest(TestCase):
@@ -79,6 +78,7 @@ class NavigationVisibilityTest(TestCase):
         )
 
     def test_mobile_cart_summary_is_hidden_when_cart_is_empty(self):
+        """購物車為空時（context_processor 回 0），mobile cart summary 應隱藏"""
         self.client.login(username="customer_nav", password="pass")
 
         response = self.client.get(reverse("web_app:home"))
@@ -86,77 +86,31 @@ class NavigationVisibilityTest(TestCase):
         self.assertContains(response, 'id="mobileCartSummary"')
         self.assertContains(response, "mobile-cart-summary d-md-none d-none")
 
-    def test_mobile_cart_summary_shows_cart_count(self):
-        self.client.login(username="customer_nav", password="pass")
-        cart_service.add_item(
-            self.customer,
-            self.client.session,
-            {
-                "menu_id": self.menu.pk,
-                "name": self.menu.name,
-                "price": self.menu.price,
-                "quantity": 3,
-                "options": [],
-            },
-        )
-
-        response = self.client.get(reverse("web_app:home"))
-
-        self.assertContains(response, 'id="mobileCartSummary"')
-        self.assertContains(response, "購物車")
-        self.assertContains(response, 'id="mobileCartSummaryCount">3</span>')
-
     def test_payment_page_hides_mobile_cart_summary(self):
+        """付款頁不在 bottom_nav 的顯示條件中，不應有 mobileCartSummary"""
         self.client.login(username="customer_nav", password="pass")
-        cart_service.add_item(
-            self.customer,
-            self.client.session,
-            {
-                "menu_id": self.menu.pk,
-                "name": self.menu.name,
-                "price": self.menu.price,
-                "quantity": 2,
-                "options": [],
-            },
-        )
 
         response = self.client.get(reverse("web_app:payment"))
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
     def test_login_page_hides_mobile_cart_summary(self):
-        session = self.client.session
-        session["cart"] = [{"name": "香脆炸雞", "quantity": 3, "subtotal": 240}]
-        session.save()
-
+        """登入頁不在 bottom_nav 的顯示條件中，不應有 mobileCartSummary"""
         response = self.client.get(reverse("web_app:login"))
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
     def test_cart_page_hides_mobile_cart_summary(self):
+        """購物車頁不在 bottom_nav 的顯示條件中，不應有 mobileCartSummary"""
         self.client.login(username="customer_nav", password="pass")
-        cart_service.add_item(
-            self.customer,
-            self.client.session,
-            {
-                "menu_id": self.menu.pk,
-                "name": self.menu.name,
-                "price": self.menu.price,
-                "quantity": 2,
-                "options": [],
-            },
-        )
 
         response = self.client.get(reverse("web_app:cart"))
 
         self.assertNotContains(response, 'id="mobileCartSummary"')
 
     def test_admin_mobile_cart_summary_shows_zero_count(self):
-        # Admin/staff 短路：不計算購物車，始終回傳 0，避免不必要的 DB 查詢
+        """Admin/staff 的購物車計數始終為 0（context_processor 短路）"""
         self.client.login(username="admin_nav", password="pass")
-        session = self.client.session
-        session["cart"] = [{"name": "香脆炸雞", "quantity": 2, "subtotal": 160}]
-        session.save()
 
         response = self.client.get(reverse("web_app:home"))
 

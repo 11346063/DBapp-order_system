@@ -234,84 +234,27 @@ function addToCart() {
         return;
     }
 
-    postJSON('/api/cart/add/', {
-        menu_id: currentItem.id,
-        name: currentItem.name,
-        price: currentItem.price,
-        quantity: currentQty,
-        options: selectedOptions,
-    }).then(data => {
-        if (data.status === 'success') {
-            updateCartBadge(data.data.cart_count);
-            // 代客點餐頁：同步卡片上的數量顯示
-            const assistedControl = document.querySelector(
-                `.assisted-qty-controls[data-menu-id="${currentItem.id}"]`
-            );
-            if (assistedControl) {
-                const qtyEl = assistedControl.querySelector('[data-assisted-qty]');
-                if (qtyEl) qtyEl.textContent = parseInt(qtyEl.textContent || '0') + currentQty;
-            }
-            closeItemDetail();
-            showCartFeedback(data.data);
-        }
-    }).catch(() => {});
+    const optionsPrice = selectedOptions.reduce((s, o) => s + (parseInt(o.price) || 0), 0);
+    const unitPrice = currentItem.price + optionsPrice;
+    if (window.cartAddItem) {
+        window.cartAddItem({
+            menu_id: currentItem.id,
+            name: currentItem.name,
+            base_price: currentItem.price,
+            options: selectedOptions,
+            options_price: optionsPrice,
+            unit_price: unitPrice,
+            quantity: currentQty,
+            subtotal: unitPrice * currentQty,
+        });
+    }
+    const count = window.cartCount ? window.cartCount() : 0;
+    updateCartBadge(count);
+    closeItemDetail();
+    showCartFeedback({ cart_count: count });
 }
-
-function adjustAssistedCart(control, delta) {
-    const qtyEl = control.querySelector('[data-assisted-qty]');
-    const menuId = parseInt(control.dataset.menuId, 10);
-    const price = parseInt(control.dataset.menuPrice, 10);
-
-    postJSON('/api/cart/adjust/', {
-        menu_id: menuId,
-        name: control.dataset.menuName,
-        price: price,
-        delta: delta,
-    }).then(data => {
-        if (data.status === 'success') {
-            if (qtyEl) qtyEl.textContent = data.data.item_quantity;
-            updateCartBadge(data.data.cart_count);
-            showCartFeedback(data.data);
-        }
-    }).catch(() => {});
-}
-
-function removeLastAssistedItem(control) {
-    const qtyEl = control.querySelector('[data-assisted-qty]');
-    const menuId = parseInt(control.dataset.menuId, 10);
-
-    postJSON('/api/cart/remove-by-menu/', { menu_id: menuId })
-        .then(data => {
-            if (data.status === 'success') {
-                if (qtyEl) qtyEl.textContent = data.data.item_quantity;
-                updateCartBadge(data.data.cart_count);
-                showCartFeedback(data.data);
-            }
-        }).catch(() => {});
-}
-
-const CUT_REQUIRED = ['炸雞排', '碳烤香雞排', '烤雞排'];
 
 document.addEventListener('click', function (event) {
-    const assistedButton = event.target.closest('[data-assisted-delta]');
-    if (assistedButton) {
-        const control = assistedButton.closest('.assisted-qty-controls');
-        if (control) {
-            const delta = parseInt(assistedButton.dataset.assistedDelta, 10);
-            const menuName = control.dataset.menuName;
-            if (CUT_REQUIRED.includes(menuName)) {
-                if (delta > 0) {
-                    openItemDetail(parseInt(control.dataset.menuId, 10));
-                } else {
-                    removeLastAssistedItem(control);
-                }
-            } else {
-                adjustAssistedCart(control, delta);
-            }
-        }
-        return;
-    }
-
     const actionButton = event.target.closest('[data-cart-action]');
     if (!actionButton) return;
 

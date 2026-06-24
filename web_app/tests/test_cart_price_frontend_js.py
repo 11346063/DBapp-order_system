@@ -25,47 +25,125 @@ def _run_node(script):
 class CartPriceFrontendJsTest(SimpleTestCase):
     def test_cart_accept_latest_price_calls_sync_and_reload(self):
         cart_js = (ROOT / "web_app/static/js/cart.js").read_text(encoding="utf-8")
+        item = {
+            "menu_id": 1,
+            "name": "雞排",
+            "base_price": 80,
+            "options": [],
+            "options_price": 0,
+            "unit_price": 80,
+            "quantity": 1,
+            "subtotal": 80,
+        }
         script = f"""
         const assert = require('node:assert/strict');
         const cartJs = {json.dumps(cart_js)};
+        const item = {json.dumps(item)};
 
-        const button = {{
-          disabled: false,
-          innerHTML: '',
-          listeners: {{}},
-          addEventListener(event, handler) {{ this.listeners[event] = handler; }},
-        }};
+        let validateCalls = 0;
         let syncCalls = 0;
         let reloadCalls = 0;
 
-        global.document = {{
-          addEventListener(event, handler) {{ if (event === 'DOMContentLoaded') handler(); }},
-          getElementById(id) {{ return id === 'acceptCartPriceChanges' ? button : null; }},
+        const listEl = {{
+            _html: '',
+            set innerHTML(v) {{ this._html = v; }},
+            get innerHTML() {{ return this._html; }},
+            firstChild: null,
+            insertBefore(child, ref) {{ /* no-op */ }},
+        }};
+        const footerEl = {{ innerHTML: '' }};
+        const acceptBtn = {{
+            disabled: false,
+            innerHTML: '',
+            listeners: {{}},
+            addEventListener(event, handler) {{ this.listeners[event] = handler; }},
+        }};
+
+        global.localStorage = {{
+            _data: JSON.stringify([item]),
+            getItem(key) {{ return this._data; }},
+            setItem(key, value) {{ this._data = value; }},
         }};
         global.location = {{ reload() {{ reloadCalls += 1; }} }};
+        global.document = {{
+            addEventListener(event, handler) {{ if (event === 'DOMContentLoaded') handler(); }},
+            querySelector(selector) {{ return null; }},
+            getElementById(id) {{
+                const map = {{
+                    cartList: listEl,
+                    cartFooter: footerEl,
+                    acceptCartPriceChanges: acceptBtn,
+                }};
+                return map.hasOwnProperty(id) ? map[id] : null;
+            }},
+            createElement(tag) {{
+                const el = {{
+                    _html: '',
+                    set innerHTML(v) {{ this._html = v; }},
+                    get firstChild() {{ return {{ nodeType: 1 }}; }},
+                }};
+                return el;
+            }},
+        }};
+        global.window = {{}};
         global.postJSON = (url, payload) => {{
-          assert.equal(url, '/api/v1/cart/sync-prices/');
-          assert.deepEqual(payload, {{}});
-          syncCalls += 1;
-          return Promise.resolve({{ status: 'success', data: {{ total: 50 }} }});
+            if (url === '/api/v1/cart/validate-prices/') {{
+                validateCalls += 1;
+                return Promise.resolve({{
+                    data: {{
+                        has_changes: true,
+                        price_changes: [{{
+                            name: '雞排',
+                            quantity: 1,
+                            old_unit_price: 80,
+                            new_unit_price: 90,
+                        }}],
+                    }},
+                }});
+            }}
+            if (url === '/api/v1/cart/sync-prices/') {{
+                syncCalls += 1;
+                assert.deepEqual(payload, {{ cart: [item] }});
+                return Promise.resolve({{
+                    data: {{ cart: [Object.assign({{}}, item, {{ unit_price: 90, subtotal: 90 }})] }},
+                }});
+            }}
+            return Promise.reject(new Error('unexpected url: ' + url));
         }};
 
         eval(cartJs);
-        button.listeners.click();
+
         setImmediate(() => {{
-          assert.equal(syncCalls, 1);
-          assert.equal(reloadCalls, 1);
-          assert.equal(button.disabled, true);
+            assert.equal(validateCalls, 1, 'validate-prices called once after render');
+            assert.ok(acceptBtn.listeners.click, 'click listener registered on acceptBtn');
+
+            acceptBtn.listeners.click();
+            setImmediate(() => {{
+                assert.equal(syncCalls, 1, 'sync-prices called once after accept');
+                assert.equal(acceptBtn.disabled, true, 'accept button disabled after click');
+                const saved = JSON.parse(global.localStorage._data);
+                assert.equal(saved[0].unit_price, 90, 'localStorage updated with synced price');
+            }});
         }});
         """
-
-        _run_node(script)
+        _run_node(textwrap.dedent(script))
 
     def test_payment_submit_shows_modal_then_syncs_and_submits(self):
         payment_js = (ROOT / "web_app/static/js/payment.js").read_text(encoding="utf-8")
+        cart_item = {
+            "menu_id": 1,
+            "name": "香脆炸雞",
+            "base_price": 80,
+            "options": [],
+            "options_price": 0,
+            "unit_price": 80,
+            "quantity": 1,
+            "subtotal": 80,
+        }
         script = f"""
         const assert = require('node:assert/strict');
         const paymentJs = {json.dumps(payment_js)};
+        const cartItem = {json.dumps(cart_item)};
 
         const submitButton = {{ disabled: false, innerHTML: '' }};
         const form = {{
@@ -88,7 +166,11 @@ class CartPriceFrontendJsTest(SimpleTestCase):
         const calls = [];
 
         global.window = {{
-          BASE_TOTAL: 50,
+          BASE_TOTAL: 80,
+          location: {{ href: '' }},
+          getCart: () => [cartItem],
+          saveCart: () => {{}},
+          cartTotal: () => 80,
           bootstrap: {{
             Modal: {{
               getOrCreateInstance() {{
@@ -113,46 +195,31 @@ class CartPriceFrontendJsTest(SimpleTestCase):
               extra_garlic_qty: {{ value: '0' }},
               extra_basil_qty: {{ value: '0' }},
               displayTotal: {{ textContent: '' }},
+              paymentCartSummary: {{ innerHTML: '' }},
+              cartJsonInput: {{ value: '' }},
             }}[id] || null;
           }},
           querySelectorAll() {{ return []; }},
-          createElement() {{
-            return {{
-              _text: '',
-              set textContent(value) {{ this._text = String(value); }},
-              get innerHTML() {{
-                return this._text
-                  .replaceAll('&', '&amp;')
-                  .replaceAll('<', '&lt;')
-                  .replaceAll('>', '&gt;');
-              }},
-            }};
-          }},
-        }};
-        global.escapeHtml = function(value) {{
-          const div = document.createElement('div');
-          div.textContent = value == null ? '' : String(value);
-          return div.innerHTML;
         }};
         global.postJSON = (url, payload) => {{
           calls.push(url);
-          assert.deepEqual(payload, {{}});
+          assert.deepEqual(payload, {{ cart: [cartItem] }});
           if (url === '/api/v1/cart/validate-prices/') {{
             return Promise.resolve({{
               data: {{
                 has_changes: true,
-                new_total: 55,
+                new_total: 90,
                 price_changes: [{{
-                  name: '報表測試薯條',
+                  name: '香脆炸雞',
                   quantity: 1,
-                  old_unit_price: 50,
-                  new_unit_price: 55,
+                  old_unit_price: 80,
+                  new_unit_price: 90,
                 }}],
               }},
             }});
           }}
           if (url === '/api/v1/cart/sync-prices/') {{
-            return Promise.resolve({{ data: {{ total: 55 }} }});
+            return Promise.resolve({{ data: {{ cart: [cartItem], total: 90 }} }});
           }}
           return Promise.reject(new Error('unexpected url ' + url));
         }};
@@ -165,23 +232,22 @@ class CartPriceFrontendJsTest(SimpleTestCase):
             assert.deepEqual(calls, ['/api/v1/cart/validate-prices/']);
             assert.equal(modalShown, 1);
             assert.equal(form.submitted, 0);
-          assert.match(listEl.innerHTML, /報表測試薯條/);
-          assert.match(listEl.innerHTML, /\\$50/);
-          assert.match(listEl.innerHTML, /\\$55/);
-          assert.equal(totalEl.textContent, '$55');
+            assert.match(listEl.innerHTML, /香脆炸雞/);
+            assert.match(listEl.innerHTML, /\\$80/);
+            assert.match(listEl.innerHTML, /\\$90/);
+            assert.equal(totalEl.textContent, '$90');
 
-          acceptButton.listeners.click();
-          setImmediate(() => {{
-            assert.deepEqual(calls, [
-              '/api/v1/cart/validate-prices/',
-              '/api/v1/cart/sync-prices/',
-            ]);
-            assert.equal(modalHidden, 1);
-            assert.equal(form.submitted, 1);
-            assert.equal(window.BASE_TOTAL, 55);
-            assert.equal(submitButton.disabled, true);
-          }});
+            acceptButton.listeners.click();
+            setImmediate(() => {{
+                assert.deepEqual(calls, [
+                    '/api/v1/cart/validate-prices/',
+                    '/api/v1/cart/sync-prices/',
+                ]);
+                assert.equal(modalHidden, 1);
+                assert.equal(form.submitted, 1);
+                assert.equal(window.BASE_TOTAL, 90);
+                assert.equal(submitButton.disabled, true);
+            }});
         }});
         """
-
         _run_node(textwrap.dedent(script))

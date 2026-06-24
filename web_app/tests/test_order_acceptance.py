@@ -219,46 +219,51 @@ class OrderAcceptAPITest(TestCase):
 class CreateOrderInitialStatusTest(TestCase):
     """Verify new orders start as SUBMITTED; staff orders start as ACCEPTED."""
 
-    def _patch_cart(self, cart):
-        return patch.multiple(
-            "web_app.services.order.cart_service",
-            ensure_prices_current=lambda *a, **k: None,
-            get_cart=lambda *a, **k: cart,
-            cart_total=lambda *a, **k: 100,
-            clear_cart=lambda *a, **k: None,
-        )
+    def _make_cart(self, menu):
+        return [
+            {
+                "menu_id": menu.pk,
+                "name": menu.name,
+                "base_price": menu.price,
+                "options": [],
+                "options_price": 0,
+                "unit_price": menu.price,
+                "quantity": 1,
+                "subtotal": menu.price,
+            }
+        ]
 
-    def test_customer_order_starts_submitted(self):
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
+    def test_customer_order_starts_submitted(self, _mock):
         from web_app.models import Menu, Type
 
         menu_type = Type.objects.create(type_name="主餐")
-        menu = Menu.objects.create(type=menu_type, name="測試品項", price=100)
-        cart = [{"menu_id": menu.pk, "quantity": 1, "subtotal": 100, "options": []}]
-
+        menu = Menu.objects.create(
+            type=menu_type, name="測試品項", price=100, status=True
+        )
+        cart = self._make_cart(menu)
         customer = _make_user(Identity.CUSTOMER)
-        session = {}
 
-        with self._patch_cart(cart):
-            order = order_service.create_order_from_cart(
-                customer, session, {"customer_phone": "0912345678"}
-            )
+        order = order_service.create_order_from_cart(
+            customer, cart, {"customer_phone": "0912345678"}
+        )
 
         self.assertEqual(order.status, Order.OrderStatus.SUBMITTED)
 
-    def test_staff_order_starts_accepted(self):
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
+    def test_staff_order_starts_accepted(self, _mock):
         from web_app.models import Menu, Type
 
         menu_type = Type.objects.create(type_name="主餐")
-        menu = Menu.objects.create(type=menu_type, name="測試品項2", price=100)
-        cart = [{"menu_id": menu.pk, "quantity": 1, "subtotal": 100, "options": []}]
-
+        menu = Menu.objects.create(
+            type=menu_type, name="測試品項2", price=100, status=True
+        )
+        cart = self._make_cart(menu)
         staff = _make_user(Identity.EMPLOYEE, phone="0922222222")
-        session = {}
 
-        with self._patch_cart(cart):
-            order = order_service.create_order_from_cart(
-                staff, session, {"customer_phone": "0933333333"}
-            )
+        order = order_service.create_order_from_cart(
+            staff, cart, {"customer_phone": "0933333333"}
+        )
 
         self.assertEqual(order.status, Order.OrderStatus.ACCEPTED)
 

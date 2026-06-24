@@ -291,7 +291,6 @@ class ReorderAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         result = order_service.reorder_to_cart(
             request.user,
-            request.session,
             serializer.validated_data["order_id"],
         )
         return api_success(result)

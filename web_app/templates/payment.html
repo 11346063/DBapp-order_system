@@ -12,7 +12,9 @@
 
 <div class="row g-4 payment-layout">
     <div class="col-lg-7">
-        {% include 'includes/components/payment_order_summary.html' with cart_items=cart_items %}
+        <div id="paymentCartSummary">
+            <div class="text-center py-4 text-secondary"><span class="spinner-border spinner-border-sm me-2"></span>{% trans "讀取中..." %}</div>
+        </div>
     </div>
 
     <div class="col-lg-5 payment-summary-col">
@@ -25,7 +27,7 @@
         {% endif %}
 
         {% url 'web_app:order_submit' as order_submit_url %}
-        {% include 'includes/components/payment_submit_card.html' with total=total submit_url=order_submit_url is_staff_order=is_staff_order custom_options=custom_options extra_ingredient_cost=extra_ingredient_cost %}
+        {% include 'includes/components/payment_submit_card.html' with total=0 submit_url=order_submit_url is_staff_order=is_staff_order custom_options=custom_options extra_ingredient_cost=extra_ingredient_cost checkout_phone_default=checkout_phone_default %}
     </div>
 </div>
 {% endblock %}
@@ -35,6 +37,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>window.BASE_TOTAL = {{ total }}; window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};</script>
-<script src="{% static 'js/payment.js' %}?v=4"></script>
+<script>window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};</script>
+<script src="{% static 'js/payment.js' %}?v=5"></script>
 {% endblock %}

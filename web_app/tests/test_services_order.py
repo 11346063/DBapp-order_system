@@ -11,7 +11,6 @@ from web_app.models import (
     Type,
     User,
 )
-from web_app.services import cart as cart_service
 from web_app.services import order as order_service
 from web_app.services.exceptions import ValidationServiceError
 from web_app.services.exceptions import EmptyCartError, StaffCustomerPhoneRequired
@@ -47,29 +46,26 @@ class OrderServiceCreateOrderTest(TestCase):
             identity=Identity.EMPLOYEE,
         )
 
-    def _session_with_cart(self):
-        session = {}
-        cart_service.add_item(
-            self.customer,
-            session,
-            {
-                "menu_id": self.menu.pk,
-                "name": self.menu.name,
-                "price": self.menu.price,
-                "quantity": 2,
-                "options": [
-                    {"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}
-                ],
-            },
-        )
-        return session
+    def _cart(self):
+        return [{
+            "menu_id": self.menu.pk,
+            "name": self.menu.name,
+            "base_price": self.menu.price,
+            "options": [
+                {"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}
+            ],
+            "options_price": 0,
+            "unit_price": self.menu.price,
+            "quantity": 2,
+            "subtotal": self.menu.price * 2,
+        }]
 
-    def test_create_order_from_cart_persists_items_options_and_clears_cart(self):
-        session = self._session_with_cart()
+    def test_create_order_from_cart_persists_items_and_options(self):
+        cart = self._cart()
 
         order = order_service.create_order_from_cart(
             self.customer,
-            session,
+            cart,
             {
                 "spicy_level": "中辣",
                 "extra_garlic_qty": "2",
@@ -82,7 +78,6 @@ class OrderServiceCreateOrderTest(TestCase):
         self.assertEqual(order.price_total, 190)
         self.assertEqual(order.remark, "少鹽")
         self.assertEqual(order.customer_phone, "0912345678")
-        self.assertEqual(cart_service.get_cart(self.customer, session), [])
 
         item = OrderItem.objects.get(order=order)
         self.assertEqual(item.menu, self.menu)
@@ -101,39 +96,33 @@ class OrderServiceCreateOrderTest(TestCase):
 
     def test_create_order_from_empty_cart_raises_without_creating_order(self):
         with self.assertRaises(EmptyCartError):
-            order_service.create_order_from_cart(self.customer, {}, {})
+            order_service.create_order_from_cart(self.customer, [], {})
 
         self.assertEqual(Order.objects.count(), 0)
 
-    def test_staff_order_requires_customer_phone_and_keeps_cart(self):
-        session = {
-            "cart": [
-                cart_service.build_cart_item(
-                    self.menu.pk,
-                    self.menu.name,
-                    self.menu.price,
-                    2,
-                    [{"id": self.cut_option.pk, "name": "切", "price": 0, "level": 1}],
-                )
-            ]
-        }
+    def test_staff_order_requires_customer_phone(self):
+        cart = self._cart()
 
         with self.assertRaises(StaffCustomerPhoneRequired):
-            order_service.create_order_from_cart(self.employee, session, {})
+            order_service.create_order_from_cart(self.employee, cart, {})
 
         self.assertEqual(Order.objects.count(), 0)
-        self.assertEqual(len(session["cart"]), 1)
 
     def test_staff_order_saves_customer_phone(self):
-        session = {
-            "cart": [
-                cart_service.build_cart_item(self.menu.pk, self.menu.name, 80, 2, [])
-            ]
-        }
+        cart = [{
+            "menu_id": self.menu.pk,
+            "name": self.menu.name,
+            "base_price": 80,
+            "options": [],
+            "options_price": 0,
+            "unit_price": 80,
+            "quantity": 2,
+            "subtotal": 160,
+        }]
 
         order = order_service.create_order_from_cart(
             self.employee,
-            session,
+            cart,
             {"customer_phone": "0912345678"},
         )
 
@@ -184,7 +173,6 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertEqual(result["status_counts"][Order.OrderStatus.COMPLETED], 1)
 
     def test_update_order_status_rejects_invalid_transition(self):
-        # SUBMITTED → COMPLETED is illegal (must go through ACCEPTED/READY first)
         with self.assertRaises(ValidationServiceError):
             order_service.update_order_status(
                 self.order.pk,
@@ -192,7 +180,6 @@ class OrderServiceStatusAndReorderTest(TestCase):
             )
 
     def test_update_order_status_cancelled_from_submitted(self):
-        # SUBMITTED → CANCELLED is a valid cancellation
         result = order_service.update_order_status(
             self.order.pk,
             Order.OrderStatus.CANCELLED,
@@ -202,7 +189,6 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertIn("status_counts", result)
 
     def test_update_order_status_to_ready_via_accept_then_ready(self):
-        # Must be ACCEPTED before marking READY
         self.order.status = Order.OrderStatus.ACCEPTED
         self.order.save(update_fields=["status"])
 
@@ -215,14 +201,12 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertEqual(result["status_counts"][Order.OrderStatus.SUBMITTED], 0)
         self.assertEqual(result["status_counts"][Order.OrderStatus.READY], 1)
 
-    def test_reorder_to_cart_appends_menu_items(self):
-        session = {}
+    def test_reorder_to_cart_returns_items_for_cart(self):
+        result = order_service.reorder_to_cart(self.customer, self.order.pk)
 
-        result = order_service.reorder_to_cart(self.customer, session, self.order.pk)
-
-        self.assertEqual(result, {"added": 2, "cart_count": 2})
-        cart = cart_service.get_cart(self.customer, session)
-        self.assertEqual(len(cart), 1)
-        self.assertEqual(cart[0]["menu_id"], self.menu.pk)
-        self.assertEqual(cart[0]["quantity"], 2)
-        self.assertEqual(cart[0]["subtotal"], 160)
+        self.assertEqual(result["added"], 2)
+        self.assertEqual(len(result["items"]), 1)
+        item = result["items"][0]
+        self.assertEqual(item["menu_id"], self.menu.pk)
+        self.assertEqual(item["quantity"], 2)
+        self.assertEqual(item["subtotal"], 160)

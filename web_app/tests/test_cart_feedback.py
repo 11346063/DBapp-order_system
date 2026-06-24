@@ -1,9 +1,7 @@
 from django.test import Client, TestCase
 from django.urls import reverse
-import json
 
 from web_app.models import Identity, Menu, Type, User
-from web_app.services import cart as cart_service
 
 
 class CartFeedbackTemplateTest(TestCase):
@@ -45,27 +43,6 @@ class CartFeedbackTemplateTest(TestCase):
 
         self.assertIn("csrftoken", response.cookies)
 
-    def test_home_keeps_cart_feedback_visible_when_cart_has_items(self):
-        self.client.login(username="cart_feedback_user", password="pass")
-        cart_service.add_item(
-            self.customer,
-            self.client.session,
-            {
-                "menu_id": Menu.objects.get(name="香脆炸雞").pk,
-                "name": "香脆炸雞",
-                "price": 80,
-                "quantity": 2,
-                "options": [],
-            },
-        )
-
-        response = self.client.get(reverse("web_app:home"))
-
-        self.assertContains(response, 'id="cartFeedback"')
-        self.assertContains(response, "購物車目前有 2 件商品")
-        self.assertContains(response, 'id="cartFeedback" class="cart-feedback "')
-        self.assertNotContains(response, 'class="cart-feedback d-none"')
-
     def test_employee_home_keeps_ordering_actions_separate(self):
         """員工菜單管理頁不混入代客點餐操作"""
         self.client.login(username="cart_emp", password="pass")
@@ -83,19 +60,14 @@ class CartFeedbackTemplateTest(TestCase):
 
         response = self.client.get(reverse("web_app:assisted_ordering"))
 
-        # 新版 context 包含 menus / custom_options / extra_ingredient_cost
         self.assertIn("menus", response.context)
         self.assertIn("custom_options", response.context)
         self.assertIn("extra_ingredient_cost", response.context)
-        # 新版卡片樣式
         self.assertContains(response, "assisted-menu-card")
-        # 右側訂單面板
         self.assertContains(response, "訂單清單")
         self.assertContains(response, "送出訂單")
         self.assertContains(response, "客人電話")
-        # 加入購物車 按鈕存在於 detail modal（供切法品項使用）
         self.assertContains(response, "加入購物車")
-        # 不含舊版元素
         self.assertNotContains(response, "data-assisted-delta")
         self.assertNotContains(response, "編輯品項")
 
@@ -111,45 +83,13 @@ class CartPageNavigationTest(TestCase):
             status=True,
         )
 
-    def _set_cart(self):
-        session = self.client.session
-        session["cart"] = [
-            {
-                "menu_id": self.menu.pk,
-                "name": "香脆炸雞",
-                "base_price": 80,
-                "options": [],
-                "options_price": 0,
-                "unit_price": 80,
-                "quantity": 1,
-                "subtotal": 80,
-            }
-        ]
-        session.save()
-
     def test_cart_page_has_return_to_ordering_button(self):
-        self._set_cart()
-
         response = self.client.get(reverse("web_app:cart"))
 
         self.assertContains(response, "返回點餐")
         self.assertContains(response, f'href="{reverse("web_app:home")}"')
         self.assertContains(response, "css/cart.css")
         self.assertContains(response, "?v=3")
-
-    def test_cart_page_shows_price_change_alert(self):
-        self._set_cart()
-        self.menu.price = 90
-        self.menu.save(update_fields=["price"])
-
-        response = self.client.get(reverse("web_app:cart"))
-
-        self.assertContains(response, 'id="cartPriceChangeAlert"')
-        self.assertContains(response, "部分餐點價格已更新")
-        self.assertContains(response, "香脆炸雞")
-        self.assertContains(response, "$80")
-        self.assertContains(response, "$90")
-        self.assertContains(response, 'id="acceptCartPriceChanges"')
 
     def test_employee_can_access_cart_page(self):
         employee = User.objects.create_user(
@@ -159,77 +99,9 @@ class CartPageNavigationTest(TestCase):
             identity=Identity.EMPLOYEE,
         )
         self.client.login(username=employee.account, password="pass")
-        self._set_cart()
 
         response = self.client.get(reverse("web_app:cart"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "購物車")
         self.assertContains(response, f'href="{reverse("web_app:assisted_ordering")}"')
-
-    def test_employee_can_add_to_cart(self):
-        employee = User.objects.create_user(
-            account="cart_add_emp",
-            password="pass",
-            name="代客員工",
-            identity=Identity.EMPLOYEE,
-        )
-        self.client.login(username=employee.account, password="pass")
-
-        response = self.client.post(
-            reverse("web_app:cart_add_api"),
-            data=json.dumps(
-                {
-                    "menu_id": self.menu.pk,
-                    "name": self.menu.name,
-                    "price": self.menu.price,
-                    "quantity": 1,
-                    "options": [],
-                }
-            ),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "success")
-
-    def test_employee_can_adjust_assisted_cart_quantity(self):
-        employee = User.objects.create_user(
-            account="cart_adjust_emp",
-            password="pass",
-            name="代客員工",
-            identity=Identity.EMPLOYEE,
-        )
-        self.client.login(username=employee.account, password="pass")
-
-        add_response = self.client.post(
-            reverse("web_app:cart_adjust_api"),
-            data=json.dumps(
-                {
-                    "menu_id": self.menu.pk,
-                    "name": self.menu.name,
-                    "price": self.menu.price,
-                    "delta": 1,
-                }
-            ),
-            content_type="application/json",
-        )
-        remove_response = self.client.post(
-            reverse("web_app:cart_adjust_api"),
-            data=json.dumps(
-                {
-                    "menu_id": self.menu.pk,
-                    "name": self.menu.name,
-                    "price": self.menu.price,
-                    "delta": -1,
-                }
-            ),
-            content_type="application/json",
-        )
-
-        self.assertEqual(add_response.status_code, 200)
-        self.assertEqual(add_response.json()["data"]["item_quantity"], 1)
-        self.assertEqual(add_response.json()["data"]["cart_count"], 1)
-        self.assertEqual(remove_response.status_code, 200)
-        self.assertEqual(remove_response.json()["data"]["item_quantity"], 0)
-        self.assertEqual(remove_response.json()["data"]["cart_count"], 0)

@@ -1,4 +1,3 @@
-import json
 
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -8,19 +7,19 @@ from web_app.models import Identity, Menu, Order, Type, User
 
 
 class ApiExceptionHandlingTest(TestCase):
-    def test_cart_add_rejects_invalid_json_with_400(self):
+    def test_validate_prices_rejects_invalid_json_with_400(self):
         response = self.client.post(
-            reverse("web_app:cart_add_api"),
+            "/api/v1/cart/validate-prices/",
             data="{bad json",
             content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 400)
 
-    def test_cart_add_rejects_missing_required_field_with_400(self):
+    def test_sync_prices_rejects_invalid_json_with_400(self):
         response = self.client.post(
-            reverse("web_app:cart_add_api"),
-            data=json.dumps({"menu_id": 1, "name": "雞排"}),
+            "/api/v1/cart/sync-prices/",
+            data="{bad json",
             content_type="application/json",
         )
 

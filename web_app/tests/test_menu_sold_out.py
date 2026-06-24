@@ -104,21 +104,23 @@ class CheckoutSoldOutGuardTest(TestCase):
         from unittest.mock import patch
 
         cart = [
-            {"menu_id": self.menu.pk, "quantity": 1, "subtotal": 100, "options": []}
+            {
+                "menu_id": self.menu.pk,
+                "name": "椒麻雞",
+                "base_price": 100,
+                "options": [],
+                "options_price": 0,
+                "unit_price": 100,
+                "quantity": 1,
+                "subtotal": 100,
+            }
         ]
         customer = _make_user(Identity.CUSTOMER)
 
-        patcher = patch.multiple(
-            "web_app.services.order.cart_service",
-            ensure_prices_current=lambda *a, **k: None,
-            get_cart=lambda *a, **k: cart,
-            cart_total=lambda *a, **k: 100,
-            clear_cart=lambda *a, **k: None,
-        )
-        with patcher:
+        with patch("web_app.services.order.cart_service.ensure_prices_current"):
             with self.assertRaises(ValidationServiceError) as ctx:
                 order_service.create_order_from_cart(
-                    customer, {}, {"customer_phone": "0912345678"}
+                    customer, cart, {"customer_phone": "0912345678"}
                 )
 
         message = str(ctx.exception)

@@ -15,27 +15,13 @@
     </a>
 </div>
 
-{% if cart_items %}
-{% if price_changes %}
-{% include 'includes/components/cart_price_change_alert.html' with price_changes=price_changes ordering_return_url=ordering_return_url %}
-{% endif %}
-
-<div class="cart-list" id="cartList">
-    {% for item in cart_items %}
-    {% include 'includes/components/cart_item.html' with item=item index=forloop.counter0 %}
-    {% endfor %}
-</div>
-
-{% url 'web_app:payment' as payment_url %}
-{% include 'includes/components/cart_total_footer.html' with total=total action_url=payment_url %}
-
-{% else %}
-{% trans "購物車是空的" as cart_empty_msg %}
-{% trans "去點餐" as order_now_label %}
-{% include 'includes/components/empty_state.html' with icon='bi-cart-x' message=cart_empty_msg action_label=order_now_label action_href=ordering_return_url action_variant='btn-outline-light' %}
-{% endif %}
+<div id="cartList"></div>
+<div id="cartFooter"></div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/cart.js' %}?v=4"></script>
+<script>
+window.ORDERING_RETURN_URL = '{{ ordering_return_url }}';
+window.PAYMENT_URL = '{% url "web_app:payment" %}';
+</script>
 {% endblock %}
