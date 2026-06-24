@@ -302,3 +302,184 @@ ViewReport --> ViewMonthlyReport : <<extend>>
 ViewReport --> ViewYearlyReport : <<extend>>
 
 @enduml
+
+@startuml use_case_v2_2
+
+title "<color #1A6><size 15>點餐系統 Ordering System</size></color>\n<color #16A><size 18>Use Case Diagram 用例圖</size></color>\n<color grey>v2.2.0 @2026-06-24</color>\n"
+
+left to right direction
+
+actor Guest as "  訪客\nGuest" #EEE
+actor Customer as "  顧客\nCustomer" #BFB
+actor Staff as "  員工\nStaff" #9EF
+actor Admin as "  管理員\nAdmin" #FBD
+
+rectangle "登入與個人資料" {
+  usecase RegisterByPhone as "電話註冊\nRegister by Phone" #FEE
+  usecase LoginByPhone as "電話登入\nLogin by Phone" #FEE
+  usecase LoginByGoogle as "Google 登入\nLogin with Google" #FEE
+  usecase CompletePhone as "補填手機號碼\nComplete Phone Number" #FEE
+  usecase ForgotPassword as "忘記密碼\nForgot Password" #FEE
+  usecase EditProfile as "編輯個人資料\nEdit Profile" #FEE
+}
+
+rectangle "顧客點餐功能" {
+  usecase BrowseMenu as "瀏覽菜單\nBrowse Menu" #FEE
+  usecase ViewStoreClosed as "查看休息中提示\nView Store Closed Notice" #FEE
+  usecase SearchItem as "搜尋品項\nSearch Item" #FEE
+  usecase AddToCart as "加入購物車\nAdd to Cart" #CFE
+  usecase SelectItemOptions as "選擇品項選項\nSelect Item Options" #CFE
+  usecase EditCart as "修改購物車\nEdit Cart" #CFE
+  usecase ConfirmPriceChange as "確認價格異動\nConfirm Price Change" #CFE
+  usecase PlaceOrder as "送出訂單\nPlace Order" #8FE
+  usecase EnterContactPhone as "填寫聯絡電話\nEnter Contact Phone" #CFE
+  usecase AddRemark as "新增備註\nAdd Remark" #CFE
+  usecase SelectSpiceLevel as "選擇辣度\nSelect Spice Level" #CFE
+  usecase AddExtraToppings as "加料\nAdd Extra Toppings" #CFE
+  usecase ViewWaitingPage as "等待接單頁\nOrder Waiting Page" #FEE
+  usecase CancelSubmittedOrder as "取消未接單訂單\nCancel Submitted Order" #FEE
+  usecase CheckOrderStatus as "查詢訂單狀態\nCheck Order Status" #FEE
+  usecase CheckOrderHistory as "查看訂單歷史\nCheck Order History" #FEE
+  usecase ViewPickupNotice as "查看取餐通知\nView Pickup Notice" #FEE
+  usecase ViewPickupNumber as "查看取餐號碼\nView Pickup Number" #FEE
+  usecase ViewRejectionReason as "查看拒單原因\nView Rejection Reason" #FEE
+}
+
+rectangle "員工後台功能" {
+  usecase ViewOrderBoard as "查看訂單看板\nView Order Board" #DFD
+  usecase ViewNewOrder as "查看待接單訂單\nView Submitted Orders" #DFD
+  usecase AcceptOrder as "接單並設定等待時間\nAccept Order with Wait Time" #DFD
+  usecase RejectOrder as "拒單\nReject Order" #DFD
+  usecase EnterRejectionReason as "填寫拒單原因\nEnter Rejection Reason" #DFD
+  usecase UpdateOrderStatus as "更新訂單狀態\nUpdate Order Status" #DFD
+  usecase NotifyCustomer as "通知顧客取餐\nNotify Customer" #DFD
+  usecase CompleteOrder as "完成取餐\nComplete Order" #DFD
+  usecase RecordPayment as "收款確認\nRecord Payment" #DFD
+  usecase CollapseOrderCard as "收合訂單卡片\nCollapse Order Card" #DFD
+  usecase DragOrderCard as "拖拉訂單卡片\nDrag Order Card" #DFD
+  usecase ViewAllOrders as "查看所有訂單\nView All Orders" #DFD
+  usecase ToggleItemStatus as "上下架品項\nToggle Item Status" #DFD
+  usecase MarkItemSoldOut as "標記今日售完\nMark Item Sold Out" #DFD
+  usecase AssistedOrdering as "代客點餐\nAssisted Ordering" #DFD
+  usecase EnterCustomerPhone as "填寫客人電話\nEnter Customer Phone" #DFD
+}
+
+rectangle "管理員功能" {
+  usecase ManageMenu as "菜單管理\nManage Menu" #EDF
+  usecase AddItem as "新增品項\nAdd Item" #FFB
+  usecase EditItem as "編輯品項\nEdit Item" #FFB
+  usecase DisableItem as "下架品項\nDisable Item" #FFB
+  usecase UploadItemImage as "上傳品項圖片\nUpload Item Image" #FFB
+  usecase ManageCategory as "管理分類\nManage Category" #FFB
+  usecase ManageAccounts as "帳號管理\nAccount Management" #EDF
+  usecase ManageStoreSettings as "系統設定\nStore Settings" #EDF
+  usecase ManageBusinessHours as "設定營業時間\nManage Business Hours" #FFB
+  usecase ViewReport as "查看銷售報表\nView Report" #EDF
+  usecase ViewDailyReport as "日報表\nDaily Report" #FFB
+  usecase ViewMonthlyReport as "月報表\nMonthly Report" #FFB
+  usecase ViewYearlyReport as "年報表\nYearly Report" #FFB
+  usecase FilterReportByDate as "日期區間篩選\nDate Range Filter" #FFB
+  usecase ViewHotItems as "熱銷品項排行\nHot Items Ranking" #FFB
+  usecase ViewDailySettlement as "日結概覽\nDaily Settlement Overview" #FFB
+  usecase ExportReportCSV as "匯出報表 CSV\nExport Report CSV" #FFB
+}
+
+Guest --> BrowseMenu
+Guest --> SearchItem
+Guest --> AddToCart
+Guest --> EditCart
+Guest --> PlaceOrder
+Guest --> RegisterByPhone
+Guest --> LoginByPhone
+Guest --> LoginByGoogle
+Guest --> ForgotPassword
+
+Customer --> BrowseMenu
+Customer --> SearchItem
+Customer --> AddToCart
+Customer --> EditCart
+Customer --> PlaceOrder
+Customer --> ViewWaitingPage
+Customer --> CancelSubmittedOrder
+Customer --> CheckOrderStatus
+Customer --> CheckOrderHistory
+Customer --> ViewPickupNotice
+Customer --> ViewPickupNumber
+Customer --> EditProfile
+
+Staff --> ViewOrderBoard
+Staff --> ViewNewOrder
+Staff --> AcceptOrder
+Staff --> RejectOrder
+Staff --> UpdateOrderStatus
+Staff --> NotifyCustomer
+Staff --> CompleteOrder
+Staff --> RecordPayment
+Staff --> PrintOrder
+Staff --> ViewAllOrders
+Staff --> ToggleItemStatus
+Staff --> AssistedOrdering
+
+Admin --> ManageMenu
+Admin --> ManageAccounts
+Admin --> ManageStoreSettings
+Admin --> ViewReport
+Admin --> ViewOrderBoard
+Admin --> AssistedOrdering
+
+LoginByGoogle --> CompletePhone : <<extend>>
+
+BrowseMenu --> ViewStoreClosed : <<extend>>
+
+AddToCart --> SelectItemOptions : <<extend>>
+AddToCart --> EditCart : <<extend>>
+EditCart --> ConfirmPriceChange : <<extend>>
+PlaceOrder --> ConfirmPriceChange : <<extend>>
+PlaceOrder --> EnterContactPhone : <<include>>
+PlaceOrder --> AddRemark : <<extend>>
+PlaceOrder --> SelectSpiceLevel : <<include>>
+PlaceOrder --> AddExtraToppings : <<extend>>
+PlaceOrder --> AddToCart : <<include>>
+PlaceOrder --> ViewWaitingPage : <<extend>>
+ViewWaitingPage --> ViewPickupNumber : <<extend>>
+CancelSubmittedOrder --> ViewWaitingPage : <<extend>>
+CheckOrderHistory --> ViewPickupNotice : <<extend>>
+CheckOrderHistory --> ViewPickupNumber : <<extend>>
+CheckOrderHistory --> ViewRejectionReason : <<extend>>
+
+ViewOrderBoard --> ViewNewOrder : <<include>>
+ViewOrderBoard --> CollapseOrderCard : <<extend>>
+ViewOrderBoard --> DragOrderCard : <<extend>>
+AcceptOrder --> ViewNewOrder : <<include>>
+AcceptOrder --> UpdateOrderStatus : <<include>>
+RejectOrder --> EnterRejectionReason : <<include>>
+RejectOrder --> UpdateOrderStatus : <<include>>
+UpdateOrderStatus --> NotifyCustomer : <<extend>>
+UpdateOrderStatus --> CompleteOrder : <<extend>>
+UpdateOrderStatus --> RejectOrder : <<extend>>
+RecordPayment --> UpdateOrderStatus : <<extend>>
+
+ToggleItemStatus --> MarkItemSoldOut : <<extend>>
+
+AssistedOrdering --> EnterCustomerPhone : <<include>>
+AssistedOrdering --> AddToCart : <<include>>
+AssistedOrdering --> PlaceOrder : <<include>>
+
+ManageMenu --> AddItem : <<extend>>
+ManageMenu --> EditItem : <<extend>>
+ManageMenu --> DisableItem : <<extend>>
+ManageMenu --> ManageCategory : <<extend>>
+AddItem --> UploadItemImage : <<extend>>
+EditItem --> UploadItemImage : <<extend>>
+
+ManageStoreSettings --> ManageBusinessHours : <<extend>>
+
+ViewReport --> ViewDailyReport : <<extend>>
+ViewReport --> ViewMonthlyReport : <<extend>>
+ViewReport --> ViewYearlyReport : <<extend>>
+ViewReport --> FilterReportByDate : <<extend>>
+ViewReport --> ViewHotItems : <<extend>>
+ViewReport --> ViewDailySettlement : <<extend>>
+ViewReport --> ExportReportCSV : <<extend>>
+
+@enduml
