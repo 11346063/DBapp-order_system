@@ -33,8 +33,9 @@ function reorder(orderId, btn) {
                 }, 2000);
             }
         })
-        .catch(() => {
+        .catch(errMsg => {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-cart-plus me-1"></i>再來一份';
+            showToast(typeof errMsg === 'string' ? errMsg : '加入購物車失敗，請重試');
         });
 }

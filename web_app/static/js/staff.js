@@ -6,10 +6,10 @@ function reprintOrder(orderId) {
     postJSON(`/api/orders/${orderId}/reprint/`, {}, 'POST')
         .then(data => {
             if (data.status === 'success') {
-                alert('已加入列印佇列');
+                showToast('已加入列印佇列', 'success');
             }
         })
-        .catch(errMsg => { alert(errMsg || '重印失敗，請重試'); });
+        .catch(errMsg => { showToast(typeof errMsg === 'string' ? errMsg : '重印失敗，請重試'); });
 }
 
 function updateOrderStatus(orderId, newStatus) {
@@ -48,7 +48,7 @@ function submitOrderStatusUpdate(orderId, newStatus) {
                 removeOrderCard(orderId);
             }
         })
-        .catch(() => {})
+        .catch(errMsg => { showToast(typeof errMsg === 'string' ? errMsg : '操作失敗，請重試'); })
         .finally(() => {
             if (confirmBtn) confirmBtn.disabled = false;
             pendingStatusUpdate = null;
@@ -86,7 +86,7 @@ function submitNotifyReady(orderId) {
                 removeOrderCard(orderId);
             }
         })
-        .catch(() => {})
+        .catch(errMsg => { showToast(typeof errMsg === 'string' ? errMsg : '操作失敗，請重試'); })
         .finally(() => {
             if (confirmBtn) confirmBtn.disabled = false;
             pendingStatusUpdate = null;
@@ -132,7 +132,7 @@ function submitAcceptOrder() {
             }
         })
         .catch(errMsg => {
-            alert(errMsg || '接單失敗，請重試');
+            showToast(typeof errMsg === 'string' ? errMsg : '接單失敗，請重試');
         })
         .finally(() => {
             if (confirmBtn) confirmBtn.disabled = false;
@@ -166,7 +166,7 @@ function submitCancelOrder() {
                 removeOrderCard(orderId);
             }
         })
-        .catch(errMsg => { alert(errMsg || '取消失敗，請重試'); })
+        .catch(errMsg => { showToast(typeof errMsg === 'string' ? errMsg : '取消失敗，請重試'); })
         .finally(() => {
             if (confirmBtn) confirmBtn.disabled = false;
             pendingCancelOrderId = null;
