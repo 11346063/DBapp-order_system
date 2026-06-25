@@ -326,5 +326,12 @@ LOGGING = {
             "level": "ERROR",
             "propagate": False,
         },
+        # SQL query log — Django only emits these calls when DEBUG=True,
+        # so the empty-handlers guard in prod is a belt-and-suspenders measure.
+        "django.db.backends": {
+            "handlers": ["console"] if DEBUG else [],
+            "level": "DEBUG",
+            "propagate": False,
+        },
     },
 }
