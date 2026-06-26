@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase, TestCase
 
-from web_app.models import Type, Menu
+from web_app.models import Menu, Type
 from web_app.services import cart as cart_service
 
 
@@ -95,3 +95,53 @@ class CartValidatePricesTest(TestCase):
 
     def test_sync_prices_empty_cart(self):
         self.assertEqual(cart_service.sync_prices_for_cart([]), [])
+
+
+class EnsurePricesCurrentTest(TestCase):
+    """ensure_prices_current 應在價格有變動時 raise PriceChangedError。"""
+
+    def setUp(self):
+        menu_type = Type.objects.create(type_name="炸雞")
+        self.menu = Menu.objects.create(
+            type=menu_type,
+            name="香脆炸雞",
+            price=80,
+            status=True,
+        )
+
+    def _item(self, price=None):
+        p = price if price is not None else self.menu.price
+        return {
+            "menu_id": self.menu.pk,
+            "name": self.menu.name,
+            "base_price": p,
+            "options": [],
+            "options_price": 0,
+            "unit_price": p,
+            "quantity": 1,
+            "subtotal": p,
+        }
+
+    def test_does_not_raise_when_prices_current(self):
+        from web_app.services.exceptions import PriceChangedError
+
+        cart = [self._item()]
+        try:
+            cart_service.ensure_prices_current(cart)
+        except PriceChangedError:
+            self.fail("ensure_prices_current raised PriceChangedError unexpectedly")
+
+    def test_raises_price_changed_error_when_price_differs(self):
+        from web_app.services.exceptions import PriceChangedError
+
+        cart = [self._item(price=60)]  # DB 是 80，前端帶 60
+        with self.assertRaises(PriceChangedError):
+            cart_service.ensure_prices_current(cart)
+
+    def test_raises_with_descriptive_message(self):
+        from web_app.services.exceptions import PriceChangedError
+
+        cart = [self._item(price=60)]
+        with self.assertRaises(PriceChangedError) as ctx:
+            cart_service.ensure_prices_current(cart)
+        self.assertIn("價格", str(ctx.exception))

@@ -1,4 +1,6 @@
-from django.test import TestCase
+from unittest.mock import patch
+
+from django.test import SimpleTestCase, TestCase
 from django.utils import timezone
 
 from web_app.models import (
@@ -214,3 +216,94 @@ class OrderServiceStatusAndReorderTest(TestCase):
         self.assertEqual(item["menu_id"], self.menu.pk)
         self.assertEqual(item["quantity"], 2)
         self.assertEqual(item["subtotal"], 160)
+
+
+class CreateOrderFromCartDelistedItemsTest(TestCase):
+    """create_order_from_cart 對購物車含下架品項應擋下並 raise NotFoundError。"""
+
+    def setUp(self):
+        menu_type = Type.objects.create(type_name="主餐")
+        self.menu = Menu.objects.create(
+            type=menu_type,
+            name="炸雞",
+            price=80,
+            status=False,  # 已下架
+        )
+        self.customer = User.objects.create_user(
+            account="delisted_cust",
+            password="pass",
+            name="顧客",
+            identity=Identity.CUSTOMER,
+            phone_number="0912345678",
+        )
+
+    def _cart(self):
+        return [
+            {
+                "menu_id": self.menu.pk,
+                "name": "炸雞",
+                "base_price": 80,
+                "options": [],
+                "options_price": 0,
+                "unit_price": 80,
+                "quantity": 1,
+                "subtotal": 80,
+            }
+        ]
+
+    @patch("web_app.services.order.cart_service.ensure_prices_current")
+    def test_delisted_item_raises_not_found(self, _mock):
+        from web_app.services.exceptions import NotFoundError
+
+        with self.assertRaisesMessage(NotFoundError, "已下架"):
+            order_service.create_order_from_cart(
+                self.customer,
+                self._cart(),
+                {"customer_phone": "0912345678"},
+            )
+
+        self.assertEqual(Order.objects.count(), 0)
+
+
+class NormalizeCheckoutDataTest(SimpleTestCase):
+    """normalize_checkout_data 純函式測試（無 DB）。"""
+
+    def test_valid_phone_returned_normalized(self):
+        result = order_service.normalize_checkout_data(
+            {"customer_phone": "0912345678", "remark": "少鹽"}
+        )
+
+        self.assertEqual(result["customer_phone"], "0912345678")
+        self.assertEqual(result["remark"], "少鹽")
+
+    def test_invalid_phone_raises_validation_error(self):
+        from web_app.services.exceptions import ValidationServiceError
+
+        with self.assertRaises(ValidationServiceError):
+            order_service.normalize_checkout_data({"customer_phone": "not-a-phone"})
+
+    def test_remark_truncated_to_200_characters(self):
+        long_remark = "x" * 300
+        result = order_service.normalize_checkout_data(
+            {"customer_phone": "0912345678", "remark": long_remark}
+        )
+
+        self.assertEqual(len(result["remark"]), 200)
+
+    def test_negative_extra_qty_clamped_to_zero(self):
+        result = order_service.normalize_checkout_data(
+            {
+                "customer_phone": "0912345678",
+                "extra_garlic_qty": -3,
+                "extra_basil_qty": -1,
+            }
+        )
+
+        self.assertEqual(result["extra_garlic_qty"], 0)
+        self.assertEqual(result["extra_basil_qty"], 0)
+
+    def test_missing_extras_default_to_zero(self):
+        result = order_service.normalize_checkout_data({"customer_phone": "0912345678"})
+
+        self.assertEqual(result["extra_garlic_qty"], 0)
+        self.assertEqual(result["extra_basil_qty"], 0)
