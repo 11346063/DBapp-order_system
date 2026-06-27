@@ -62,7 +62,8 @@ class CartFeedbackTemplateTest(TestCase):
 
         self.assertIn("menus", response.context)
         self.assertIn("custom_options", response.context)
-        self.assertIn("extra_ingredient_cost", response.context)
+        self.assertIn("garlic_price", response.context)
+        self.assertIn("basil_price", response.context)
         self.assertContains(response, "assisted-menu-card")
         self.assertContains(response, "訂單清單")
         self.assertContains(response, "送出訂單")

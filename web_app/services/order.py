@@ -172,7 +172,11 @@ def _describe_order_option(option_link):
             "style": "",
         }
     if option_link.opt.is_custom_extra:
-        return {"label": option_link.opt.name, "css": "bg-success text-white", "style": ""}
+        return {
+            "label": option_link.opt.name,
+            "css": "bg-success text-white",
+            "style": "",
+        }
     return None
 
 
@@ -400,9 +404,21 @@ def create_order_from_cart(user, cart, checkout_data):
     custom_cost = sum(opt.price for opt in custom_opts)
 
     total = cart_service.cart_total(cart)
-    garlic_price = Options.objects.filter(pk=GARLIC_OPTION_ID).values_list("price", flat=True).first() or 0
-    basil_price = Options.objects.filter(pk=BASIL_OPTION_ID).values_list("price", flat=True).first() or 0
-    extra_cost = data["extra_garlic_qty"] * garlic_price + data["extra_basil_qty"] * basil_price
+    garlic_price = (
+        Options.objects.filter(pk=GARLIC_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
+    basil_price = (
+        Options.objects.filter(pk=BASIL_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
+    extra_cost = (
+        data["extra_garlic_qty"] * garlic_price + data["extra_basil_qty"] * basil_price
+    )
     price_total = total + extra_cost + custom_cost
 
     initial_status = (
@@ -534,9 +550,22 @@ def create_staff_order_from_items(user, validated_data):
         menu_total = sum(
             menus_by_id[item["menu_id"]].price * item["qty"] for item in items
         )
-        garlic_price = Options.objects.filter(pk=GARLIC_OPTION_ID).values_list("price", flat=True).first() or 0
-        basil_price = Options.objects.filter(pk=BASIL_OPTION_ID).values_list("price", flat=True).first() or 0
-        extra_cost = data["extra_garlic_qty"] * garlic_price + data["extra_basil_qty"] * basil_price
+        garlic_price = (
+            Options.objects.filter(pk=GARLIC_OPTION_ID)
+            .values_list("price", flat=True)
+            .first()
+            or 0
+        )
+        basil_price = (
+            Options.objects.filter(pk=BASIL_OPTION_ID)
+            .values_list("price", flat=True)
+            .first()
+            or 0
+        )
+        extra_cost = (
+            data["extra_garlic_qty"] * garlic_price
+            + data["extra_basil_qty"] * basil_price
+        )
         price_total = menu_total + extra_cost + custom_cost
 
         order = Order.objects.create(

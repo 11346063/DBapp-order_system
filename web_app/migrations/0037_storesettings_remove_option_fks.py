@@ -4,30 +4,29 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0036_storesettings_option_fk_seed'),
+        ("web_app", "0036_storesettings_option_fk_seed"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='storesettings',
-            name='basil_option',
+            model_name="storesettings",
+            name="basil_option",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='cut_option',
+            model_name="storesettings",
+            name="cut_option",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='extra_ingredient_cost',
+            model_name="storesettings",
+            name="extra_ingredient_cost",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='garlic_option',
+            model_name="storesettings",
+            name="garlic_option",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='spicy_option',
+            model_name="storesettings",
+            name="spicy_option",
         ),
     ]

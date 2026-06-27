@@ -5,46 +5,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('web_app', '0034_remove_order_accepted_by'),
+        ("web_app", "0034_remove_order_accepted_by"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='storesettings',
-            name='option_name_basil',
+            model_name="storesettings",
+            name="option_name_basil",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='option_name_cut',
+            model_name="storesettings",
+            name="option_name_cut",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='option_name_garlic',
+            model_name="storesettings",
+            name="option_name_garlic",
         ),
         migrations.RemoveField(
-            model_name='storesettings',
-            name='option_name_spicy',
+            model_name="storesettings",
+            name="option_name_spicy",
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='basil_option',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='web_app.options'),
+            model_name="storesettings",
+            name="basil_option",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="web_app.options",
+            ),
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='cut_option',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='web_app.options'),
+            model_name="storesettings",
+            name="cut_option",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="web_app.options",
+            ),
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='garlic_option',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='web_app.options'),
+            model_name="storesettings",
+            name="garlic_option",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="web_app.options",
+            ),
         ),
         migrations.AddField(
-            model_name='storesettings',
-            name='spicy_option',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='web_app.options'),
+            model_name="storesettings",
+            name="spicy_option",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="+",
+                to="web_app.options",
+            ),
         ),
     ]

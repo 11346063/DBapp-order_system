@@ -58,7 +58,9 @@ class OptionUpdateAPIView(APIView):
         if name is not None:
             name = str(name).strip()
             if not name:
-                return Response({"status": "error", "message": "名稱不可為空"}, status=400)
+                return Response(
+                    {"status": "error", "message": "名稱不可為空"}, status=400
+                )
             opt.name = name
             update_fields.append("name")
 
@@ -68,9 +70,13 @@ class OptionUpdateAPIView(APIView):
                 try:
                     price = int(price)
                 except (TypeError, ValueError):
-                    return Response({"status": "error", "message": "價格必須是整數"}, status=400)
+                    return Response(
+                        {"status": "error", "message": "價格必須是整數"}, status=400
+                    )
                 if price < 0:
-                    return Response({"status": "error", "message": "價格不可為負數"}, status=400)
+                    return Response(
+                        {"status": "error", "message": "價格不可為負數"}, status=400
+                    )
                 opt.price = price
                 update_fields.append("price")
 
@@ -82,9 +88,11 @@ class OptionUpdateAPIView(APIView):
         if update_fields:
             opt.save(update_fields=update_fields)
 
-        return api_success({
-            "id": opt.pk,
-            "name": opt.name,
-            "price": opt.price,
-            "is_active": opt.is_active,
-        })
+        return api_success(
+            {
+                "id": opt.pk,
+                "name": opt.name,
+                "price": opt.price,
+                "is_active": opt.is_active,
+            }
+        )

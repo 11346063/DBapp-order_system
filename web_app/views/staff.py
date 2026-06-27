@@ -345,7 +345,9 @@ def staff_settings_view(request):
         messages.success(request, _("系統設定已更新"))
         return redirect("web_app:staff_settings")
 
-    system_options = list(Options.objects.filter(pk__in=SYSTEM_OPTION_IDS).order_by("pk"))
+    system_options = list(
+        Options.objects.filter(pk__in=SYSTEM_OPTION_IDS).order_by("pk")
+    )
     return render(
         request,
         "staff/settings.html",
