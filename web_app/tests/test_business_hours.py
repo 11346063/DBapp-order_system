@@ -13,13 +13,8 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase, TestCase
 
-from web_app.constants import (
-    BASIL_OPTION_ID,
-    CUT_OPTION_ID,
-    GARLIC_OPTION_ID,
-    SPICY_OPTION_ID,
-)
-from web_app.models import Identity, Menu, Options, Type, User
+from web_app.models import Identity, Menu, Type, User
+from web_app.tests.test_helpers import seed_system_options
 from web_app.services import order as order_service
 from web_app.services import store_settings as settings_service
 from web_app.services.exceptions import ValidationServiceError
@@ -65,18 +60,7 @@ class IsStoreOpenTest(SimpleTestCase):
 
 class CheckoutBusinessHoursGuardTest(TestCase):
     def setUp(self):
-        Options.objects.update_or_create(
-            pk=SPICY_OPTION_ID, defaults={"name": "辣度", "price": 0}
-        )
-        Options.objects.update_or_create(
-            pk=GARLIC_OPTION_ID, defaults={"name": "加蒜", "price": 10}
-        )
-        Options.objects.update_or_create(
-            pk=BASIL_OPTION_ID, defaults={"name": "九層塔", "price": 10}
-        )
-        Options.objects.update_or_create(
-            pk=CUT_OPTION_ID, defaults={"name": "切", "price": 0}
-        )
+        seed_system_options()
         self.type = Type.objects.create(type_name="主餐")
         self.menu = Menu.objects.create(
             type=self.type, name="雞排", price=80, status=True

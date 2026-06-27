@@ -517,7 +517,6 @@ def create_staff_order_from_items(user, validated_data):
     if not items:
         raise EmptyCartError("訂單沒有品項")
 
-    s = get_settings()
     selected_custom_ids = validated_data.get("custom_options") or []
     custom_opts = (
         list(

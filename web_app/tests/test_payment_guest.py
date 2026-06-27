@@ -3,24 +3,13 @@ import json
 from django.test import TestCase, Client
 from django.urls import reverse
 
-from web_app.constants import BASIL_OPTION_ID, CUT_OPTION_ID, GARLIC_OPTION_ID, SPICY_OPTION_ID
-from web_app.models import User, Identity, Options, Type, Menu, Order
+from web_app.models import User, Identity, Type, Menu, Order
+from web_app.tests.test_helpers import seed_system_options
 
 
 class GuestCheckoutTest(TestCase):
     def setUp(self):
-        Options.objects.update_or_create(
-            pk=SPICY_OPTION_ID, defaults={"name": "辣度", "price": 0}
-        )
-        Options.objects.update_or_create(
-            pk=GARLIC_OPTION_ID, defaults={"name": "加蒜", "price": 10}
-        )
-        Options.objects.update_or_create(
-            pk=BASIL_OPTION_ID, defaults={"name": "九層塔", "price": 10}
-        )
-        Options.objects.update_or_create(
-            pk=CUT_OPTION_ID, defaults={"name": "切", "price": 0}
-        )
+        seed_system_options()
         self.client = Client()
         menu_type = Type.objects.create(type_name="炸雞")
         self.menu = Menu.objects.create(
