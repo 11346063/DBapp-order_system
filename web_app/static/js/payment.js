@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 渲染訂單摘要
     const summaryEl = document.getElementById('paymentCartSummary');
     if (summaryEl) {
+        summaryEl.innerHTML = '';
         const summaryNode = _renderOrderSummary(cart);
         if (summaryNode) summaryEl.appendChild(summaryNode);
     }
