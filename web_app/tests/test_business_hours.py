@@ -14,6 +14,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase, TestCase
 
 from web_app.models import Identity, Menu, Type, User
+from web_app.tests.test_helpers import seed_system_options
 from web_app.services import order as order_service
 from web_app.services import store_settings as settings_service
 from web_app.services.exceptions import ValidationServiceError
@@ -59,6 +60,7 @@ class IsStoreOpenTest(SimpleTestCase):
 
 class CheckoutBusinessHoursGuardTest(TestCase):
     def setUp(self):
+        seed_system_options()
         self.type = Type.objects.create(type_name="主餐")
         self.menu = Menu.objects.create(
             type=self.type, name="雞排", price=80, status=True
@@ -140,11 +142,6 @@ class UpdateBusinessHoursTest(TestCase):
     def test_update_persists_business_hours(self):
         settings_service.update_settings(
             {
-                "extra_ingredient_cost": 10,
-                "option_name_spicy": "辣度",
-                "option_name_garlic": "加蒜",
-                "option_name_basil": "九層塔",
-                "option_name_cut": "切",
                 "business_hours_enabled": True,
                 "open_time": time(9, 0),
                 "close_time": time(20, 0),

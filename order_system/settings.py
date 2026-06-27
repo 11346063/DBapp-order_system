@@ -51,6 +51,8 @@ CSRF_TRUSTED_ORIGINS = os.getenv(
 
 INSTALLED_APPS = [
     "daphne",
+    "jazzmin",
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -204,6 +206,80 @@ DEFAULT_FROM_EMAIL = os.getenv(
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ── Jazzmin ────────────────────────────────────────────────────────────────────
+
+JAZZMIN_SETTINGS = {
+    "site_title": "餐飲後台管理",
+    "site_header": "餐飲系統",
+    "site_brand": "DBapp",
+    "welcome_sign": "歡迎回來，管理員",
+    "copyright": "DBapp-menu",
+    # 頂部搜尋欄預設搜尋 User
+    "search_model": ["web_app.user", "web_app.order"],
+    # 側欄 icon（對應 Font Awesome 5 class）
+    "icons": {
+        "web_app.order": "fas fa-receipt",
+        "web_app.orderitem": "fas fa-list",
+        "web_app.menu": "fas fa-utensils",
+        "web_app.type": "fas fa-tags",
+        "web_app.options": "fas fa-sliders-h",
+        "web_app.optgroup": "fas fa-layer-group",
+        "web_app.user": "fas fa-users",
+        "web_app.storesettings": "fas fa-cog",
+        "web_app.printjob": "fas fa-print",
+        "auth.group": "fas fa-shield-alt",
+    },
+    "default_icon_parents": "fas fa-folder",
+    "default_icon_children": "fas fa-circle",
+    # 側欄固定（不隨捲動消失）
+    "navigation_expanded": True,
+    # 自訂側欄選單順序與分組
+    "order_with_respect_to": [
+        "web_app.order",
+        "web_app.orderitem",
+        "web_app.printjob",
+        "web_app.menu",
+        "web_app.type",
+        "web_app.options",
+        "web_app.optgroup",
+        "web_app.user",
+        "web_app.storesettings",
+        "auth",
+    ],
+    "show_ui_builder": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-dark",
+    "accent": "accent-teal",
+    "navbar": "navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-teal",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": False,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+}
+
 # Messages tags mapping for Bootstrap alert classes
 
 MESSAGE_TAGS = {
@@ -300,6 +376,7 @@ LOGGING = {
             "backupCount": 30,
             "encoding": "utf-8",
             "formatter": "verbose",
+            "delay": True,
         },
         "file_error": {
             "class": "logging.handlers.TimedRotatingFileHandler",
@@ -309,6 +386,7 @@ LOGGING = {
             "encoding": "utf-8",
             "formatter": "verbose",
             "level": "ERROR",
+            "delay": True,
         },
     },
     "root": {

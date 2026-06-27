@@ -3,6 +3,8 @@ import json
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.utils.translation import gettext as _
+from web_app.constants import BASIL_OPTION_ID, GARLIC_OPTION_ID
+from web_app.models import Options
 from web_app.models.order import Order
 from web_app.services import order as order_service
 from web_app.services import store_settings as settings_service
@@ -22,7 +24,18 @@ def payment_view(request):
     if request.user.is_authenticated and not is_staff_order:
         checkout_phone_default = request.user.phone_number or ""
     custom_options = settings_service.get_active_custom_options()
-    s = settings_service.get_settings()
+    garlic_price = (
+        Options.objects.filter(pk=GARLIC_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
+    basil_price = (
+        Options.objects.filter(pk=BASIL_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
     return render(
         request,
         "payment.html",
@@ -31,7 +44,8 @@ def payment_view(request):
             "is_staff_order": is_staff_order,
             "checkout_phone_default": checkout_phone_default,
             "custom_options": custom_options,
-            "extra_ingredient_cost": s.extra_ingredient_cost,
+            "garlic_price": garlic_price,
+            "basil_price": basil_price,
         },
     )
 

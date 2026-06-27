@@ -13,7 +13,9 @@ from web_app.models import (
     Type,
     User,
 )
+from web_app.constants import CUT_OPTION_ID
 from web_app.services import order as order_service
+from web_app.tests.test_helpers import seed_system_options
 from web_app.services.exceptions import ValidationServiceError
 from web_app.services.exceptions import EmptyCartError, StaffCustomerPhoneRequired
 
@@ -27,13 +29,8 @@ class OrderServiceCreateOrderTest(TestCase):
             price=80,
             status=True,
         )
-        self.cut_option, _ = Options.objects.get_or_create(
-            name="切",
-            defaults={"price": 0},
-        )
-        Options.objects.get_or_create(name="辣度", defaults={"price": 0})
-        Options.objects.get_or_create(name="加蒜", defaults={"price": 10})
-        Options.objects.get_or_create(name="九層塔", defaults={"price": 10})
+        seed_system_options()
+        self.cut_option = Options.objects.get(pk=CUT_OPTION_ID)
         self.customer = User.objects.create_user(
             account="svc_customer",
             password="pass",

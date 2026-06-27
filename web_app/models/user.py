@@ -47,10 +47,19 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.account
 
+    @property
+    def is_staff(self):
+        return self.identity == Identity.ADMIN
+
+    @property
+    def is_superuser(self):
+        return self.identity == Identity.ADMIN
+
+    def get_all_permissions(self, obj=None):
+        return set()
+
     def has_perm(self, perm, obj=None):
-        """管理員擁有所有權限"""
         return self.identity == Identity.ADMIN
 
     def has_module_perms(self, app_label):
-        """管理員擁有所有模組權限"""
         return self.identity == Identity.ADMIN

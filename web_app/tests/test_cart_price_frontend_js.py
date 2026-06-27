@@ -181,6 +181,8 @@ class CartPriceFrontendJsTest(SimpleTestCase):
         }}
 
         const listEl = _mkEl();
+        const summaryEl = _mkEl();
+        summaryEl.innerHTML = '<div>讀取中...</div>';
         const totalEl = {{ textContent: '' }};
         let modalShown = 0;
         let modalHidden = 0;
@@ -216,7 +218,7 @@ class CartPriceFrontendJsTest(SimpleTestCase):
               extra_garlic_qty: {{ value: '0' }},
               extra_basil_qty: {{ value: '0' }},
               displayTotal: {{ textContent: '' }},
-              paymentCartSummary: {{ innerHTML: '', appendChild() {{}} }},
+              paymentCartSummary: summaryEl,
               cartJsonInput: {{ value: '' }},
             }}[id] || null;
           }},
@@ -247,6 +249,8 @@ class CartPriceFrontendJsTest(SimpleTestCase):
         }};
 
         eval(paymentJs);
+        assert.doesNotMatch(summaryEl.innerHTML, /讀取中/);
+        assert.match(summaryEl.innerHTML, /香脆炸雞/);
         form.listeners.submit({{ preventDefault() {{ this.prevented = true; }} }});
         form.listeners.submit({{ preventDefault() {{ this.prevented = true; }} }});
 

@@ -1,63 +1,21 @@
-from django.db import transaction
 from django.utils import timezone
 
-from web_app.constants import (
-    EXTRA_INGREDIENT_COST,
-    OPTION_BASIL,
-    OPTION_CUT,
-    OPTION_GARLIC,
-    OPTION_SPICY,
-)
 from web_app.models import Options
 from web_app.models.store_settings import StoreSettings
-
-_DEFAULTS = {
-    "extra_ingredient_cost": EXTRA_INGREDIENT_COST,
-    "option_name_spicy": OPTION_SPICY,
-    "option_name_garlic": OPTION_GARLIC,
-    "option_name_basil": OPTION_BASIL,
-    "option_name_cut": OPTION_CUT,
-}
-
-_OPTION_FIELDS = [
-    "option_name_spicy",
-    "option_name_garlic",
-    "option_name_basil",
-    "option_name_cut",
-]
 
 _BUSINESS_FIELDS = ["business_hours_enabled", "open_time", "close_time"]
 
 
 def get_settings() -> StoreSettings:
-    try:
-        return StoreSettings.objects.get(pk=1)
-    except StoreSettings.DoesNotExist:
-        obj, _ = StoreSettings.objects.get_or_create(pk=1, defaults=_DEFAULTS)
-        return obj
+    obj, _ = StoreSettings.objects.get_or_create(pk=1)
+    return obj
 
 
 def update_settings(new_data: dict) -> StoreSettings:
-    current = get_settings()
-
-    with transaction.atomic():
-        for field in _OPTION_FIELDS:
-            old_name = getattr(current, field)
-            new_name = new_data.get(field, old_name)
-            if new_name and new_name != old_name:
-                Options.objects.filter(name=old_name).update(name=new_name)
-
-        StoreSettings.objects.filter(pk=1).update(
-            **{
-                k: v
-                for k, v in new_data.items()
-                if k
-                in {"extra_ingredient_cost"}
-                | set(_OPTION_FIELDS)
-                | set(_BUSINESS_FIELDS)
-            }
-        )
-
+    allowed = set(_BUSINESS_FIELDS)
+    StoreSettings.objects.filter(pk=1).update(
+        **{k: v for k, v in new_data.items() if k in allowed}
+    )
     return get_settings()
 
 
@@ -68,7 +26,6 @@ def is_store_open(settings=None, now=None) -> bool:
         return True
     if now is None:
         now = timezone.now()
-        # USE_TZ=True 時 now() 為 aware，轉成本地時間；USE_TZ=False 時為 naive，直接用。
         if timezone.is_aware(now):
             now = timezone.localtime(now)
     current = now.time()

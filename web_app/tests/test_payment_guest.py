@@ -2,11 +2,14 @@ import json
 
 from django.test import TestCase, Client
 from django.urls import reverse
+
 from web_app.models import User, Identity, Type, Menu, Order
+from web_app.tests.test_helpers import seed_system_options
 
 
 class GuestCheckoutTest(TestCase):
     def setUp(self):
+        seed_system_options()
         self.client = Client()
         menu_type = Type.objects.create(type_name="炸雞")
         self.menu = Menu.objects.create(
@@ -63,7 +66,7 @@ class GuestCheckoutTest(TestCase):
         self.assertContains(response, 'id="cartPriceChangeModal"')
         self.assertContains(response, 'id="acceptPaymentPriceChanges"')
         self.assertContains(response, "js/payment.js")
-        self.assertContains(response, "?v=7")
+        self.assertContains(response, "?v=8")
         self.assertContains(response, "聯絡電話")
         self.assertContains(response, 'name="customer_phone"')
 

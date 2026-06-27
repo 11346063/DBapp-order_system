@@ -15,6 +15,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from web_app.models import Identity, Menu, Order, OrderItem, Type, User
 from web_app.services import order as order_service
+from web_app.tests.test_helpers import seed_system_options
 from web_app.services.exceptions import (
     EmptyCartError,
     StaffCustomerPhoneRequired,
@@ -43,6 +44,7 @@ def _jwt(user):
 
 class StaffOrderCreateServiceTest(TestCase):
     def setUp(self):
+        seed_system_options()
         menu_type = Type.objects.create(type_name="主餐")
         self.menu = Menu.objects.create(
             type=menu_type, name="炸雞", price=80, status=True
@@ -135,6 +137,7 @@ class StaffOrderCreateAPITest(TestCase):
     URL = "/api/v1/orders/staff/"
 
     def setUp(self):
+        seed_system_options()
         menu_type = Type.objects.create(type_name="主餐")
         self.menu = Menu.objects.create(
             type=menu_type, name="炸雞", price=80, status=True

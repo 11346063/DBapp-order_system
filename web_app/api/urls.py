@@ -11,6 +11,7 @@ from web_app.api.views.menu import (
     MenuToggleAPIView,
     MenuUpdateAPIView,
 )
+from web_app.api.views.options import OptionUpdateAPIView
 from web_app.api.views.order import (
     CustomerCancelOrderAPIView,
     OrderAcceptAPIView,
@@ -38,6 +39,8 @@ urlpatterns = [
         name="menu_sold_out_today",
     ),
     path("menu/create/", MenuCreateAPIView.as_view(), name="menu_create"),
+    # Options
+    path("options/<int:pk>/", OptionUpdateAPIView.as_view(), name="api_option_update"),
     # Cart — validate & sync only (CRUD 由前端 localStorage 處理)
     path(
         "cart/validate-prices/",

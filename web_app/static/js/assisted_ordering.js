@@ -1,7 +1,8 @@
 // In-memory order draft for staff assisted ordering
 let orderItems = [];
 
-const extraIngredientCost = window.EXTRA_INGREDIENT_COST || 0;
+const garlicPrice = window.GARLIC_PRICE || 0;
+const basilPrice = window.BASIL_PRICE || 0;
 const submitUrl = window.ASSISTED_ORDER_URL || '/api/v1/orders/staff/';
 const cutRequiredIds = new Set(window.CUT_REQUIRED_IDS || []);
 
@@ -96,7 +97,7 @@ function updateTotal() {
 
     const garlicQty = parseInt(document.getElementById('extra_garlic_qty')?.value || '0', 10);
     const basilQty = parseInt(document.getElementById('extra_basil_qty')?.value || '0', 10);
-    const extraTotal = (garlicQty + basilQty) * extraIngredientCost;
+    const extraTotal = garlicQty * garlicPrice + basilQty * basilPrice;
 
     let customTotal = 0;
     document.querySelectorAll('.custom-extra-check:checked').forEach(cb => {

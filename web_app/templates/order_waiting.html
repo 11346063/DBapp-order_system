@@ -77,6 +77,10 @@
 <script>
 (function () {
     const ORDER_ID = {{ order_id }};
+
+    // 訂單已建立於後端，立即清空前端購物車
+    try { localStorage.removeItem('dbapp_cart'); } catch (_) {}
+    if (window.saveCart) window.saveCart([]);
     const MAX_RETRIES = 5;
     const RECONNECT_DELAY_MS = 3000;
 
