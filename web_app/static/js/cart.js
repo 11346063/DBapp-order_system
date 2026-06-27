@@ -6,6 +6,10 @@
 
 const CART_KEY = 'dbapp_cart';
 
+function cartI18n(key, fallback) {
+    return (window.CART_I18N && window.CART_I18N[key]) || fallback;
+}
+
 function getCart() {
     try {
         return JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -230,7 +234,7 @@ function _renderPriceAlert(priceChanges, orderingReturnUrl) {
     const returnLink = document.createElement('a');
     returnLink.href = orderingReturnUrl;
     returnLink.className = 'btn btn-outline-light btn-sm';
-    returnLink.innerHTML = '<i class="bi bi-arrow-left"></i> 返回點餐';
+    returnLink.innerHTML = '<i class="bi bi-arrow-left"></i> ' + cartI18n('backToOrdering', '返回點餐');
     btnDiv.appendChild(returnLink);
 
     contentDiv.appendChild(btnDiv);
@@ -260,13 +264,13 @@ function renderCartPage() {
 
         const p = document.createElement('p');
         p.className = 'text-secondary';
-        p.textContent = '購物車是空的';
+        p.textContent = cartI18n('emptyCart', '購物車是空的');
         emptyDiv.appendChild(p);
 
         const link = document.createElement('a');
         link.href = orderingReturnUrl;
         link.className = 'btn btn-outline-light';
-        link.textContent = '去點餐';
+        link.textContent = cartI18n('orderNow', '去點餐');
         emptyDiv.appendChild(link);
 
         listEl.appendChild(emptyDiv);
