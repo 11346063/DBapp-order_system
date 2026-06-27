@@ -415,7 +415,6 @@ Staff --> UpdateOrderStatus
 Staff --> NotifyCustomer
 Staff --> CompleteOrder
 Staff --> RecordPayment
-Staff --> PrintOrder
 Staff --> ViewAllOrders
 Staff --> ToggleItemStatus
 Staff --> AssistedOrdering
