@@ -1,105 +1,213 @@
+import csv
+
 from django.contrib import admin
+from django.db.models import Count
+from django.http import HttpResponse
+
+from .enums import OrderStatus
+from .models.menu import Menu
+from .models.opt_group import OptGroup
+from .models.options import Options
 from .models.order import Order
 from .models.order_item import OrderItem
-from .models.user import User
-from .models.menu import Menu
+from .models.order_item_options import OrderItemOption
+from .models.print_job import PrintJob
+from .models.store_settings import StoreSettings
 from .models.type import Type
-from .models.options import Options
-from .models.opt_group import OptGroup
+from .models.user import User
 
 
-# --- 1. Inline 設定：讓你在訂單頁面直接編輯品項與選項 ---
+# ── Inlines ────────────────────────────────────────────────────────────────────
 
-# class OrderItemInline(admin.TabularInline):
-#     model = OrderItem
-#     extra = 0  # 預設不額外顯示空白列
-#     readonly_fields = ('total_price',) # 總價通常由系統計算
 
-# class OrderItemOptionInline(admin.TabularInline):
-#     model = OrderItemOption
-#     extra = 0
+class OrderItemOptionInline(admin.TabularInline):
+    model = OrderItemOption
+    fk_name = "order"
+    extra = 0
+    readonly_fields = ("opt", "level")
+    can_delete = False
+    verbose_name = "訂單選項（辣度／加料）"
+    verbose_name_plural = "訂單選項（辣度／加料）"
 
-# --- 2. Order 客製化：核心 CRUD 介面 ---
 
-# @admin.register(Order)
-# class OrderAdmin(admin.ModelAdmin):
-#     # A. 列表欄位與搜尋
-#     list_display = ('sno', 'get_user_name', 'price_total', 'status_label', 'created_at')
-#     list_filter = ('status', 'created_at')
-#     search_fields = ('sno', 'user__name', 'user__phone_number')
-#     ordering = ('-created_at',)
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ("menu", "amount", "total_price", "is_deleted")
+    can_delete = False
+    verbose_name = "訂購品項"
+    verbose_name_plural = "訂購品項"
 
-#     # 將關聯模型內聯進訂單編輯頁面
-#     # inlines = [OrderItemInline, OrderItemOptionInline]
+    def get_queryset(self, request):
+        # 顯示含軟刪除的所有品項
+        return OrderItem.all_objects.all()
 
-#     # B. 表單欄位分組 (Fieldsets)
-#     fieldsets = (
-#         ('訂單識別', {
-#             'fields': ('sno', 'user', 'status')
-#         }),
-#         ('金額資訊', {
-#             'fields': ('price_total',),
-#         }),
-#         ('時間紀錄', {
-#             'fields': ('created_at',),
-#             'classes': ('collapse',), # 可折疊
-#         }),
-#     )
 
-#     # C. 衍生欄位 (Computed Fields)
-#     @admin.display(description='客戶名稱')
-#     def get_user_name(self, obj):
-#         return obj.user.name
+# ── Actions ────────────────────────────────────────────────────────────────────
 
-#     @admin.display(description='訂單狀態')
-#     def status_label(self, obj):
-#         # 假設 1: 處理中, 2: 已完成, 0: 已取消
-#         status_mapping = {1: "⏳ 處理中", 2: "✅ 已完成", 0: "❌ 已取消"}
-#         return status_mapping.get(obj.status, "❓ 未知")
 
-#     # D. Actions 批次處理
-#     actions = ['mark_as_completed']
+@admin.action(description="將選取訂單標為「已完成」")
+def mark_completed(modeladmin, request, queryset):
+    updated = queryset.update(status=OrderStatus.COMPLETED)
+    modeladmin.message_user(request, f"已將 {updated} 筆訂單標為「已完成」。")
 
-# @admin.action(description='將選取訂單標記為「已完成」')
-# def mark_as_completed(self, request, queryset):
-#     updated_count = queryset.update(status=2)
-#     self.message_user(request, f'成功更新 {updated_count} 筆訂單為已完成狀態。')
 
-# # E. 自動觸發程序 (save_model)
-# def save_model(self, request, obj, form, change):
-#     """
-#     當在 Admin 後台存檔時觸發
-#     """
-#     if not change: # 只有在「新增」時自動給予編號或預設時間
-#         if not obj.created_at:
-#             obj.created_at = now()
+@admin.action(description="將選取訂單標為「已取消」")
+def mark_cancelled(modeladmin, request, queryset):
+    updated = queryset.update(status=OrderStatus.CANCELLED)
+    modeladmin.message_user(request, f"已將 {updated} 筆訂單標為「已取消」。")
 
-#     # 這裡可以寫入業務邏輯，例如檢查庫存或計算總金額
-#     super().save_model(request, obj, form, change)
 
-# --- 3. 其他模型的客製化 ---
+@admin.action(description="匯出選取訂單為 CSV")
+def export_as_csv(modeladmin, request, queryset):
+    response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
+    response["Content-Disposition"] = 'attachment; filename="orders.csv"'
+    writer = csv.writer(response)
+    writer.writerow(
+        ["訂單ID", "取餐號碼", "聯絡電話", "狀態", "總金額", "建立時間", "取消原因"]
+    )
+    status_map = dict(OrderStatus.choices)
+    for order in queryset.order_by("-created_at"):
+        writer.writerow(
+            [
+                order.id,
+                order.pickup_code,
+                order.customer_phone,
+                status_map.get(order.status, order.status),
+                order.price_total,
+                order.created_at.strftime("%Y-%m-%d %H:%M"),
+                order.cancel_reason,
+            ]
+        )
+    return response
+
+
+# ── ModelAdmin ─────────────────────────────────────────────────────────────────
+
+_STATUS_LABEL = {
+    OrderStatus.SUBMITTED: "等待接單",
+    OrderStatus.ACCEPTED: "備餐中",
+    OrderStatus.READY: "可取餐",
+    OrderStatus.COMPLETED: "已完成",
+    OrderStatus.CANCELLED: "已取消",
+}
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "pickup_code",
+        "customer_phone",
+        "status_badge",
+        "price_total_display",
+        "item_count",
+        "created_at",
+    )
+    list_filter = ("status",)
+    search_fields = ("id", "pickup_code", "customer_phone")
+    ordering = ("-created_at",)
+    date_hierarchy = "created_at"
+    inlines = [OrderItemInline, OrderItemOptionInline]
+    actions = [mark_completed, mark_cancelled, export_as_csv]
+    readonly_fields = (
+        "id",
+        "created_at",
+        "accepted_at",
+        "ready_at",
+        "ready_notified_at",
+        "price_total",
+    )
+    fieldsets = (
+        (
+            "訂單識別",
+            {
+                "fields": ("id", "pickup_code", "status", "customer_phone"),
+            },
+        ),
+        (
+            "金額與備註",
+            {
+                "fields": ("price_total", "remark", "cancel_reason"),
+            },
+        ),
+        (
+            "時間紀錄",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "created_at",
+                    "accepted_at",
+                    "estimated_wait_minutes",
+                    "ready_at",
+                    "ready_notified_at",
+                ),
+            },
+        ),
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(_item_count=Count("orderitem"))
+
+    @admin.display(description="狀態", ordering="status")
+    def status_badge(self, obj):
+        return _STATUS_LABEL.get(obj.status, str(obj.status))
+
+    @admin.display(description="總金額", ordering="price_total")
+    def price_total_display(self, obj):
+        return f"NT${obj.price_total}"
+
+    @admin.display(description="品項數", ordering="_item_count")
+    def item_count(self, obj):
+        return obj._item_count
 
 
 @admin.register(Menu)
 class MenuAdmin(admin.ModelAdmin):
-    list_display = ("name", "type", "price", "remark")
-    list_editable = ("price",)  # 可以在列表頁直接改價格
+    list_display = ("name", "type", "price", "status", "remark")
+    list_editable = ("price",)
+    list_filter = ("type", "status")
     search_fields = ("name",)
 
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("name", "account", "phone_number", "status", "updated_at")
-    list_filter = ("status",)
-    # 隱藏密碼，或僅以唯讀顯示
+    list_display = (
+        "name",
+        "account",
+        "phone_number",
+        "identity",
+        "status",
+        "updated_at",
+    )
+    list_filter = ("status", "identity")
+    search_fields = ("name", "account", "phone_number")
     exclude = ("password",)
     readonly_fields = ("created_at", "updated_at")
 
 
-# 註冊其餘基礎模型
+@admin.register(PrintJob)
+class PrintJobAdmin(admin.ModelAdmin):
+    list_display = ("id", "order", "status", "created_at", "printed_at", "error")
+    list_filter = ("status",)
+    ordering = ("-created_at",)
+    readonly_fields = ("order", "created_at", "printed_at", "error")
+
+
+@admin.register(StoreSettings)
+class StoreSettingsAdmin(admin.ModelAdmin):
+    list_display = ("id", "business_hours_enabled", "open_time", "close_time")
+
+    def has_add_permission(self, request):
+        # 僅允許一筆設定記錄
+        return not StoreSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+# ── 基礎模型（無需客製化）──────────────────────────────────────────────────────
+
 admin.site.register(Type)
 admin.site.register(Options)
 admin.site.register(OptGroup)
-admin.site.register(OrderItem)
-# admin.site.register(User)
-admin.site.register(Order)
