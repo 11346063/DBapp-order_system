@@ -69,7 +69,7 @@ html, body { overflow: hidden !important; }
                 </div>
 
                 <div class="mb-2">
-                    <label class="form-label text-secondary small mb-1">加料（每份 +${{ extra_ingredient_cost }}）</label>
+                    <label class="form-label text-secondary small mb-1">加蒜 +${{ garlic_price }}／九層塔 +${{ basil_price }}</label>
                     <div class="d-flex gap-3">
                         <div class="extra-row flex-fill">
                             <span>加蒜頭</span>
@@ -140,7 +140,8 @@ html, body { overflow: hidden !important; }
 
 {% block extra_js %}
 <script>
-window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};
+window.GARLIC_PRICE = {{ garlic_price }};
+window.BASIL_PRICE = {{ basil_price }};
 window.ASSISTED_ORDER_URL = '{% url "web_app:v1_staff_order_create" %}';
 window.CUT_REQUIRED_IDS = {{ cut_required_ids_json }};
 </script>

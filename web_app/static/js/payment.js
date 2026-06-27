@@ -4,12 +4,12 @@ function changeExtra(fieldId, delta) {
     const newVal = Math.max(0, parseInt(input.value || 0) + delta);
     input.value = newVal;
 
-    const extraCost = window.EXTRA_INGREDIENT_COST || 10;
     const isGarlic = fieldId === 'extra_garlic_qty';
+    const unitCost = isGarlic ? (window.GARLIC_PRICE || 10) : (window.BASIL_PRICE || 10);
     const displayEl = document.getElementById(isGarlic ? 'extraGarlicDisplay' : 'extraBasilDisplay');
     const priceEl = document.getElementById(isGarlic ? 'extraGarlicPrice' : 'extraBasilPrice');
     if (displayEl) displayEl.textContent = newVal;
-    if (priceEl) priceEl.textContent = '+$' + (newVal * extraCost);
+    if (priceEl) priceEl.textContent = '+$' + (newVal * unitCost);
 
     updateTotal();
 }
@@ -17,8 +17,7 @@ function changeExtra(fieldId, delta) {
 function updateTotal() {
     const garlic = parseInt(document.getElementById('extra_garlic_qty')?.value || 0);
     const basil = parseInt(document.getElementById('extra_basil_qty')?.value || 0);
-    const extraCost = window.EXTRA_INGREDIENT_COST || 10;
-    const extra = (garlic + basil) * extraCost;
+    const extra = garlic * (window.GARLIC_PRICE || 10) + basil * (window.BASIL_PRICE || 10);
 
     let customTotal = 0;
     document.querySelectorAll('.custom-extra-check:checked').forEach(cb => {

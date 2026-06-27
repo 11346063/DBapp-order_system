@@ -24,7 +24,7 @@ Props:
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label text-secondary small">{% blocktrans with cost=extra_ingredient_cost %}加料（每份 +${{ cost }}）{% endblocktrans %}</label>
+                <label class="form-label text-secondary small">{% blocktrans with garlic=garlic_price basil=basil_price %}加蒜 +${{ garlic }}／九層塔 +${{ basil }}{% endblocktrans %}</label>
                 <div class="extra-row mb-2">
                     <span>{% trans "加蒜頭" %}</span>
                     <div class="extra-ctrl">

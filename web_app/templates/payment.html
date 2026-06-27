@@ -27,7 +27,7 @@
         {% endif %}
 
         {% url 'web_app:order_submit' as order_submit_url %}
-        {% include 'includes/components/payment_submit_card.html' with total=0 submit_url=order_submit_url is_staff_order=is_staff_order custom_options=custom_options extra_ingredient_cost=extra_ingredient_cost checkout_phone_default=checkout_phone_default %}
+        {% include 'includes/components/payment_submit_card.html' with total=0 submit_url=order_submit_url is_staff_order=is_staff_order custom_options=custom_options garlic_price=garlic_price basil_price=basil_price checkout_phone_default=checkout_phone_default %}
     </div>
 </div>
 {% endblock %}
@@ -37,6 +37,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>window.EXTRA_INGREDIENT_COST = {{ extra_ingredient_cost }};</script>
+<script>window.GARLIC_PRICE = {{ garlic_price }};window.BASIL_PRICE = {{ basil_price }};</script>
 <script src="{% static 'js/payment.js' %}?v=7"></script>
 {% endblock %}
