@@ -2,8 +2,12 @@
   "use strict";
 
   var RECONNECT_DELAY_MS = 3000;
+  var POLL_INTERVAL_MS = 5000;
+  var MAX_WS_FAILURES = 3;
   var ws = null;
   var retries = 0;
+  var wsFailures = 0;
+  var pollTimer = null;
 
   function connect() {
     var protocol = location.protocol === "https:" ? "wss" : "ws";
@@ -11,7 +15,12 @@
 
     ws.onopen = function () {
       console.debug("[WS-Staff] connected");
-      // 重連後補拉最新狀態，避免連線期間丟失的通知
+      wsFailures = 0;
+      if (pollTimer !== null) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+        console.debug("[WS-Staff] WebSocket 重連成功 — 停止輪詢備援");
+      }
       var grid = document.getElementById("staffOrderGrid") || document.getElementById("kanbanBoard");
       if (grid && retries > 0) {
         location.reload();
@@ -20,7 +29,12 @@
 
     ws.onclose = function () {
       retries++;
-      console.debug("[WS-Staff] disconnected — retry " + retries + " in " + RECONNECT_DELAY_MS + "ms");
+      wsFailures++;
+      console.debug("[WS-Staff] disconnected — retry " + retries + " (failures=" + wsFailures + ") in " + RECONNECT_DELAY_MS + "ms");
+      if (wsFailures >= MAX_WS_FAILURES && pollTimer === null) {
+        console.warn("[WS-Staff] 降級為 5 秒輪詢備援");
+        pollTimer = setInterval(function () { location.reload(); }, POLL_INTERVAL_MS);
+      }
       setTimeout(connect, RECONNECT_DELAY_MS);
     };
 

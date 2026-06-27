@@ -16,10 +16,8 @@
             </div>
             <h4 class="fw-bold mb-2">{% trans "等待店家確認訂單中..." %}</h4>
             <p class="text-secondary mb-0">{% trans "請稍候，店家確認後將自動顯示結果" %}</p>
-            <p id="errorHint" class="text-danger mt-3 d-none">
-                {% trans "連線異常，請" %}
-                <a href="javascript:location.reload()" class="text-warning">{% trans "重新整理" %}</a>
-                {% trans "後再試" %}
+            <p id="fallbackHint" class="text-warning mt-3 d-none small">
+                <i class="bi bi-arrow-repeat me-1"></i>{% trans "連線異常，自動更新中（每 5 秒）..." %}
             </p>
             <div class="mt-4">
                 <button id="customerCancelBtn" class="btn btn-outline-secondary btn-sm"
@@ -87,6 +85,29 @@
     let retries = 0;
     let resolved = false;
     let ws = null;
+    let pollTimer = null;
+
+    function pollStatus() {
+        if (resolved) { stopPollFallback(); return; }
+        fetch('/api/orders/' + ORDER_ID + '/customer-status/', { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(json) {
+                var d = json.data;
+                var status = d && d.order_status;
+                if (status === 1) { resolved = true; stopPollFallback(); showAccepted(d); }
+                else if (status === 4) { resolved = true; stopPollFallback(); showCancelled(d && d.cancel_reason); }
+            })
+            .catch(function() {});
+    }
+    function startPollFallback() {
+        if (pollTimer !== null) return;
+        document.getElementById('fallbackHint').classList.remove('d-none');
+        pollTimer = setInterval(pollStatus, 5000);
+    }
+    function stopPollFallback() {
+        if (pollTimer !== null) { clearInterval(pollTimer); pollTimer = null; }
+        document.getElementById('fallbackHint').classList.add('d-none');
+    }
 
     function showAccepted(data) {
         document.getElementById('waitingSection').classList.add('d-none');
@@ -105,10 +126,6 @@
             reasonEl.textContent = reason;
             reasonEl.classList.remove('d-none');
         }
-    }
-
-    function showError() {
-        document.getElementById('errorHint').classList.remove('d-none');
     }
 
     // 初始 HTTP fallback：頁面載入時訂單可能已被接單（例如重新整理頁面）
@@ -162,6 +179,7 @@
 
         ws.onopen = function () {
             console.debug('[WS-Order] connected (retry=' + retries + ')');
+            stopPollFallback();
         };
 
         ws.onmessage = function (e) {
@@ -188,7 +206,8 @@
                 retries++;
                 setTimeout(connectWs, RECONNECT_DELAY_MS);
             } else {
-                showError();
+                startPollFallback();
+                setTimeout(connectWs, RECONNECT_DELAY_MS * 2);
             }
         };
     }
