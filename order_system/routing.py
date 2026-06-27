@@ -1,4 +1,5 @@
 from django.urls import re_path
+
 from web_app.websockets.customer import CustomerOrderConsumer
 from web_app.websockets.staff import StaffConsumer
 
