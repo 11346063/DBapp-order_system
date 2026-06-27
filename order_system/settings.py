@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "channels",
     "rest_framework",
     "drf_spectacular",
+    "import_export",
 ]
 
 MIDDLEWARE = [

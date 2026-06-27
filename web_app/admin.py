@@ -3,6 +3,7 @@ import csv
 from django.contrib import admin
 from django.db.models import Count
 from django.http import HttpResponse
+from import_export.admin import ExportActionMixin, ImportExportModelAdmin
 
 from .enums import OrderStatus
 from .models.menu import Menu
@@ -15,6 +16,7 @@ from .models.print_job import PrintJob
 from .models.store_settings import StoreSettings
 from .models.type import Type
 from .models.user import User
+from .resources import MenuResource, OptionsResource, OrderResource, UserResource
 
 
 # ── Inlines ────────────────────────────────────────────────────────────────────
@@ -39,7 +41,6 @@ class OrderItemInline(admin.TabularInline):
     verbose_name_plural = "訂購品項"
 
     def get_queryset(self, request):
-        # 顯示含軟刪除的所有品項
         return OrderItem.all_objects.all()
 
 
@@ -58,7 +59,7 @@ def mark_cancelled(modeladmin, request, queryset):
     modeladmin.message_user(request, f"已將 {updated} 筆訂單標為「已取消」。")
 
 
-@admin.action(description="匯出選取訂單為 CSV")
+@admin.action(description="匯出選取訂單為 CSV（舊版）")
 def export_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type="text/csv; charset=utf-8-sig")
     response["Content-Disposition"] = 'attachment; filename="orders.csv"'
@@ -94,7 +95,8 @@ _STATUS_LABEL = {
 
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
+class OrderAdmin(ExportActionMixin, admin.ModelAdmin):
+    resource_classes = [OrderResource]
     list_display = (
         "id",
         "pickup_code",
@@ -119,18 +121,8 @@ class OrderAdmin(admin.ModelAdmin):
         "price_total",
     )
     fieldsets = (
-        (
-            "訂單識別",
-            {
-                "fields": ("id", "pickup_code", "status", "customer_phone"),
-            },
-        ),
-        (
-            "金額與備註",
-            {
-                "fields": ("price_total", "remark", "cancel_reason"),
-            },
-        ),
+        ("訂單識別", {"fields": ("id", "pickup_code", "status", "customer_phone")}),
+        ("金額與備註", {"fields": ("price_total", "remark", "cancel_reason")}),
         (
             "時間紀錄",
             {
@@ -163,7 +155,8 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 @admin.register(Menu)
-class MenuAdmin(admin.ModelAdmin):
+class MenuAdmin(ImportExportModelAdmin):
+    resource_classes = [MenuResource]
     list_display = ("name", "type", "price", "status", "remark")
     list_editable = ("price",)
     list_filter = ("type", "status")
@@ -171,7 +164,8 @@ class MenuAdmin(admin.ModelAdmin):
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(ExportActionMixin, admin.ModelAdmin):
+    resource_classes = [UserResource]
     list_display = (
         "name",
         "account",
@@ -199,15 +193,19 @@ class StoreSettingsAdmin(admin.ModelAdmin):
     list_display = ("id", "business_hours_enabled", "open_time", "close_time")
 
     def has_add_permission(self, request):
-        # 僅允許一筆設定記錄
         return not StoreSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False
 
 
-# ── 基礎模型（無需客製化）──────────────────────────────────────────────────────
+@admin.register(Options)
+class OptionsAdmin(ImportExportModelAdmin):
+    resource_classes = [OptionsResource]
+    list_display = ("name", "price", "is_custom_extra", "is_active")
+    list_filter = ("is_custom_extra", "is_active")
+    search_fields = ("name",)
+
 
 admin.site.register(Type)
-admin.site.register(Options)
 admin.site.register(OptGroup)
