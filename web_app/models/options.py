@@ -8,9 +8,14 @@ class Options(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        verbose_name = "選項"
+        verbose_name_plural = "選項"
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(price__gte=0),
                 name="options_price_non_negative",
             )
         ]
+
+    def __str__(self):
+        return self.name

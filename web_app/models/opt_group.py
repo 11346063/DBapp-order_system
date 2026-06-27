@@ -11,3 +11,8 @@ class OptGroup(models.Model):
 
     class Meta:
         unique_together = ("menu", "opt")
+        verbose_name = "菜單選項關聯"
+        verbose_name_plural = "菜單選項關聯"
+
+    def __str__(self):
+        return f"{self.menu} - {self.opt}"

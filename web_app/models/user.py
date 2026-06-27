@@ -55,6 +55,9 @@ class User(AbstractBaseUser):
     def is_superuser(self):
         return self.identity == Identity.ADMIN
 
+    def get_all_permissions(self, obj=None):
+        return set()
+
     def has_perm(self, perm, obj=None):
         return self.identity == Identity.ADMIN
 
