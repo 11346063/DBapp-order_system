@@ -7,11 +7,12 @@ from web_app.api.views.cart import (
 from web_app.api.views.menu import (
     MenuCreateAPIView,
     MenuDetailAPIView,
+    MenuListAPIView,
     MenuSoldOutTodayAPIView,
     MenuToggleAPIView,
     MenuUpdateAPIView,
 )
-from web_app.api.views.options import OptionUpdateAPIView
+from web_app.api.views.options import OptionUpdateAPIView, OptionsListAPIView
 from web_app.api.views.order import (
     CustomerCancelOrderAPIView,
     OrderAcceptAPIView,
@@ -30,6 +31,7 @@ from web_app.api.views.print import (
 
 urlpatterns = [
     # Menu
+    path("menu/", MenuListAPIView.as_view(), name="menu_list_api"),
     path("menu/<int:pk>/", MenuDetailAPIView.as_view(), name="menu_detail_api"),
     path("menu/<int:pk>/toggle/", MenuToggleAPIView.as_view(), name="menu_toggle"),
     path("menu/<int:pk>/edit/", MenuUpdateAPIView.as_view(), name="menu_edit"),
@@ -40,6 +42,7 @@ urlpatterns = [
     ),
     path("menu/create/", MenuCreateAPIView.as_view(), name="menu_create"),
     # Options
+    path("options/", OptionsListAPIView.as_view(), name="options_list_api"),
     path("options/<int:pk>/", OptionUpdateAPIView.as_view(), name="api_option_update"),
     # Cart — validate & sync only (CRUD 由前端 localStorage 處理)
     path(

@@ -1,6 +1,8 @@
 from drf_spectacular.utils import (
     OpenApiExample,
+    OpenApiParameter,
     OpenApiResponse,
+    OpenApiTypes,
     extend_schema,
     inline_serializer,
 )
@@ -11,7 +13,7 @@ from rest_framework.views import APIView
 
 from web_app.api.permissions import IsAdmin, IsEmployee
 from web_app.api.serializers.menu import MenuDetailSerializer, MenuSerializer
-from web_app.api.utils import api_success
+from web_app.api.utils import api_error, api_success
 from web_app.services import menu as menu_service
 
 # ---------- 共用 inline schema ----------
@@ -56,6 +58,99 @@ _MenuToggleSuccessResponse = inline_serializer(
         ),
     },
 )
+
+
+_MenuListSuccessResponse = inline_serializer(
+    name="MenuListSuccessResponse",
+    fields={
+        "status": serializers.CharField(default="success"),
+        "message": serializers.CharField(default="操作成功"),
+        "data": inline_serializer(
+            name="MenuListData",
+            fields={
+                "items": MenuSerializer(many=True),
+                "total": serializers.IntegerField(help_text="符合篩選條件的品項總筆數"),
+            },
+        ),
+    },
+)
+
+
+class MenuListAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        operation_id="menu_list",
+        summary="取得菜單列表",
+        description=(
+            "回傳所有符合篩選條件的餐點列表，依「分類名稱 → 餐點名稱」排序。\n\n"
+            "- 未登入或一般顧客：僅回傳**上架（status=true）**的品項。\n"
+            "- 員工／管理員（JWT）：回傳**所有**品項（含下架）。\n"
+            "- `type_id` 可過濾特定分類；`q` 可搜尋名稱、描述、備註、分類名稱。"
+        ),
+        tags=["菜單"],
+        parameters=[
+            OpenApiParameter(
+                name="type_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="依分類 ID 過濾（選填）",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="q",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="關鍵字搜尋（名稱、描述、備註、分類名稱）",
+                required=False,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=_MenuListSuccessResponse,
+                description="成功取得菜單列表",
+                examples=[
+                    OpenApiExample(
+                        "成功範例",
+                        value={
+                            "status": "success",
+                            "message": "操作成功",
+                            "data": {
+                                "items": [
+                                    {
+                                        "id": 1,
+                                        "name": "雞排",
+                                        "price": 80,
+                                        "info": "外皮酥脆",
+                                        "remark": "可加辣",
+                                        "type_id": 1,
+                                        "type_name": "炸雞類",
+                                        "status": True,
+                                        "today_sold_out": None,
+                                        "image_url": "/media/image/chicken.jpg",
+                                    }
+                                ],
+                                "total": 1,
+                            },
+                        },
+                    )
+                ],
+            ),
+        },
+    )
+    def get(self, request):
+        query = request.query_params.get("q", "")
+        type_id = request.query_params.get("type_id")
+
+        qs = menu_service.visible_menus_for_user(request.user, query)
+        if type_id:
+            try:
+                qs = qs.filter(type_id=int(type_id))
+            except (ValueError, TypeError):
+                return api_error("type_id 必須是整數", status=400)
+
+        serializer = MenuSerializer(qs, many=True, context={"request": request})
+        return api_success({"items": serializer.data, "total": len(serializer.data)})
 
 
 class MenuDetailAPIView(APIView):

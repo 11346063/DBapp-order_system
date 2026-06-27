@@ -13,17 +13,20 @@ from web_app.constants import (
 )
 from web_app.models import Options
 
+_SYSTEM_OPTIONS = [
+    (SPICY_OPTION_ID, "辣度", 0),
+    (GARLIC_OPTION_ID, "加蒜", 10),
+    (BASIL_OPTION_ID, "九層塔", 10),
+    (CUT_OPTION_ID, "切", 0),
+]
+
 
 def seed_system_options():
-    Options.objects.update_or_create(
-        pk=SPICY_OPTION_ID, defaults={"name": "辣度", "price": 0}
-    )
-    Options.objects.update_or_create(
-        pk=GARLIC_OPTION_ID, defaults={"name": "加蒜", "price": 10}
-    )
-    Options.objects.update_or_create(
-        pk=BASIL_OPTION_ID, defaults={"name": "九層塔", "price": 10}
-    )
-    Options.objects.update_or_create(
-        pk=CUT_OPTION_ID, defaults={"name": "切", "price": 0}
+    # bulk_create(ignore_conflicts=True) → MySQL INSERT IGNORE.
+    # Existing rows are silently skipped with no exclusive lock, avoiding
+    # InnoDB deadlocks that occur when UPDATE/SELECT FOR UPDATE compete for
+    # the same fixed-PK rows inside TestCase nested savepoints.
+    Options.objects.bulk_create(
+        [Options(id=pk, name=name, price=price) for pk, name, price in _SYSTEM_OPTIONS],
+        ignore_conflicts=True,
     )
