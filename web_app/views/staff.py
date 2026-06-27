@@ -12,7 +12,8 @@ from django.db.models import Count, Prefetch, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from web_app.forms.register_form import AdminAccountCreateForm
-from web_app.models import Identity, Order, OrderItem, OrderItemOption, User
+from web_app.constants import SYSTEM_OPTION_IDS
+from web_app.models import Identity, Options, Order, OrderItem, OrderItemOption, User
 from web_app.decorators import employee_required, admin_required
 from web_app.services import order as order_service
 from web_app.services import report as report_service
@@ -321,17 +322,7 @@ def staff_settings_view(request):
             messages.error(request, _("加料單價必須是非負整數"))
             return redirect("web_app:staff_settings")
 
-        new_data = {
-            "extra_ingredient_cost": extra_cost,
-            "option_name_spicy": request.POST.get("option_name_spicy", "").strip(),
-            "option_name_garlic": request.POST.get("option_name_garlic", "").strip(),
-            "option_name_basil": request.POST.get("option_name_basil", "").strip(),
-            "option_name_cut": request.POST.get("option_name_cut", "").strip(),
-        }
-        for key, val in new_data.items():
-            if key != "extra_ingredient_cost" and not val:
-                messages.error(request, _("選項名稱不可為空"))
-                return redirect("web_app:staff_settings")
+        new_data = {"extra_ingredient_cost": extra_cost}
 
         try:
             open_time = datetime.strptime(
@@ -354,11 +345,13 @@ def staff_settings_view(request):
         messages.success(request, _("系統設定已更新"))
         return redirect("web_app:staff_settings")
 
+    system_options = list(Options.objects.filter(pk__in=SYSTEM_OPTION_IDS).order_by("pk"))
     return render(
         request,
         "staff/settings.html",
         {
             "settings": settings_service.get_settings(),
+            "system_options": system_options,
             "custom_options": settings_service.get_custom_options(),
             "status_counts": status_counts,
             "current_status": None,

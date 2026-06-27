@@ -7,8 +7,13 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 
-from web_app.services.store_settings import get_settings, is_store_open
+from web_app.constants import (
+    BASIL_OPTION_ID,
+    GARLIC_OPTION_ID,
+    SPICY_OPTION_ID,
+)
 from web_app.enums import SpicyLevel
+from web_app.services.store_settings import get_settings, is_store_open
 from web_app.models import Identity, Menu, Order, OrderItem, OrderItemOption, Options
 from web_app.services import cart as cart_service
 from web_app.services import printing as printing_service
@@ -141,15 +146,15 @@ async def async_order_status_counts():
     }
 
 
-def _describe_order_option(option_link, s):
+def _describe_order_option(option_link):
     """將單一 order-level 選項分類為顯示資訊 {label, css, style}；無法辨識回傳 None。
 
     此為 order-level 選項表現層的單一事實來源，供字串版（format_order_options）
     與標籤版（format_order_option_tags）共用，避免分類/標籤邏輯重複。
     """
-    name = option_link.opt.name
     level = option_link.level
-    if name == s.option_name_spicy:
+    opt_id = option_link.opt_id
+    if opt_id == SPICY_OPTION_ID:
         label = SpicyLevel.display(level)
         if level == SpicyLevel.NONE:
             return {
@@ -158,34 +163,32 @@ def _describe_order_option(option_link, s):
                 "style": "background-color:#9a7200;",
             }
         return {"label": label, "css": "bg-danger text-white", "style": ""}
-    if name == s.option_name_garlic:
+    if opt_id == GARLIC_OPTION_ID:
         return {"label": f"加蒜頭x{level}", "css": "bg-primary text-white", "style": ""}
-    if name == s.option_name_basil:
+    if opt_id == BASIL_OPTION_ID:
         return {
             "label": f"加九層塔x{level}",
             "css": "bg-primary text-white",
             "style": "",
         }
     if option_link.opt.is_custom_extra:
-        return {"label": name, "css": "bg-success text-white", "style": ""}
+        return {"label": option_link.opt.name, "css": "bg-success text-white", "style": ""}
     return None
 
 
 def format_order_options(raw_opts, settings=None):
-    s = settings or get_settings()
     parts = []
     for option_link in raw_opts:
-        info = _describe_order_option(option_link, s)
+        info = _describe_order_option(option_link)
         if info:
             parts.append(info["label"])
     return "｜".join(parts)
 
 
 def format_order_option_tags(raw_opts, settings=None):
-    s = settings or get_settings()
     tags = []
     for option_link in raw_opts:
-        info = _describe_order_option(option_link, s)
+        info = _describe_order_option(option_link)
         if info:
             tags.append(info)
     return tags
@@ -397,20 +400,14 @@ def create_order_from_cart(user, cart, checkout_data):
     custom_cost = sum(opt.price for opt in custom_opts)
 
     total = cart_service.cart_total(cart)
-    extra_cost = (
-        data["extra_garlic_qty"] + data["extra_basil_qty"]
-    ) * s.extra_ingredient_cost
+    garlic_price = Options.objects.filter(pk=GARLIC_OPTION_ID).values_list("price", flat=True).first() or 0
+    basil_price = Options.objects.filter(pk=BASIL_OPTION_ID).values_list("price", flat=True).first() or 0
+    extra_cost = data["extra_garlic_qty"] * garlic_price + data["extra_basil_qty"] * basil_price
     price_total = total + extra_cost + custom_cost
 
     initial_status = (
         Order.OrderStatus.ACCEPTED if is_staff_order else Order.OrderStatus.SUBMITTED
     )
-    system_option_names = [
-        s.option_name_spicy,
-        s.option_name_garlic,
-        s.option_name_basil,
-        s.option_name_cut,
-    ]
     menu_ids = [item["menu_id"] for item in cart]
     with transaction.atomic():
         # 一次批量鎖定並濾除已下架餐點（取代迴圈內逐筆 Menu.get 的 N+1），
@@ -435,11 +432,6 @@ def create_order_from_cart(user, cart, checkout_data):
             customer_phone=data["customer_phone"],
         )
 
-        opts = {
-            option.name: option
-            for option in Options.objects.filter(name__in=system_option_names)
-        }
-
         for item in cart:
             menu = menus_by_id[item["menu_id"]]
 
@@ -459,20 +451,19 @@ def create_order_from_cart(user, cart, checkout_data):
                         level=int(opt_data.get("level", 1)),
                     )
 
-        if s.option_name_spicy in opts:
-            OrderItemOption.objects.create(
-                order=order, opt=opts[s.option_name_spicy], level=data["spicy_level"]
-            )
-        if data["extra_garlic_qty"] > 0 and s.option_name_garlic in opts:
+        OrderItemOption.objects.create(
+            order=order, opt_id=SPICY_OPTION_ID, level=data["spicy_level"]
+        )
+        if data["extra_garlic_qty"] > 0:
             OrderItemOption.objects.create(
                 order=order,
-                opt=opts[s.option_name_garlic],
+                opt_id=GARLIC_OPTION_ID,
                 level=data["extra_garlic_qty"],
             )
-        if data["extra_basil_qty"] > 0 and s.option_name_basil in opts:
+        if data["extra_basil_qty"] > 0:
             OrderItemOption.objects.create(
                 order=order,
-                opt=opts[s.option_name_basil],
+                opt_id=BASIL_OPTION_ID,
                 level=data["extra_basil_qty"],
             )
 
@@ -525,12 +516,6 @@ def create_staff_order_from_items(user, validated_data):
 
     menu_ids = [item["menu_id"] for item in items]
     pickup_code = generate_pickup_code(data["customer_phone"])
-    system_option_names = [
-        s.option_name_spicy,
-        s.option_name_garlic,
-        s.option_name_basil,
-    ]
-
     with transaction.atomic():
         menus_by_id = {
             m.pk: m
@@ -549,9 +534,9 @@ def create_staff_order_from_items(user, validated_data):
         menu_total = sum(
             menus_by_id[item["menu_id"]].price * item["qty"] for item in items
         )
-        extra_cost = (
-            data["extra_garlic_qty"] + data["extra_basil_qty"]
-        ) * s.extra_ingredient_cost
+        garlic_price = Options.objects.filter(pk=GARLIC_OPTION_ID).values_list("price", flat=True).first() or 0
+        basil_price = Options.objects.filter(pk=BASIL_OPTION_ID).values_list("price", flat=True).first() or 0
+        extra_cost = data["extra_garlic_qty"] * garlic_price + data["extra_basil_qty"] * basil_price
         price_total = menu_total + extra_cost + custom_cost
 
         order = Order.objects.create(
@@ -563,11 +548,6 @@ def create_staff_order_from_items(user, validated_data):
             accepted_at=timezone.now(),
             pickup_code=pickup_code,
         )
-
-        opts = {
-            option.name: option
-            for option in Options.objects.filter(name__in=system_option_names)
-        }
 
         for item_data in items:
             menu = menus_by_id[item_data["menu_id"]]
@@ -586,20 +566,19 @@ def create_staff_order_from_items(user, validated_data):
                         level=int(opt_data.get("level", 1)),
                     )
 
-        if s.option_name_spicy in opts:
-            OrderItemOption.objects.create(
-                order=order, opt=opts[s.option_name_spicy], level=data["spicy_level"]
-            )
-        if data["extra_garlic_qty"] > 0 and s.option_name_garlic in opts:
+        OrderItemOption.objects.create(
+            order=order, opt_id=SPICY_OPTION_ID, level=data["spicy_level"]
+        )
+        if data["extra_garlic_qty"] > 0:
             OrderItemOption.objects.create(
                 order=order,
-                opt=opts[s.option_name_garlic],
+                opt_id=GARLIC_OPTION_ID,
                 level=data["extra_garlic_qty"],
             )
-        if data["extra_basil_qty"] > 0 and s.option_name_basil in opts:
+        if data["extra_basil_qty"] > 0:
             OrderItemOption.objects.create(
                 order=order,
-                opt=opts[s.option_name_basil],
+                opt_id=BASIL_OPTION_ID,
                 level=data["extra_basil_qty"],
             )
         for custom_opt in custom_opts:

@@ -6,60 +6,57 @@
 {% block staff_content %}
 <div class="mb-4">
     <h4 class="text-yellow fw-bold"><i class="bi bi-gear me-2"></i>{% trans "系統設定" %}</h4>
-    <p class="text-secondary">{% trans "調整加料單價與系統選項名稱。選項名稱更動會同步更新資料庫，請謹慎操作。" %}</p>
+    <p class="text-secondary">{% trans "調整系統選項名稱與價格，以及營業時間設定。" %}</p>
 </div>
 
+{% comment %} 系統選項名稱（PATCH 直接更新 Options 表） {% endcomment %}
+<div class="card-dark p-4 mb-4">
+    <h6 class="text-yellow mb-3"><i class="bi bi-tag me-1"></i>{% trans "系統選項" %}</h6>
+    <p class="text-secondary small mb-3">{% trans "點擊名稱或價格欄位直接編輯，系統會即時儲存。辣度/切法不允許修改價格。" %}</p>
+    <div class="table-responsive">
+        <table class="table table-dark table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "名稱" %}</th>
+                    <th>{% trans "單價（元）" %}</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for opt in system_options %}
+                <tr id="sys-opt-row-{{ opt.pk }}">
+                    <td>
+                        <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary sys-opt-name"
+                               data-pk="{{ opt.pk }}" value="{{ opt.name }}" maxlength="255" style="max-width:160px;">
+                    </td>
+                    <td>
+                        {% if opt.pk == 1 or opt.pk == 4 %}
+                        <span class="text-secondary">—</span>
+                        {% else %}
+                        <div class="input-group input-group-sm" style="max-width:120px;">
+                            <span class="input-group-text bg-dark border-secondary text-secondary">$</span>
+                            <input type="number" class="form-control bg-dark text-white border-secondary sys-opt-price"
+                                   data-pk="{{ opt.pk }}" value="{{ opt.price }}" min="0">
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-success sys-opt-save py-0 px-2" data-pk="{{ opt.pk }}">
+                            {% trans "儲存" %}
+                        </button>
+                        <span class="text-success small ms-1 sys-opt-msg d-none" data-pk="{{ opt.pk }}">✓</span>
+                        <span class="text-danger small ms-1 sys-opt-err d-none" data-pk="{{ opt.pk }}"></span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% comment %} 營業時間 {% endcomment %}
 <form method="post">
     {% csrf_token %}
-
-    <div class="card-dark p-4 mb-4">
-        <h6 class="text-yellow mb-3"><i class="bi bi-currency-dollar me-1"></i>{% trans "加料定價" %}</h6>
-        <div class="mb-3">
-            <label for="extra_ingredient_cost" class="form-label text-secondary">
-                {% trans "加蒜 / 九層塔每份單價（元）" %}
-            </label>
-            <div class="input-group" style="max-width:200px;">
-                <span class="input-group-text bg-dark border-secondary text-secondary">$</span>
-                <input type="number" class="form-control bg-dark text-white border-secondary"
-                       id="extra_ingredient_cost" name="extra_ingredient_cost"
-                       value="{{ settings.extra_ingredient_cost }}" min="0" required>
-            </div>
-        </div>
-    </div>
-
-    <div class="card-dark p-4 mb-4">
-        <h6 class="text-yellow mb-3"><i class="bi bi-tag me-1"></i>{% trans "系統選項名稱" %}</h6>
-        <div class="alert alert-warning py-2 mb-3" role="alert">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            {% trans "更改選項名稱將同步修改資料庫中對應的選項記錄，已完成的歷史訂單顯示可能受影響。" %}
-        </div>
-        <div class="row g-3">
-            <div class="col-12 col-sm-6">
-                <label for="option_name_spicy" class="form-label text-secondary">{% trans "辣度選項名稱" %}</label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       id="option_name_spicy" name="option_name_spicy"
-                       value="{{ settings.option_name_spicy }}" maxlength="20" required>
-            </div>
-            <div class="col-12 col-sm-6">
-                <label for="option_name_garlic" class="form-label text-secondary">{% trans "加蒜選項名稱" %}</label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       id="option_name_garlic" name="option_name_garlic"
-                       value="{{ settings.option_name_garlic }}" maxlength="20" required>
-            </div>
-            <div class="col-12 col-sm-6">
-                <label for="option_name_basil" class="form-label text-secondary">{% trans "九層塔選項名稱" %}</label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       id="option_name_basil" name="option_name_basil"
-                       value="{{ settings.option_name_basil }}" maxlength="20" required>
-            </div>
-            <div class="col-12 col-sm-6">
-                <label for="option_name_cut" class="form-label text-secondary">{% trans "切法選項名稱" %}</label>
-                <input type="text" class="form-control bg-dark text-white border-secondary"
-                       id="option_name_cut" name="option_name_cut"
-                       value="{{ settings.option_name_cut }}" maxlength="20" required>
-            </div>
-        </div>
-    </div>
 
     <div class="card-dark p-4 mb-4">
         <h6 class="text-yellow mb-3"><i class="bi bi-clock me-1"></i>{% trans "營業時間" %}</h6>
@@ -92,7 +89,7 @@
 
     <div class="d-flex gap-3">
         <button type="submit" class="btn btn-yellow fw-bold px-4">
-            <i class="bi bi-check-lg me-1"></i>{% trans "儲存設定" %}
+            <i class="bi bi-check-lg me-1"></i>{% trans "儲存營業時間" %}
         </button>
         <a href="{% url 'web_app:staff_orders' %}" class="btn btn-outline-secondary px-4">
             {% trans "取消" %}
@@ -173,4 +170,43 @@
         </div>
     </form>
 </div>
+
+<script>
+document.querySelectorAll('.sys-opt-save').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const pk = btn.dataset.pk;
+        const nameInput = document.querySelector(`.sys-opt-name[data-pk="${pk}"]`);
+        const priceInput = document.querySelector(`.sys-opt-price[data-pk="${pk}"]`);
+        const msgEl = document.querySelector(`.sys-opt-msg[data-pk="${pk}"]`);
+        const errEl = document.querySelector(`.sys-opt-err[data-pk="${pk}"]`);
+
+        const body = { name: nameInput.value.trim() };
+        if (priceInput) body.price = parseInt(priceInput.value, 10);
+
+        try {
+            const resp = await fetch(`/api/options/${pk}/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+                },
+                body: JSON.stringify(body),
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                msgEl.classList.remove('d-none');
+                errEl.classList.add('d-none');
+                setTimeout(() => msgEl.classList.add('d-none'), 2000);
+            } else {
+                errEl.textContent = data.message || '儲存失敗';
+                errEl.classList.remove('d-none');
+                msgEl.classList.add('d-none');
+            }
+        } catch {
+            errEl.textContent = '網路錯誤';
+            errEl.classList.remove('d-none');
+        }
+    });
+});
+</script>
 {% endblock %}

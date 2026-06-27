@@ -12,10 +12,10 @@ from rest_framework.views import APIView
 
 from web_app.api.permissions import IsEmployee, IsPrintAgent
 from web_app.api.utils import api_success
+from web_app.constants import CUT_OPTION_ID
 from web_app.models import Order
 from web_app.services import order as order_service
 from web_app.services import printing as printing_service
-from web_app.services import store_settings as settings_service
 from web_app.services.exceptions import NotFoundError
 
 _PrintErrorResponse = inline_serializer(
@@ -27,14 +27,14 @@ _PrintErrorResponse = inline_serializer(
 )
 
 
-def _build_ticket_payload(job, s):
+def _build_ticket_payload(job):
     """將 PrintJob 的訂單組成代理排版所需的結構化資料。"""
     order = job.order
     items = []
     for item in order.orderitem_set.all():
         opt_labels = []
         for oi in item.orderitemoption_set.all():
-            if oi.opt.name == s.option_name_cut:
+            if oi.opt_id == CUT_OPTION_ID:
                 opt_labels.append("切" if oi.level == 1 else "不切")
             else:
                 opt_labels.append(oi.opt.name)
@@ -55,7 +55,7 @@ def _build_ticket_payload(job, s):
         "pickup_code": order.pickup_code,
         "customer_phone": order.customer_phone,
         "created_at": order.created_at.strftime("%Y-%m-%d %H:%M"),
-        "order_options": order_service.format_order_options(order_level, s),
+        "order_options": order_service.format_order_options(order_level),
         "remark": order.remark,
         "items": items,
         "price_total": order.price_total,
@@ -133,9 +133,8 @@ class PrintPendingAPIView(APIView):
         },
     )
     def get(self, request):
-        s = settings_service.get_settings()
         jobs = printing_service.get_pending_jobs()
-        return api_success({"jobs": [_build_ticket_payload(j, s) for j in jobs]})
+        return api_success({"jobs": [_build_ticket_payload(j) for j in jobs]})
 
 
 class PrintAckAPIView(APIView):

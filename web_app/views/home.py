@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
+from web_app.constants import BASIL_OPTION_ID, CUT_OPTION_ID, GARLIC_OPTION_ID
 from web_app.models import Identity, Menu, Options, Type
 from web_app.services import menu as menu_service
 from web_app.services import store_settings as settings_service
@@ -68,10 +69,9 @@ def assisted_ordering_view(request):
     search_query = request.GET.get("q", "").strip()
     menus = menu_service.assisted_ordering_menus(search_query)
 
-    s = settings_service.get_settings()
     custom_options = settings_service.get_active_custom_options()
 
-    cut_option = Options.objects.filter(name=s.option_name_cut).first()
+    cut_option = Options.objects.filter(pk=CUT_OPTION_ID).first()
     cut_required_ids = (
         set(
             Menu.objects.filter(status=True, options=cut_option).values_list(
@@ -82,6 +82,19 @@ def assisted_ordering_view(request):
         else set()
     )
 
+    garlic_price = (
+        Options.objects.filter(pk=GARLIC_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
+    basil_price = (
+        Options.objects.filter(pk=BASIL_OPTION_ID)
+        .values_list("price", flat=True)
+        .first()
+        or 0
+    )
+
     return render(
         request,
         "assisted_ordering.html",
@@ -90,7 +103,8 @@ def assisted_ordering_view(request):
             "menus": menus,
             "search_query": search_query,
             "custom_options": custom_options,
-            "extra_ingredient_cost": s.extra_ingredient_cost,
+            "garlic_price": garlic_price,
+            "basil_price": basil_price,
             "cut_required_ids": cut_required_ids,
             "cut_required_ids_json": json.dumps(list(cut_required_ids)),
         },
