@@ -701,3 +701,245 @@ msgstr "Staff order submitted and auto-accepted."
 
 msgid "訂單已送出，等待店家接單"
 msgstr "Order submitted, waiting for acceptance."
+
+# --- Settings page ---
+msgid "系統設定"
+msgstr "System Settings"
+
+msgid "調整系統選項名稱與價格，以及營業時間設定。"
+msgstr "Adjust system option names and prices, and configure business hours."
+
+msgid "系統選項"
+msgstr "System Options"
+
+msgid "點擊名稱或價格欄位直接編輯，系統會即時儲存。辣度/切法不允許修改價格。"
+msgstr "Click a name or price field to edit directly; changes are saved immediately. Spice level / cut style cannot have their price changed."
+
+msgid "名稱"
+msgstr "Name"
+
+msgid "單價（元）"
+msgstr "Unit Price (NT$)"
+
+msgid "不計費"
+msgstr "No charge"
+
+msgid "自定義加料選項"
+msgstr "Custom Add-on Options"
+
+msgid "顧客結帳時可勾選，勾選後計入訂單費用。"
+msgstr "Customers can select these at checkout; each adds to the order total."
+
+msgid "單價"
+msgstr "Unit Price"
+
+msgid "狀態"
+msgstr "Status"
+
+msgid "啟用中"
+msgstr "Active"
+
+msgid "已停用"
+msgstr "Disabled"
+
+msgid "確定刪除此選項？"
+msgstr "Are you sure you want to delete this option?"
+
+msgid "刪除"
+msgstr "Delete"
+
+msgid "尚無自定義加料選項。"
+msgstr "No custom add-on options yet."
+
+msgid "選項名稱"
+msgstr "Option Name"
+
+msgid "單價（元，可為 0）"
+msgstr "Unit Price (NT$, can be 0)"
+
+msgid "例如：加辣醬"
+msgstr "e.g. Extra sauce"
+
+msgid "新增選項"
+msgstr "Add Option"
+
+msgid "設定顧客可下單的時段範圍。"
+msgstr "Set the time range during which customers can place orders."
+
+msgid "啟用營業時間限制（非營業時段暫停顧客下單）"
+msgstr "Enable business hours restriction (orders suspended outside hours)"
+
+msgid "開始營業"
+msgstr "Opening Time"
+
+msgid "結束營業"
+msgstr "Closing Time"
+
+msgid "若結束時間早於開始時間，視為跨午夜營業（例：18:00–02:00）。員工代客點餐不受限制。"
+msgstr "If closing time is earlier than opening time, it is treated as overnight (e.g. 18:00–02:00). Staff-assisted orders are not restricted."
+
+msgid "儲存營業時間"
+msgstr "Save Business Hours"
+
+msgid "系統設定已更新"
+msgstr "System settings updated"
+
+msgid "選項已刪除"
+msgstr "Option deleted"
+
+msgid "選項已新增"
+msgstr "Option added"
+
+# --- Report page ---
+msgid "日結概覽"
+msgstr "Daily Summary"
+
+msgid "區間內已完成訂單"
+msgstr "Completed Orders in Range"
+
+msgid "此區間尚無已完成訂單"
+msgstr "No completed orders in this range"
+
+msgid "熱銷品項排行"
+msgstr "Top Selling Items"
+
+msgid "開始日期"
+msgstr "Start Date"
+
+msgid "結束日期"
+msgstr "End Date"
+
+msgid "套用"
+msgstr "Apply"
+
+msgid "營業額"
+msgstr "Revenue"
+
+msgid "銷售數量"
+msgstr "Sales Quantity"
+
+msgid "品項"
+msgstr "Item"
+
+msgid "重印"
+msgstr "Reprint"
+
+msgid "重新整理"
+msgstr "Refresh"
+
+# --- Order / cancel flow ---
+msgid "取消訂單"
+msgstr "Cancel Order"
+
+msgid "取消／拒絕訂單"
+msgstr "Cancel / Reject Order"
+
+msgid "確定要取消此訂單嗎？"
+msgstr "Are you sure you want to cancel this order?"
+
+msgid "確定要取消這筆訂單嗎？"
+msgstr "Are you sure you want to cancel this order?"
+
+msgid "取消原因（選填，顧客可見）"
+msgstr "Cancellation reason (optional, visible to customer)"
+
+msgid "例如：食材售完、打烊等"
+msgstr "e.g. Out of stock, closing early, etc."
+
+msgid "確認取消"
+msgstr "Confirm Cancellation"
+
+msgid "訂單已取消"
+msgstr "Order cancelled"
+
+msgid "訂單已確認！"
+msgstr "Order confirmed!"
+
+msgid "僅限店家接單前可取消"
+msgstr "Can only be cancelled before the store accepts the order"
+
+msgid "如有疑問請聯繫店家"
+msgstr "If you have questions, please contact the store"
+
+# --- Order status / UI ---
+msgid "取餐號碼"
+msgstr "Pickup Number"
+
+msgid "等待確認訂單"
+msgstr "Awaiting Order Confirmation"
+
+msgid "等待店家確認訂單中..."
+msgstr "Waiting for the store to confirm your order..."
+
+msgid "請稍候，店家確認後將自動顯示結果"
+msgstr "Please wait, the result will appear automatically after the store confirms"
+
+msgid "預估等待時間"
+msgstr "Estimated Wait Time"
+
+msgid "今日售完"
+msgstr "Sold Out Today"
+
+msgid "目前非營業時間，暫停接單。"
+msgstr "Currently outside business hours. Orders are suspended."
+
+# --- Misc UI ---
+msgid "免費"
+msgstr "Free"
+
+msgid "其他加料"
+msgstr "Other Add-ons"
+
+msgid "筆"
+msgstr "records"
+
+msgid "返回"
+msgstr "Back"
+
+msgid "返回主頁"
+msgstr "Back to Home"
+
+msgid "載入中"
+msgstr "Loading"
+
+msgid "讀取中..."
+msgstr "Loading..."
+
+msgid "連線異常，請"
+msgstr "Connection error, please"
+
+msgid "後再試"
+msgstr "then try again"
+
+msgid "購物車資料錯誤"
+msgstr "Cart data error"
+
+# --- Validation messages ---
+msgid "價格必須是非負整數"
+msgstr "Price must be a non-negative integer"
+
+msgid "加料單價必須是非負整數"
+msgstr "Add-on price must be a non-negative integer"
+
+msgid "營業時間格式錯誤（需為 HH:MM）"
+msgstr "Invalid business hours format (must be HH:MM)"
+
+msgid "營業時間："
+msgstr "Business hours:"
+
+msgid "營業時間"
+msgstr "Business Hours"
+
+# --- Form labels ---
+msgid "請輸入姓名"
+msgstr "Enter your name"
+
+msgid "請輸入手機號碼"
+msgstr "Enter your phone number"
+
+msgid "請輸入有效的台灣手機號碼（例如 0912345678）"
+msgstr "Please enter a valid Taiwan mobile number (e.g. 0912345678)"
+
+# --- Export ---
+msgid "匯出 CSV"
+msgstr "Export CSV"
